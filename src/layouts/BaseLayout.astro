@@ -115,15 +115,18 @@ const {
           const label = document.getElementById('transition-label');
           if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
           // Reveal: columns collapse right-to-left from right origin, staggered L→R
-          gsap.set('.pt-blind', { transformOrigin: 'right center' });
-          gsap.to('.pt-blind', {
-            scaleX: 0,
-            stagger: 0.06,
-            duration: 0.3,
-            ease: 'power2.inOut',
-            delay: 0.05,
-            onComplete: () => gsap.set('.pt-blind', { transformOrigin: 'left center' }),
-          });
+          gsap.killTweensOf('.pt-blind');
+          gsap.fromTo('.pt-blind',
+            { scaleX: 1, transformOrigin: 'right center' },
+            {
+              scaleX: 0,
+              stagger: 0.06,
+              duration: 0.3,
+              ease: 'power2.inOut',
+              delay: 0.05,
+              onComplete: () => gsap.set('.pt-blind', { transformOrigin: 'left center' }),
+            }
+          );
         });
 
         document.addEventListener('astro:page-load', () => {
@@ -194,7 +197,18 @@ const {
           try { url = new URL(href); } catch { return; }
           if (url.origin !== window.location.origin) return;
 
-          if (url.pathname === window.location.pathname && url.hash) return;
+          if (url.pathname === window.location.pathname && url.hash) {
+            e.preventDefault();
+            const target = document.querySelector(url.hash);
+            if (target) {
+              if ((window as any).lenis) {
+                (window as any).lenis.scrollTo(target, { duration: 1.2 });
+              } else {
+                target.scrollIntoView({ behavior: 'smooth' });
+              }
+            }
+            return;
+          }
 
           if (link.hasAttribute('data-logo-link') && url.pathname === window.location.pathname) {
             e.preventDefault();

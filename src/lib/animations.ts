@@ -177,7 +177,7 @@ export function initProjects() {
       trigger: '.projects-section',
       pin: true,
       start: 'top top',
-      end: '+=150%',
+      end: '+=80%',
       anticipatePin: 1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {

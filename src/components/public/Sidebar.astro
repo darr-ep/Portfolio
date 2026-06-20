@@ -4,6 +4,31 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 const isEs = Astro.currentLocale !== 'en';
 const logoHref = getRelativeLocaleUrl(Astro.currentLocale ?? 'es', '/');
 
+const currentPath = Astro.url.pathname;
+
+// Compute the equivalent URL in each locale for the current page
+let esHref: string;
+let enHref: string;
+
+if (currentPath.startsWith('/en/projects/')) {
+  const slug = currentPath.replace('/en/projects/', '');
+  esHref = `/proyectos/${slug}`;
+  enHref = `/en/projects/${slug}`;
+} else if (currentPath.startsWith('/proyectos/')) {
+  const slug = currentPath.replace('/proyectos/', '');
+  esHref = `/proyectos/${slug}`;
+  enHref = `/en/projects/${slug}`;
+} else if (currentPath === '/cv') {
+  esHref = '/cv';
+  enHref = '/en/cv';
+} else if (currentPath === '/en/cv') {
+  esHref = '/cv';
+  enHref = '/en/cv';
+} else {
+  esHref = '/';
+  enHref = '/en/';
+}
+
 const navLinks = isEs
   ? [
       { href: '/#proyectos', label: 'PROYECTOS' },
@@ -52,9 +77,9 @@ const navLinks = isEs
 
     <!-- Language switcher -->
     <div class="lang-selector lang-switcher" role="navigation" aria-label="Language selector">
-      <a href={getRelativeLocaleUrl('es', '/')} class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
+      <a href={esHref} class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
       <span class="divider" aria-hidden="true">/</span>
-      <a href={getRelativeLocaleUrl('en', '/')} class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
+      <a href={enHref} class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
     </div>
 
     <!-- Social links -->
@@ -165,7 +190,8 @@ const navLinks = isEs
     text-decoration: none;
     transition: color 0.3s ease;
     display: inline-block;
-    writing-mode: vertical-lr;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
     white-space: nowrap;
     padding: 0.3rem 0;
   }
