@@ -9,6 +9,8 @@ interface Props {
   description?: string;
   image?: string;
   lang?: string;
+  includePersonSchema?: boolean;
+  includeWebPageSchema?: boolean;
 }
 
 const {
@@ -16,6 +18,8 @@ const {
   description = 'Portfolio personal de Edson Pedraza. Frontend Developer especializado en crear experiencias web interactivas y memorables.',
   image,
   lang = 'es',
+  includePersonSchema = false,
+  includeWebPageSchema = false,
 } = Astro.props;
 ---
 <html lang={Astro.currentLocale ?? lang ?? 'es'}>
@@ -33,7 +37,7 @@ const {
         }
       })();
     </script>
-    <SEO title={title} description={description} image={image} lang={lang} />
+    <SEO title={title} description={description} image={image} lang={lang} includePersonSchema={includePersonSchema} includeWebPageSchema={includeWebPageSchema} />
     <ClientRouter />
   </head>
   <body>

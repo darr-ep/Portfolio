@@ -7,6 +7,7 @@ interface Props {
   url?: string;
   type?: 'website' | 'article';
   includePersonSchema?: boolean;
+  includeWebPageSchema?: boolean;
 }
 
 const {
@@ -17,6 +18,7 @@ const {
   url,
   type = 'website',
   includePersonSchema = false,
+  includeWebPageSchema = false,
 } = Astro.props;
 
 const siteUrl = 'https://edsonpedraza.com';
@@ -35,6 +37,15 @@ const personSchema = {
     'https://github.com/darr-ep',
     'https://www.linkedin.com/in/edson-pedraza/',
   ],
+};
+
+const webPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  url: canonicalUrl,
+  name: title,
+  description,
+  image: ogImage,
 };
 ---
 <title>{title}</title>
@@ -63,4 +74,8 @@ const personSchema = {
 
 {includePersonSchema && (
   <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+)}
+
+{includeWebPageSchema && (
+  <script type="application/ld+json" set:html={JSON.stringify(webPageSchema)} />
 )}

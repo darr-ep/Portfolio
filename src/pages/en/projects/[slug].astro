@@ -24,7 +24,7 @@ const description = project.description_en;
 const content = project.detailed_content_en ?? '';
 ---
 
-<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={project.main_image ?? undefined}>
+<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={project.main_image ?? undefined} includeWebPageSchema={true}>
   <div class="project-detail">
     <div class="project-detail__header">
       <a href="/en/#proyectos" class="back-link">
