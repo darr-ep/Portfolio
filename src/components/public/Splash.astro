@@ -215,13 +215,10 @@
     // 3. Hide text, show "Ready :)"
     splashTl.to('#splash-text-container', { display: 'none', duration: 0 });
 
-    splashTl.to('#splash-ready', {
-      scale: 1,
-      opacity: 1,
-      duration: 0.5,
-      ease: 'back.out(2)',
-      from: { scale: 0.8, opacity: 0 }
-    });
+    splashTl.fromTo('#splash-ready',
+      { scale: 0.8, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' }
+    );
 
     splashTl.to({}, { duration: 0.8 });
 

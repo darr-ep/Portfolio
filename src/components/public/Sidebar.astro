@@ -317,25 +317,9 @@ const navLinks = isEs
   initTheme();
   document.addEventListener('astro:after-swap', initTheme);
 
-  // Logo smart click
-  const logoLink = document.querySelector<HTMLAnchorElement>('[data-logo-link]');
-  if (logoLink) {
-    logoLink.addEventListener('click', (e: MouseEvent) => {
-      e.preventDefault();
-      const isHome = window.location.pathname === '/' || window.location.pathname === '/es/' || window.location.pathname === '/es';
-      if (isHome) {
-        // On landing: scroll to top
-        if ((window as any).lenis) {
-          (window as any).lenis.scrollTo(0, { duration: 1.5 });
-        } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      } else {
-        // On other pages: venetian blinds → navigate home
-        runLangTransition('/');
-      }
-    });
-  }
+  // Logo click is handled by the global interceptor in BaseLayout:
+  // - On home page: scrolls to top
+  // - On other pages: venetian blinds → navigate home
 
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', (e: MouseEvent) => {
