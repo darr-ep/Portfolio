@@ -9,18 +9,18 @@ const isEs = lang === 'es';
 
 const navLinks = isEs
   ? [
-      { href: '#proyectos', label: 'PROYECTOS' },
-      { href: '#servicios', label: 'SERVICIOS' },
-      { href: '#trayectoria', label: 'TRAYECTORIA' },
-      { href: '#detalles', label: 'DETALLES' },
-      { href: '#contacto', label: 'CONTACTO' },
+      { href: '/#proyectos', label: 'PROYECTOS' },
+      { href: '/#servicios', label: 'SERVICIOS' },
+      { href: '/#trayectoria', label: 'TRAYECTORIA' },
+      { href: '/#detalles', label: 'DETALLES' },
+      { href: '/#contacto', label: 'CONTACTO' },
     ]
   : [
-      { href: '#projects', label: 'PROJECTS' },
-      { href: '#services', label: 'SERVICES' },
-      { href: '#experience', label: 'EXPERIENCE' },
-      { href: '#details', label: 'DETAILS' },
-      { href: '#contact', label: 'CONTACT' },
+      { href: '/en/#projects', label: 'PROJECTS' },
+      { href: '/en/#services', label: 'SERVICES' },
+      { href: '/en/#experience', label: 'EXPERIENCE' },
+      { href: '/en/#details', label: 'DETAILS' },
+      { href: '/en/#contact', label: 'CONTACT' },
     ];
 ---
 
@@ -152,11 +152,8 @@ const navLinks = isEs
   .nav-list {
     list-style: none;
     display: flex;
-    flex-direction: row;
-    gap: 2.5rem;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    white-space: nowrap;
+    flex-direction: column;
+    gap: 1.6rem;
     align-items: center;
     padding: 0;
     margin: 0;
@@ -164,14 +161,16 @@ const navLinks = isEs
 
   .nav-list li a {
     font-family: var(--font-ui);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 400;
     letter-spacing: 0.15em;
     color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.3s ease;
     display: inline-block;
-    padding: 0.5rem 0;
+    writing-mode: vertical-lr;
+    white-space: nowrap;
+    padding: 0.3rem 0;
   }
 
   .nav-list li a:hover {
@@ -337,36 +336,6 @@ const navLinks = isEs
       }
     });
   }
-
-  // Language switcher transition
-  function runLangTransition(href: string, label?: string) {
-    const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
-    const labelEl = document.getElementById('lang-transition-label');
-
-    if (labelEl && label) {
-      labelEl.textContent = label;
-      gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.15 });
-    }
-
-    gsap.to(blinds, {
-      scaleY: 1,
-      stagger: 0.06,
-      duration: 0.28,
-      ease: 'power2.inOut',
-      onComplete: () => { window.location.href = href; }
-    });
-  }
-
-  document.querySelectorAll<HTMLAnchorElement>('.lang-switcher a').forEach((link) => {
-    link.addEventListener('click', (e: MouseEvent) => {
-      const currentLang = document.documentElement.lang;
-      const href = link.href;
-      const targetLabel = href.includes('/en') ? 'EN' : 'ES';
-      if (link.classList.contains('active')) return;
-      e.preventDefault();
-      runLangTransition(href, targetLabel);
-    });
-  });
 
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', (e: MouseEvent) => {

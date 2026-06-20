@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface SpotifyData {
   listening_to_spotify: boolean;
@@ -12,8 +12,12 @@ interface SpotifyData {
 
 const DISCORD_USER_ID = '683077987020832778';
 
+type WidgetMode = 'hero' | 'fading-out' | 'floating' | 'fading-in-hero';
+
 export default function SpotifyWidget() {
   const [data, setData] = useState<SpotifyData | null>(null);
+  const [mode, setMode] = useState<WidgetMode>('hero');
+  const modeRef = useRef<WidgetMode>('hero');
 
   useEffect(() => {
     const fetchSpotify = async () => {
@@ -21,10 +25,7 @@ export default function SpotifyWidget() {
         const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`);
         const json = await res.json();
         if (json.success) {
-          setData({
-            listening_to_spotify: json.data.listening_to_spotify,
-            spotify: json.data.spotify,
-          });
+          setData({ listening_to_spotify: json.data.listening_to_spotify, spotify: json.data.spotify });
         } else {
           setData({ listening_to_spotify: false, spotify: null });
         }
@@ -35,18 +36,60 @@ export default function SpotifyWidget() {
 
     fetchSpotify();
     const interval = setInterval(fetchSpotify, 6000);
-    return () => clearInterval(interval);
+
+    const THRESHOLD = 120;
+    const handleScroll = () => {
+      const scrolled = window.scrollY > THRESHOLD;
+      const current = modeRef.current;
+
+      if (scrolled && (current === 'hero' || current === 'fading-in-hero')) {
+        modeRef.current = 'fading-out';
+        setMode('fading-out');
+        setTimeout(() => {
+          modeRef.current = 'floating';
+          setMode('floating');
+        }, 380);
+      } else if (!scrolled && current === 'floating') {
+        modeRef.current = 'fading-out';
+        setMode('fading-out');
+        setTimeout(() => {
+          modeRef.current = 'hero';
+          setMode('hero');
+        }, 380);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   if (!data) return null;
 
   const { listening_to_spotify, spotify } = data;
 
-  // Always fixed at bottom-left — opacity starts at 0, GSAP animates it in via .spotify-slot
-  const widgetStyle: React.CSSProperties = {
-    position: 'relative',
-    display: 'inline-block',
-  };
+  const isFloating = mode === 'floating';
+  const opacity = mode === 'fading-out' ? 0 : 1;
+  const scale = mode === 'fading-out' ? 0.92 : 1;
+
+  const widgetStyle: React.CSSProperties = isFloating
+    ? {
+        position: 'fixed',
+        bottom: '2rem',
+        right: '2rem',
+        zIndex: 997,
+        opacity,
+        transform: `scale(${scale})`,
+        transition: 'opacity 0.35s ease, transform 0.35s ease',
+      }
+    : {
+        position: 'relative',
+        opacity,
+        transform: `scale(${scale})`,
+        transition: 'opacity 0.35s ease, transform 0.35s ease',
+      };
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',

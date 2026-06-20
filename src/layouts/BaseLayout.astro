@@ -121,16 +121,79 @@ const {
         if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
       }, { passive: true });
 
-      // Language transition — open blinds on initial load
-      const langBlinds = document.querySelectorAll('.lang-blind');
+      // Disable default View Transitions crossfade — our venetian blinds handle all transitions
+      const styleEl = document.createElement('style');
+      styleEl.textContent = `
+        ::view-transition-old(root), ::view-transition-new(root) {
+          animation: none !important;
+          mix-blend-mode: normal !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
+
+      // Venetian blinds init — always start closed (hidden)
+      const langBlinds = document.querySelectorAll<HTMLElement>('.lang-blind');
       gsap.set(langBlinds, { scaleY: 0 });
 
-      // Open blinds after View Transition swap
+      // After every ClientRouter navigation: open the blinds
       document.addEventListener('astro:after-swap', () => {
-        const blinds = document.querySelectorAll('.lang-blind');
+        const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
         const label = document.getElementById('lang-transition-label');
         gsap.to(blinds, { scaleY: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', delay: 0.05 });
         if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
+      });
+
+      // Global navigation interceptor — venetian blinds for ALL internal links
+      async function runNavTransition(href: string, label?: string) {
+        const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
+        const labelEl = document.getElementById('lang-transition-label');
+
+        if (label && labelEl) {
+          labelEl.textContent = label;
+          gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.1 });
+        }
+
+        await new Promise<void>((resolve) => {
+          gsap.to(blinds, {
+            scaleY: 1,
+            stagger: 0.06,
+            duration: 0.25,
+            ease: 'power2.inOut',
+            onComplete: resolve,
+          });
+        });
+
+        // Use Astro's navigate() so ClientRouter handles the page swap (no full reload)
+        const { navigate } = await import('astro:transitions/client');
+        await navigate(href);
+      }
+
+      document.addEventListener('click', (e: MouseEvent) => {
+        const link = (e.target as Element).closest<HTMLAnchorElement>('a[href]');
+        if (!link) return;
+
+        // Skip external, _blank, download
+        if (link.target === '_blank') return;
+        if (link.hasAttribute('download')) return;
+
+        const href = link.href;
+        if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+        let url: URL;
+        try { url = new URL(href); } catch { return; }
+        if (url.origin !== window.location.origin) return;
+
+        // Pure same-page hash (no path change) → let Lenis handle smooth scroll
+        if (url.pathname === window.location.pathname && url.hash) return;
+
+        // Check if it's a lang switcher link
+        const isLangSwitch = !!link.closest('.lang-switcher');
+        const switchLabel = isLangSwitch
+          ? (href.includes('/en') ? 'EN' : 'ES')
+          : undefined;
+
+        e.preventDefault();
+        runNavTransition(href, switchLabel);
       });
     </script>
 
