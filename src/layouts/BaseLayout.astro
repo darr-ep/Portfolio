@@ -117,11 +117,17 @@ const {
 
         document.addEventListener('astro:after-swap', () => {
           lenis?.start();
-          ScrollTrigger.refresh();
           const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
           const label = document.getElementById('lang-transition-label');
           gsap.to(blinds, { scaleY: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', delay: 0.05 });
           if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
+        });
+
+        // astro:page-load fires after all component scripts have run — the correct
+        // moment to refresh ScrollTrigger so triggers calculate their positions correctly.
+        // astro:after-swap fires BEFORE scripts, so any refresh there is too early.
+        document.addEventListener('astro:page-load', () => {
+          ScrollTrigger.refresh();
         });
 
         // Reading progress bar
