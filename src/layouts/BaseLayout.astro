@@ -74,6 +74,10 @@ const {
         (window as any).__appInitialized = true;
         let isFirstLoad = true;
 
+        // Holds a promise that resolves when the exit animation finishes.
+        // astro:before-swap waits on it before swapping the DOM.
+        let _animLock: Promise<void> | null = null;
+
         createLenis();
 
         document.addEventListener('astro:before-swap', (e) => {
@@ -83,6 +87,16 @@ const {
             const incoming = (e as any).newDocument as Document | undefined;
             const splashEl = incoming?.getElementById('splash-screen');
             if (splashEl) (splashEl as HTMLElement).style.display = 'none';
+          }
+          // If an exit animation is running, defer the DOM swap until it finishes.
+          if (_animLock) {
+            const originalSwap = (e as any).swap as () => void;
+            const lock = _animLock;
+            _animLock = null;
+            (e as any).swap = async () => {
+              await lock;
+              originalSwap();
+            };
           }
         });
 
@@ -123,7 +137,7 @@ const {
           if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
         }, { passive: true });
 
-        async function runNavTransition(href: string, label?: string) {
+        function runNavTransition(href: string, label?: string) {
           const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
           const labelEl = document.getElementById('lang-transition-label');
 
@@ -134,7 +148,9 @@ const {
 
           exitAnimation();
 
-          await new Promise<void>((resolve) => {
+          // Lock: the before-swap handler will wait for this before swapping the DOM.
+          // Navigate fires immediately in parallel — fetch and animation race together.
+          _animLock = new Promise<void>((resolve) => {
             gsap.to(blinds, {
               scaleY: 1,
               stagger: 0.06,
@@ -144,7 +160,7 @@ const {
             });
           });
 
-          await navigate(href);
+          navigate(href);
         }
 
         (window as any).__runNavTransition = runNavTransition;

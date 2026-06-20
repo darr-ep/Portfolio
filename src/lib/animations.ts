@@ -47,26 +47,32 @@ export function killPageAnimations() {
 export function exitAnimation() {
   const tl = gsap.timeline();
 
-  if (document.querySelector('.title-inner')) {
-    tl.to('.title-inner', { y: '-100%', stagger: 0.04, duration: 0.2, ease: 'power2.in', overwrite: true }, 0);
+  if (document.querySelector('.hero')) {
+    if (document.querySelector('.title-inner')) {
+      tl.to('.title-inner', { y: '-100%', stagger: 0.04, duration: 0.2, ease: 'power2.in', overwrite: true }, 0);
+    }
+    if (document.querySelector('.header-name')) {
+      tl.to('.header-name', { opacity: 0, y: -8, duration: 0.15, ease: 'power2.in', overwrite: true }, 0);
+    }
+    if (document.querySelector('.scroll-explore')) {
+      tl.to('.scroll-explore', { opacity: 0, duration: 0.12, overwrite: true }, 0);
+    }
+    if (document.querySelector('.img-bg')) {
+      tl.to('.img-bg', { opacity: 0, scale: 1.03, duration: 0.2, overwrite: true }, 0);
+    }
+    if (document.querySelector('.img-fg')) {
+      tl.to('.img-fg', { opacity: 0, duration: 0.2, overwrite: true }, 0);
+    }
+    if (document.querySelector('.spotify-slot')) {
+      tl.to('.spotify-slot', { opacity: 0, scale: 0.95, duration: 0.15, overwrite: true }, 0);
+    }
+  } else {
+    // Generic exit for non-hero pages (project detail, etc.)
+    tl.to('main > *', { opacity: 0, y: -20, duration: 0.22, ease: 'power2.in', stagger: 0.03, overwrite: true }, 0);
   }
-  if (document.querySelector('.header-name')) {
-    tl.to('.header-name', { opacity: 0, y: -8, duration: 0.15, ease: 'power2.in', overwrite: true }, 0);
-  }
-  if (document.querySelector('.scroll-explore')) {
-    tl.to('.scroll-explore', { opacity: 0, duration: 0.12, overwrite: true }, 0);
-  }
-  if (document.querySelector('.img-bg')) {
-    tl.to('.img-bg', { opacity: 0, scale: 1.03, duration: 0.2, overwrite: true }, 0);
-  }
-  if (document.querySelector('.img-fg')) {
-    tl.to('.img-fg', { opacity: 0, duration: 0.2, overwrite: true }, 0);
-  }
+
   if (document.querySelector('.sidebar')) {
     tl.to('.sidebar', { opacity: 0, x: -15, duration: 0.2, overwrite: true }, 0);
-  }
-  if (document.querySelector('.spotify-slot')) {
-    tl.to('.spotify-slot', { opacity: 0, scale: 0.95, duration: 0.15, overwrite: true }, 0);
   }
 
   return tl;
