@@ -1,0 +1,134 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+// Placeholder until Phase 3 wires Supabase
+const project = {
+  title: slug?.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? 'Proyecto',
+  category: 'Aplicación Web',
+  description: 'Información detallada disponible próximamente.',
+  tech: ['React', 'Astro', 'TypeScript'],
+  slug,
+};
+---
+
+<BaseLayout title={`${project.title} — Edson Pedraza`} lang="es">
+  <div class="project-detail">
+    <div class="project-detail__header">
+      <a href="/#proyectos" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Volver a proyectos
+      </a>
+      <span class="project-detail__cat">{project.category}</span>
+    </div>
+
+    <h1 class="project-detail__title">{project.title}</h1>
+    <p class="project-detail__desc">{project.description}</p>
+
+    <div class="project-detail__tech">
+      {project.tech.map((t) => <span class="tech-tag">{t}</span>)}
+    </div>
+
+    <div class="project-detail__placeholder">
+      <p>Contenido completo disponible en Phase 3 (integración con Supabase).</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .project-detail {
+    padding: 8rem 5vw 6rem calc(80px + 5vw);
+    min-height: 100vh;
+    background: var(--bg-primary);
+  }
+
+  .project-detail__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 3rem;
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .back-link:hover { color: var(--accent); }
+
+  .project-detail__cat {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    border: 1px solid var(--accent);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2px;
+  }
+
+  .project-detail__title {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 6vw, 6rem);
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    line-height: 1;
+  }
+
+  .project-detail__desc {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .project-detail__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 4rem;
+  }
+
+  .tech-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  .project-detail__placeholder {
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 4rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    .project-detail {
+      padding: 5rem 1.5rem 4rem 1.5rem;
+    }
+  }
+</style>

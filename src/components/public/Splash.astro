@@ -163,7 +163,6 @@
         }
         const splash = document.getElementById('splash-screen');
         if (splash) splash.style.display = 'none';
-        window.dispatchEvent(new CustomEvent('splash:complete'));
       }
     });
 
@@ -228,7 +227,10 @@
 
     splashTl.to('#splash-ready', { opacity: 0, duration: 0.25 });
 
-    // 4. Venetian blind exit
+    // 4. Venetian blind exit — fire hero entrance at the START so they overlap
+    splashTl.add(() => {
+      window.dispatchEvent(new CustomEvent('splash:complete'));
+    });
     splashTl.to('.splash-blind', {
       scaleX: 0,
       stagger: 0.1,

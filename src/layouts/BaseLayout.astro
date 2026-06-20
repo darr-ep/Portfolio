@@ -38,6 +38,19 @@ const {
   </head>
   <body>
     <div class="noise-overlay" aria-hidden="true"></div>
+
+    <!-- Reading progress bar -->
+    <div id="progress-bar" aria-hidden="true"></div>
+
+    <!-- Language transition overlay (mini venetian blinds) -->
+    <div id="lang-transition" aria-hidden="true">
+      <div class="lang-blind"></div>
+      <div class="lang-blind"></div>
+      <div class="lang-blind"></div>
+      <div class="lang-blind"></div>
+      <span id="lang-transition-label"></span>
+    </div>
+
     <Sidebar lang={lang} />
     <main>
       <slot />
@@ -100,6 +113,73 @@ const {
 
       // Initial page load
       initLenis();
+
+      // Reading progress bar
+      const progressBar = document.getElementById('progress-bar');
+      window.addEventListener('scroll', () => {
+        const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
+      }, { passive: true });
+
+      // Language transition — open blinds on initial load
+      const langBlinds = document.querySelectorAll('.lang-blind');
+      gsap.set(langBlinds, { scaleY: 0 });
+
+      // Open blinds after View Transition swap
+      document.addEventListener('astro:after-swap', () => {
+        const blinds = document.querySelectorAll('.lang-blind');
+        const label = document.getElementById('lang-transition-label');
+        gsap.to(blinds, { scaleY: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', delay: 0.05 });
+        if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
+      });
     </script>
+
+    <style is:global>
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 80px;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 9997;
+        pointer-events: none;
+      }
+      @media (max-width: 768px) {
+        #progress-bar { left: 0; top: 60px; }
+      }
+
+      #lang-transition {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        pointer-events: none;
+      }
+      .lang-blind {
+        flex: 1;
+        background: var(--bg-primary);
+        transform: scaleY(0);
+        transform-origin: top;
+        will-change: transform;
+      }
+      .lang-blind:nth-child(even) { transform-origin: bottom; }
+      #lang-transition-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-heading);
+        font-size: clamp(3rem, 8vw, 6rem);
+        font-weight: 100;
+        color: var(--text-primary);
+        opacity: 0;
+        letter-spacing: 0.2em;
+        pointer-events: none;
+      }
+    </style>
   </body>
 </html>

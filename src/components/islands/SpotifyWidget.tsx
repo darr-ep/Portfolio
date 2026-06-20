@@ -14,7 +14,6 @@ const DISCORD_USER_ID = '683077987020832778';
 
 export default function SpotifyWidget() {
   const [data, setData] = useState<SpotifyData | null>(null);
-  const [isFloating, setIsFloating] = useState(false);
 
   useEffect(() => {
     const fetchSpotify = async () => {
@@ -36,42 +35,18 @@ export default function SpotifyWidget() {
 
     fetchSpotify();
     const interval = setInterval(fetchSpotify, 6000);
-
-    const handleScroll = () => {
-      setIsFloating(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   if (!data) return null;
 
   const { listening_to_spotify, spotify } = data;
 
-  const widgetStyle: React.CSSProperties = isFloating
-    ? {
-        position: 'fixed',
-        bottom: '2rem',
-        left: '100px',
-        zIndex: 1000,
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        transform: 'none',
-        transition: 'all 0.85s cubic-bezier(0.25, 1, 0.5, 1)',
-      }
-    : {
-        position: 'fixed',
-        top: '6.8rem',
-        left: 'calc(80px + 0.6 * (100vw - 80px) - 5vw)',
-        zIndex: 1000,
-        transform: 'translateX(-100%)',
-        transition: 'all 0.85s cubic-bezier(0.25, 1, 0.5, 1)',
-      };
+  // Always fixed at bottom-left — opacity starts at 0, GSAP animates it in via .spotify-slot
+  const widgetStyle: React.CSSProperties = {
+    position: 'relative',
+    display: 'inline-block',
+  };
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',

@@ -27,7 +27,7 @@ const navLinks = isEs
 <aside class="sidebar" aria-label="Site navigation">
   <!-- Logo -->
   <div class="logo">
-    <a href="/" aria-label="Home — Edson Pedraza">
+    <a href="/" class="logo-link" aria-label="Home — Edson Pedraza" data-logo-link>
       <img src="/assets/Logo-Dark.png" alt="Edson Pedraza" class="logo-img logo-dark" />
       <img src="/assets/Logo-Light.png" alt="Edson Pedraza" class="logo-img logo-light" />
     </a>
@@ -54,7 +54,7 @@ const navLinks = isEs
     </button>
 
     <!-- Language switcher -->
-    <div class="lang-selector" role="navigation" aria-label="Language selector">
+    <div class="lang-selector lang-switcher" role="navigation" aria-label="Language selector">
       <a href="/" class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
       <span class="divider" aria-hidden="true">/</span>
       <a href="/en/" class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
@@ -297,6 +297,8 @@ const navLinks = isEs
 </style>
 
 <script>
+  import gsap from 'gsap';
+
   const SUN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.77" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
   const MOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
 
@@ -315,6 +317,56 @@ const navLinks = isEs
 
   initTheme();
   document.addEventListener('astro:after-swap', initTheme);
+
+  // Logo smart click
+  const logoLink = document.querySelector<HTMLAnchorElement>('[data-logo-link]');
+  if (logoLink) {
+    logoLink.addEventListener('click', (e: MouseEvent) => {
+      e.preventDefault();
+      const isHome = window.location.pathname === '/' || window.location.pathname === '/es/' || window.location.pathname === '/es';
+      if (isHome) {
+        // On landing: scroll to top
+        if ((window as any).lenis) {
+          (window as any).lenis.scrollTo(0, { duration: 1.5 });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else {
+        // On other pages: venetian blinds → navigate home
+        runLangTransition('/');
+      }
+    });
+  }
+
+  // Language switcher transition
+  function runLangTransition(href: string, label?: string) {
+    const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
+    const labelEl = document.getElementById('lang-transition-label');
+
+    if (labelEl && label) {
+      labelEl.textContent = label;
+      gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.15 });
+    }
+
+    gsap.to(blinds, {
+      scaleY: 1,
+      stagger: 0.06,
+      duration: 0.28,
+      ease: 'power2.inOut',
+      onComplete: () => { window.location.href = href; }
+    });
+  }
+
+  document.querySelectorAll<HTMLAnchorElement>('.lang-switcher a').forEach((link) => {
+    link.addEventListener('click', (e: MouseEvent) => {
+      const currentLang = document.documentElement.lang;
+      const href = link.href;
+      const targetLabel = href.includes('/en') ? 'EN' : 'ES';
+      if (link.classList.contains('active')) return;
+      e.preventDefault();
+      runLangTransition(href, targetLabel);
+    });
+  });
 
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', (e: MouseEvent) => {
