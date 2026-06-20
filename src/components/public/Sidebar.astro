@@ -1,11 +1,8 @@
 ---
-interface Props {
-  lang?: string;
-}
+import { getRelativeLocaleUrl } from 'astro:i18n';
 
-const { lang = 'es' } = Astro.props;
-
-const isEs = lang === 'es';
+const isEs = Astro.currentLocale !== 'en';
+const logoHref = getRelativeLocaleUrl(Astro.currentLocale ?? 'es', '/');
 
 const navLinks = isEs
   ? [
@@ -16,18 +13,18 @@ const navLinks = isEs
       { href: '/#contacto', label: 'CONTACTO' },
     ]
   : [
-      { href: '/en/#projects', label: 'PROJECTS' },
-      { href: '/en/#services', label: 'SERVICES' },
-      { href: '/en/#experience', label: 'EXPERIENCE' },
-      { href: '/en/#details', label: 'DETAILS' },
-      { href: '/en/#contact', label: 'CONTACT' },
+      { href: '/en/#proyectos', label: 'PROJECTS' },
+      { href: '/en/#servicios', label: 'SERVICES' },
+      { href: '/en/#trayectoria', label: 'EXPERIENCE' },
+      { href: '/en/#detalles', label: 'DETAILS' },
+      { href: '/en/#contacto', label: 'CONTACT' },
     ];
 ---
 
 <aside class="sidebar" aria-label="Site navigation">
   <!-- Logo -->
   <div class="logo">
-    <a href="/" class="logo-link" aria-label="Home — Edson Pedraza" data-logo-link>
+    <a href={logoHref} class="logo-link" aria-label="Home — Edson Pedraza" data-logo-link>
       <img src="/assets/Logo-Dark.png" alt="Edson Pedraza" class="logo-img logo-dark" />
       <img src="/assets/Logo-Light.png" alt="Edson Pedraza" class="logo-img logo-light" />
     </a>
@@ -55,9 +52,9 @@ const navLinks = isEs
 
     <!-- Language switcher -->
     <div class="lang-selector lang-switcher" role="navigation" aria-label="Language selector">
-      <a href="/" class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
+      <a href={getRelativeLocaleUrl('es', '/')} class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
       <span class="divider" aria-hidden="true">/</span>
-      <a href="/en/" class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
+      <a href={getRelativeLocaleUrl('en', '/')} class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
     </div>
 
     <!-- Social links -->

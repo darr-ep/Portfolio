@@ -8,12 +8,13 @@ const { data: projectsData } = await supabase
   .order('sort_order', { ascending: true });
 
 const FALLBACK_IMAGES = ['/assets/Proyecto 1.png', '/assets/Proyecto 2.png', '/assets/Proyecto 3.png'];
+const lang = Astro.currentLocale ?? 'es';
 
 const projects = (projectsData ?? []).map((p: Project, i: number) => ({
   id: p.id,
-  title: p.title_es,
-  category: p.category_es,
-  description: p.description_es,
+  title: lang === 'en' ? p.title_en : p.title_es,
+  category: lang === 'en' ? p.category_en : p.category_es,
+  description: lang === 'en' ? p.description_en : p.description_es,
   tech: p.tech ?? [],
   image: p.main_image ?? FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
   slug: p.slug,
