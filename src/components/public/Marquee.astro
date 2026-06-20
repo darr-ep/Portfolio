@@ -24,24 +24,6 @@ const items = [...words, ...words, ...words];
   </div>
 </div>
 
-<script>
-  import gsap from 'gsap';
-  import ScrollTrigger from 'gsap/ScrollTrigger';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  gsap.to('.marquee-inner', {
-    x: '-61%',
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '.marquee',
-      scrub: 0.6,
-      start: 'top bottom',
-      end: 'bottom top',
-      invalidateOnRefresh: true,
-    }
-  });
-</script>
 
 <style>
   .marquee {

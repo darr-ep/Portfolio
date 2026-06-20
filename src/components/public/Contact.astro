@@ -89,31 +89,6 @@
 </section>
 
 <script>
-  import gsap from 'gsap';
-  import ScrollTrigger from 'gsap/ScrollTrigger';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  // ---- Scroll reveal ----
-  gsap.set('.reveal-contact-info', { opacity: 0, y: 50 });
-  gsap.set('.reveal-contact-form', { opacity: 0, y: 50 });
-
-  gsap.to('.reveal-contact-info', {
-    opacity: 1,
-    y: 0,
-    duration: 1.2,
-    ease: 'power3.out',
-    scrollTrigger: { trigger: '.contact-layout', start: 'top 85%' },
-  });
-
-  gsap.to('.reveal-contact-form', {
-    opacity: 1,
-    y: 0,
-    duration: 1.2,
-    ease: 'power3.out',
-    scrollTrigger: { trigger: '.contact-layout', start: 'top 85%' },
-  });
-
   // ---- Auto-resize textarea ----
   const textarea = document.getElementById('contact-message') as HTMLTextAreaElement | null;
   if (textarea) {

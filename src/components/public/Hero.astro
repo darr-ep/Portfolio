@@ -79,40 +79,6 @@ import SpotifyWidget from '../islands/SpotifyWidget.tsx';
 </section>
 
 <script>
-  import gsap from 'gsap';
-
-  const splashDone = !!(window as any).__splashDone;
-
-  if (splashDone) {
-    // Navigating back to home via ClientRouter — show everything immediately,
-    // no splash animation will fire again.
-    gsap.set('.img-bg', { scale: 1, opacity: 1, clearProps: 'transform' });
-    gsap.set('.img-fg', { x: 0, scale: 1, opacity: 1, clearProps: 'transform' });
-    gsap.set('.title-inner', { y: '0%' });
-    gsap.set('.sidebar', { opacity: 1, x: 0 });
-    gsap.set('.header-name', { opacity: 1, y: 0 });
-    gsap.set('.spotify-slot', { opacity: 1, scale: 1 });
-  } else {
-    // Initial page load — hide elements until splash:complete fires
-    gsap.set('.img-bg', { scale: 1.08, opacity: 0 });
-    gsap.set('.img-fg', { x: 30, scale: 1.05, opacity: 0 });
-    gsap.set('.title-inner', { y: '100%' });
-    gsap.set('.sidebar', { opacity: 0, x: -20 });
-    gsap.set('.header-name', { opacity: 0, y: -10 });
-    gsap.set('.spotify-slot', { opacity: 0, scale: 0.95 });
-
-    window.addEventListener('splash:complete', () => {
-      const tl = gsap.timeline();
-      tl.to('.sidebar', { opacity: 1, x: 0, duration: 0.8, ease: 'power2.out' }, 0)
-        .to('.img-bg', { scale: 1, opacity: 1, duration: 1.8, ease: 'power2.out' }, 0)
-        .to('.header-name', { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0.2)
-        .to('.img-fg', { x: 0, scale: 1, opacity: 1, duration: 1.6, ease: 'power2.out' }, 0.2)
-        .to('.title-inner', { y: '0%', stagger: 0.18, duration: 1, ease: 'power3.out' }, 0.4)
-        .to('.spotify-slot', { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)' }, 0.6)
-        .from('.scroll-explore', { opacity: 0, y: 12, duration: 0.7 }, 0.7);
-    }, { once: true });
-  }
-
   // Live clock
   function updateTime() {
     const el = document.getElementById('live-time');
@@ -123,8 +89,9 @@ import SpotifyWidget from '../islands/SpotifyWidget.tsx';
   }
   updateTime();
   const clockInterval = setInterval(updateTime, 1000);
+  document.addEventListener('astro:before-swap', () => clearInterval(clockInterval), { once: true });
 
-  // Scroll button smooth scroll via Lenis
+  // Scroll button — delegates smooth scroll to Lenis if available
   const scrollBtn = document.querySelector('.scroll-btn');
   scrollBtn?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -138,10 +105,6 @@ import SpotifyWidget from '../islands/SpotifyWidget.tsx';
       target.scrollIntoView({ behavior: 'smooth' });
     }
   });
-
-  document.addEventListener('astro:before-swap', () => {
-    clearInterval(clockInterval);
-  }, { once: true });
 </script>
 
 <style>

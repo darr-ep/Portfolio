@@ -66,38 +66,6 @@ const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) =
   </div>
 </section>
 
-<script>
-  import gsap from 'gsap';
-  import ScrollTrigger from 'gsap/ScrollTrigger';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  // Initial hidden state
-  gsap.set('.reveal-details-left', { opacity: 0, x: -50 });
-  gsap.set('.reveal-details-right', { opacity: 0, x: 50 });
-
-  gsap.to('.reveal-details-left', {
-    opacity: 1,
-    x: 0,
-    duration: 1.4,
-    ease: 'power3.out',
-    scrollTrigger: {
-      trigger: '.details-layout',
-      start: 'top 80%',
-    },
-  });
-
-  gsap.to('.reveal-details-right', {
-    opacity: 1,
-    x: 0,
-    duration: 1.4,
-    ease: 'power3.out',
-    scrollTrigger: {
-      trigger: '.details-layout',
-      start: 'top 80%',
-    },
-  });
-</script>
 
 <style>
   .details-section {

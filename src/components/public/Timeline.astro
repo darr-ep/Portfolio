@@ -52,41 +52,6 @@ const entries = (timelineData ?? []).map((t: TimelineEntry) => ({
   </div>
 </section>
 
-<script>
-  import gsap from 'gsap';
-  import ScrollTrigger from 'gsap/ScrollTrigger';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  // Initial state for line and items
-  gsap.set('.timeline-line-fill', { scaleY: 0 });
-
-  // Line draw animation
-  gsap.to('.timeline-line-fill', {
-    scaleY: 1,
-    transformOrigin: 'top center',
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '.timeline',
-      scrub: true,
-      start: 'top center',
-      end: 'bottom center',
-    },
-  });
-
-  // Card reveal on scroll
-  gsap.from('.timeline-item', {
-    opacity: 0,
-    y: 30,
-    stagger: 0.2,
-    scrollTrigger: {
-      trigger: '.timeline',
-      start: 'top 80%',
-      end: 'bottom 20%',
-      scrub: 0.5,
-    },
-  });
-</script>
 
 <style>
   .timeline {

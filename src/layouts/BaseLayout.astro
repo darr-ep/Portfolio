@@ -58,56 +58,27 @@ const {
 
     <script>
       import gsap from 'gsap';
-      import ScrollTrigger from 'gsap/ScrollTrigger';
-      import CustomEase from 'gsap/CustomEase';
-      import Lenis from 'lenis';
       import { navigate } from 'astro:transitions/client';
+      import {
+        ScrollTrigger,
+        createLenis,
+        destroyLenis,
+        killPageAnimations,
+        exitAnimation,
+        enterAnimation,
+        heroEnterFromSplash,
+        initPageAnimations,
+      } from '../lib/animations';
 
-      gsap.registerPlugin(ScrollTrigger, CustomEase);
-
-      // Guard: Astro ClientRouter re-executes component scripts on every navigation.
-      // All one-time setup (listeners, Lenis init) must be registered exactly once.
       if (!(window as any).__appInitialized) {
         (window as any).__appInitialized = true;
+        let isFirstLoad = true;
 
-        let lenis: Lenis | null = null;
-
-        function initLenis() {
-          lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          });
-
-          function raf(time: number) {
-            lenis!.raf(time);
-            requestAnimationFrame(raf);
-          }
-          requestAnimationFrame(raf);
-
-          lenis.on('scroll', ScrollTrigger.update);
-
-          ScrollTrigger.scrollerProxy(document.body, {
-            scrollTop(value?: number) {
-              if (arguments.length && lenis && value !== undefined) {
-                lenis.scrollTo(value);
-              }
-              return window.scrollY;
-            },
-            getBoundingClientRect() {
-              return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-            },
-          });
-
-          (window as any).lenis = lenis;
-        }
-
-        initLenis();
+        createLenis();
 
         document.addEventListener('astro:before-swap', (e) => {
-          ScrollTrigger.getAll().forEach((st) => st.kill());
-          lenis?.stop();
-          // Hide splash in the incoming document before the swap so it never paints.
-          // is:inline deduplication makes in-component hiding unreliable across navigations.
+          killPageAnimations();
+          destroyLenis();
           if ((window as any).__splashDone) {
             const incoming = (e as any).newDocument as Document | undefined;
             const splashEl = incoming?.getElementById('splash-screen');
@@ -116,28 +87,42 @@ const {
         });
 
         document.addEventListener('astro:after-swap', () => {
-          lenis?.start();
+          createLenis();
           const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
           const label = document.getElementById('lang-transition-label');
           gsap.to(blinds, { scaleY: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', delay: 0.05 });
           if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
         });
 
-        // astro:page-load fires after all component scripts have run — the correct
-        // moment to refresh ScrollTrigger so triggers calculate their positions correctly.
-        // astro:after-swap fires BEFORE scripts, so any refresh there is too early.
         document.addEventListener('astro:page-load', () => {
+          initPageAnimations();
           ScrollTrigger.refresh();
+
+          if (!isFirstLoad) {
+            enterAnimation();
+          } else {
+            // Pre-hide hero elements while splash covers the screen — prevents 1-frame flash
+            if (document.querySelector('.hero')) {
+              gsap.set('.img-bg', { scale: 1.08, opacity: 0 });
+              gsap.set('.img-fg', { x: 30, scale: 1.05, opacity: 0 });
+              gsap.set('.title-inner', { y: '100%' });
+              gsap.set('.sidebar', { opacity: 0, x: -20 });
+              gsap.set('.header-name', { opacity: 0, y: -10 });
+              gsap.set('.spotify-slot', { opacity: 0, scale: 0.95 });
+            }
+            window.addEventListener('splash:complete', () => {
+              heroEnterFromSplash();
+            }, { once: true });
+          }
+          isFirstLoad = false;
         });
 
-        // Reading progress bar
         window.addEventListener('scroll', () => {
           const progressBar = document.getElementById('progress-bar');
           const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
           if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
         }, { passive: true });
 
-        // Venetian blinds transition — used for ALL internal navigation
         async function runNavTransition(href: string, label?: string) {
           const blinds = document.querySelectorAll<HTMLElement>('.lang-blind');
           const labelEl = document.getElementById('lang-transition-label');
@@ -146,6 +131,8 @@ const {
             labelEl.textContent = label;
             gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.1 });
           }
+
+          exitAnimation();
 
           await new Promise<void>((resolve) => {
             gsap.to(blinds, {
@@ -160,7 +147,6 @@ const {
           await navigate(href);
         }
 
-        // Expose so Sidebar logo handler can reach it without re-defining
         (window as any).__runNavTransition = runNavTransition;
 
         document.addEventListener('click', (e: MouseEvent) => {
@@ -176,10 +162,8 @@ const {
           try { url = new URL(href); } catch { return; }
           if (url.origin !== window.location.origin) return;
 
-          // Pure same-page hash → let Lenis handle smooth scroll
           if (url.pathname === window.location.pathname && url.hash) return;
 
-          // Logo on home page → scroll to top instead of navigating
           if (link.hasAttribute('data-logo-link') && url.pathname === window.location.pathname) {
             e.preventDefault();
             if ((window as any).lenis) {
@@ -200,7 +184,6 @@ const {
         });
       }
 
-      // Blinds always start closed — runs every page load to reset state
       const langBlinds = document.querySelectorAll<HTMLElement>('.lang-blind');
       gsap.set(langBlinds, { scaleY: 0 });
     </script>
