@@ -206,13 +206,15 @@ const {
             return;
           }
 
-          const isLangSwitch = !!link.closest('.lang-switcher');
+          const dataLabel = link.getAttribute('data-transition-label') ?? undefined;
+          const isLangSwitch = !dataLabel && !!link.closest('.lang-switcher');
           const switchLabel = isLangSwitch
             ? (href.includes('/en') ? 'EN' : 'ES')
             : undefined;
+          const label = dataLabel ?? switchLabel;
 
           e.preventDefault();
-          runNavTransition(href, switchLabel);
+          runNavTransition(href, label);
         });
       }
 

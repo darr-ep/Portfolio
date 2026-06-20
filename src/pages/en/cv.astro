@@ -1,0 +1,425 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import type { Project, TimelineEntry } from '../../types/database';
+
+export const prerender = false;
+
+const { data: projectsData } = await supabase
+  .from('projects')
+  .select('id, title_en, description_en, tech, sort_order')
+  .order('sort_order', { ascending: true });
+
+const { data: timelineData } = await supabase
+  .from('timeline')
+  .select('id, role_en, company, year, description_en, sort_order')
+  .order('sort_order', { ascending: true });
+
+const projects = (projectsData ?? []) as Pick<Project, 'id' | 'title_en' | 'description_en' | 'tech' | 'sort_order'>[];
+const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 'company' | 'year' | 'description_en' | 'sort_order'>[];
+---
+
+<BaseLayout
+  title="CV — Edson Pedraza"
+  description="Resume of Edson Pedraza. Frontend Developer with experience in interactive web projects."
+  lang="en"
+>
+  <div class="cv-wrapper">
+    <div class="cv-actions print-hide">
+      <button class="print-btn" onclick="window.print()" aria-label="Print CV">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        Print
+      </button>
+    </div>
+
+    <article class="cv-content">
+      <!-- Header -->
+      <header class="cv-header">
+        <div class="cv-header__name-block">
+          <h1 class="cv-name">Edson Pedraza</h1>
+          <p class="cv-role">Frontend Developer</p>
+        </div>
+        <address class="cv-contact">
+          <a href="mailto:darr.pedraz@gmail.com" class="cv-contact__link">darr.pedraz@gmail.com</a>
+          <a href="https://github.com/darr-ep" target="_blank" rel="noopener noreferrer" class="cv-contact__link">github.com/darr-ep</a>
+          <a href="https://linkedin.com/in/edson-pedraza" target="_blank" rel="noopener noreferrer" class="cv-contact__link">linkedin.com/in/edson-pedraza</a>
+        </address>
+      </header>
+
+      <hr class="cv-divider" />
+
+      <!-- Experience -->
+      {timeline.length > 0 && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">Experience</h2>
+          <ul class="cv-timeline">
+            {timeline.map((entry) => (
+              <li class="cv-timeline__item">
+                <div class="cv-timeline__meta">
+                  <span class="cv-timeline__period">{entry.year}</span>
+                  <span class="cv-timeline__company">{entry.company}</span>
+                </div>
+                <div class="cv-timeline__body">
+                  <h3 class="cv-timeline__role">{entry.role_en}</h3>
+                  {entry.description_en && (
+                    <p class="cv-timeline__desc">{entry.description_en}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Projects -->
+      {projects.length > 0 && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">Projects</h2>
+          <ul class="cv-projects">
+            {projects.map((project) => (
+              <li class="cv-project__item">
+                <h3 class="cv-project__title">{project.title_en}</h3>
+                {project.description_en && (
+                  <p class="cv-project__desc">{project.description_en}</p>
+                )}
+                {project.tech && project.tech.length > 0 && (
+                  <div class="cv-project__tech">
+                    {project.tech.map((t: string) => (
+                      <span class="cv-tech-tag">{t}</span>
+                    ))}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .cv-wrapper {
+    padding: 6rem 5vw 6rem calc(80px + 5vw);
+    min-height: 100vh;
+    background: var(--bg-primary);
+  }
+
+  /* Print button bar */
+  .cv-actions {
+    max-width: 794px;
+    margin: 0 auto 2rem auto;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1.25rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .print-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* A4-proportioned content area */
+  .cv-content {
+    max-width: 794px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 3.5rem 3rem;
+    border-radius: 4px;
+  }
+
+  /* Header */
+  .cv-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+
+  .cv-name {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .cv-role {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .cv-contact {
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: right;
+  }
+
+  .cv-contact__link {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s ease;
+  }
+
+  .cv-contact__link:hover {
+    color: var(--accent);
+  }
+
+  .cv-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin-bottom: 2.5rem;
+  }
+
+  /* Sections */
+  .cv-section {
+    margin-bottom: 3rem;
+  }
+
+  .cv-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .cv-section__title {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Timeline */
+  .cv-timeline {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .cv-timeline__item {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 1.5rem;
+  }
+
+  .cv-timeline__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 0.15rem;
+  }
+
+  .cv-timeline__period {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .cv-timeline__company {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .cv-timeline__role {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .cv-timeline__desc {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  /* Projects */
+  .cv-projects {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .cv-project__item {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .cv-project__item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .cv-project__title {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+  }
+
+  .cv-project__desc {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+  }
+
+  .cv-project__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .cv-tech-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .cv-wrapper {
+      padding: 5rem 1.5rem 4rem 1.5rem;
+    }
+
+    .cv-content {
+      padding: 2rem 1.5rem;
+    }
+
+    .cv-header {
+      flex-direction: column;
+    }
+
+    .cv-contact {
+      text-align: left;
+    }
+
+    .cv-timeline__item {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .sidebar,
+    .print-btn,
+    .cv-actions,
+    #progress-bar,
+    #page-transition,
+    .noise-overlay {
+      display: none !important;
+    }
+
+    body {
+      background: white;
+      color: black;
+    }
+
+    .cv-wrapper {
+      padding: 0;
+      background: white;
+      min-height: unset;
+    }
+
+    .cv-content {
+      background: white;
+      border: none;
+      padding: 0;
+      margin: 0 auto;
+      max-width: 100%;
+      border-radius: 0;
+    }
+
+    .cv-name,
+    .cv-timeline__role,
+    .cv-project__title {
+      color: #111111;
+    }
+
+    .cv-role,
+    .cv-timeline__period {
+      color: #555555;
+    }
+
+    .cv-timeline__company,
+    .cv-contact__link,
+    .cv-section__title,
+    .cv-tech-tag {
+      color: #666666;
+    }
+
+    .cv-timeline__desc,
+    .cv-project__desc {
+      color: #333333;
+    }
+
+    .cv-divider,
+    .cv-section__title,
+    .cv-project__item {
+      border-color: #cccccc;
+    }
+
+    .cv-tech-tag {
+      border-color: #cccccc;
+    }
+
+    .cv-contact__link {
+      text-decoration: none;
+    }
+
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+  }
+</style>

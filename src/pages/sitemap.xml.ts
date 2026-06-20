@@ -14,7 +14,7 @@ export const GET: APIRoute = async () => {
 
   const staticPages: Array<{ es: string; en: string | null }> = [
     { es: '/', en: '/en/' },
-    { es: '/cv', en: null },
+    { es: '/cv', en: '/en/cv' },
   ];
 
   const urlEntries: string[] = [];

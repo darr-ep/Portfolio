@@ -77,7 +77,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
                 <div class="project-tech">
                   {p.tech.map((t) => <span>{t}</span>)}
                 </div>
-                <a href={p.href} class="project-link">{seeMoreLabel}</a>
+                <a href={p.href} class="project-link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
               </div>
             </div>
           </div>
