@@ -1,0 +1,66 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  lang?: string;
+  url?: string;
+  type?: 'website' | 'article';
+  includePersonSchema?: boolean;
+}
+
+const {
+  title = 'Edson Pedraza — Frontend Developer',
+  description = 'Portfolio personal de Edson Pedraza. Frontend Developer especializado en crear experiencias web interactivas y memorables.',
+  image = '/assets/Fondo-Imagen.png',
+  lang = 'es',
+  url,
+  type = 'website',
+  includePersonSchema = false,
+} = Astro.props;
+
+const siteUrl = 'https://edsonpedraza.com';
+const canonicalUrl = url ? `${siteUrl}${url}` : siteUrl;
+const ogImage = image?.startsWith('http') ? image : `${siteUrl}${image}`;
+
+const altLocale = lang === 'es' ? 'en' : 'es';
+const altUrl = lang === 'es' ? `${siteUrl}/en/` : siteUrl;
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Edson Pedraza',
+  url: siteUrl,
+  sameAs: [
+    'https://github.com/darr-ep',
+    'https://www.linkedin.com/in/edson-pedraza/',
+  ],
+};
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+<!-- hreflang alternates -->
+<link rel="alternate" hreflang={lang} href={canonicalUrl} />
+<link rel="alternate" hreflang={altLocale} href={altUrl} />
+<link rel="alternate" hreflang="x-default" href={siteUrl} />
+
+<!-- Open Graph -->
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_US'} />
+<meta property="og:site_name" content="Edson Pedraza" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{includePersonSchema && (
+  <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+)}

@@ -1,0 +1,384 @@
+---
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'es' } = Astro.props;
+
+const isEs = lang === 'es';
+
+const navLinks = isEs
+  ? [
+      { href: '#proyectos', label: 'PROYECTOS' },
+      { href: '#servicios', label: 'SERVICIOS' },
+      { href: '#trayectoria', label: 'TRAYECTORIA' },
+      { href: '#detalles', label: 'DETALLES' },
+      { href: '#contacto', label: 'CONTACTO' },
+    ]
+  : [
+      { href: '#projects', label: 'PROJECTS' },
+      { href: '#services', label: 'SERVICES' },
+      { href: '#experience', label: 'EXPERIENCE' },
+      { href: '#details', label: 'DETAILS' },
+      { href: '#contact', label: 'CONTACT' },
+    ];
+---
+
+<aside class="sidebar" aria-label="Site navigation">
+  <!-- Logo -->
+  <div class="logo">
+    <a href="/" aria-label="Home — Edson Pedraza">
+      <img src="/assets/Logo-Dark.png" alt="Edson Pedraza" class="logo-img logo-dark" />
+      <img src="/assets/Logo-Light.png" alt="Edson Pedraza" class="logo-img logo-light" />
+    </a>
+  </div>
+
+  <!-- Vertical navigation -->
+  <nav class="nav-menu" aria-label="Section navigation">
+    <ul class="nav-list">
+      {navLinks.map((link) => (
+        <li>
+          <a href={link.href} aria-label={link.label}>{link.label}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  <!-- Bottom controls -->
+  <div class="sidebar-bottom">
+    <!-- Theme toggle -->
+    <button class="theme-toggle" aria-label="Toggle theme">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+      </svg>
+    </button>
+
+    <!-- Language switcher -->
+    <div class="lang-selector" role="navigation" aria-label="Language selector">
+      <a href="/" class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
+      <span class="divider" aria-hidden="true">/</span>
+      <a href="/en/" class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
+    </div>
+
+    <!-- Social links -->
+    <div class="social-links">
+      <a
+        href="https://www.linkedin.com/in/edson-pedraza/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="LinkedIn"
+        class="social-icon"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+          <rect width="4" height="12" x="2" y="9"/>
+          <circle cx="4" cy="4" r="2"/>
+        </svg>
+      </a>
+      <a
+        href="https://github.com/darr-ep"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        class="social-icon"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+          <path d="M9 18c-4.51 2-5-2-7-2"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 0;
+    z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Logo */
+  .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .logo-img {
+    height: 40px;
+    width: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .logo-light {
+    display: none;
+  }
+
+  html.light .logo-dark {
+    display: none;
+  }
+
+  html.light .logo-light {
+    display: block;
+  }
+
+  .logo a:hover .logo-img {
+    transform: scale(1.05);
+  }
+
+  /* Vertical nav */
+  .nav-menu {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .nav-list {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    gap: 2.5rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-list li a {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-block;
+    padding: 0.5rem 0;
+  }
+
+  .nav-list li a:hover {
+    color: var(--text-primary);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  }
+
+  /* Bottom section */
+  .sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-toggle:hover {
+    color: var(--text-primary);
+    transform: rotate(15deg);
+  }
+
+  /* Language selector */
+  .lang-selector {
+    display: flex;
+    align-items: center;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    gap: 0.2rem;
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.3s ease;
+  }
+
+  .lang-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .lang-btn.active {
+    color: var(--text-primary);
+  }
+
+  .lang-btn:hover:not(.active) {
+    color: var(--text-secondary);
+  }
+
+  .divider {
+    opacity: 0.5;
+  }
+
+  /* Social links */
+  .social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+  }
+
+  .social-icon {
+    color: var(--text-secondary);
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .social-icon:hover {
+    color: var(--text-primary);
+    transform: translateY(-2px);
+  }
+
+  /* Mobile: collapse to top bar */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      height: 60px;
+      flex-direction: row;
+      padding: 0 1.5rem;
+      border-right: none;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-menu {
+      display: none;
+    }
+
+    .sidebar-bottom {
+      flex-direction: row;
+      justify-content: flex-end;
+      width: auto;
+      gap: 1rem;
+    }
+
+    .social-links {
+      flex-direction: row;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<script>
+  const SUN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.77" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  const MOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+
+  const themeToggleBtn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+
+  const initTheme = () => {
+    const saved = localStorage.getItem('theme') ?? 'dark';
+    if (saved === 'light') {
+      document.documentElement.classList.add('light');
+      if (themeToggleBtn) themeToggleBtn.innerHTML = MOON_SVG;
+    } else {
+      document.documentElement.classList.remove('light');
+      if (themeToggleBtn) themeToggleBtn.innerHTML = SUN_SVG;
+    }
+  };
+
+  initTheme();
+  document.addEventListener('astro:after-swap', initTheme);
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', (e: MouseEvent) => {
+      const isCurrentlyLight = document.documentElement.classList.contains('light');
+
+      const applyTheme = () => {
+        const nextIsLight = !isCurrentlyLight;
+        document.documentElement.classList.toggle('light', nextIsLight);
+        localStorage.setItem('theme', nextIsLight ? 'light' : 'dark');
+        if (themeToggleBtn) {
+          themeToggleBtn.innerHTML = nextIsLight ? MOON_SVG : SUN_SVG;
+        }
+      };
+
+      if (!document.startViewTransition) {
+        applyTheme();
+        return;
+      }
+
+      const rect = themeToggleBtn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+
+      const maxRadius = Math.hypot(
+        Math.max(x, viewportWidth - x),
+        Math.max(y, viewportHeight - y)
+      );
+
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${maxRadius}px at ${x}px ${y}px)`,
+      ];
+
+      const root = document.documentElement;
+      root.dataset.magicuiThemeVt = 'active';
+      root.style.setProperty('--magicui-theme-toggle-vt-duration', '400ms');
+      root.style.setProperty('--magicui-theme-vt-clip-from', clipPath[0]);
+
+      const cleanup = () => {
+        delete root.dataset.magicuiThemeVt;
+        root.style.removeProperty('--magicui-theme-toggle-vt-duration');
+        root.style.removeProperty('--magicui-theme-vt-clip-from');
+      };
+
+      const transition = document.startViewTransition(() => {
+        applyTheme();
+      });
+
+      transition.finished.finally(cleanup);
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath },
+          {
+            duration: 400,
+            easing: 'ease-in-out',
+            fill: 'forwards',
+            pseudoElement: '::view-transition-new(root)',
+          }
+        );
+      });
+    });
+  }
+</script>

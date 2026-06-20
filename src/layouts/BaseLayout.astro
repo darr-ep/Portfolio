@@ -1,0 +1,105 @@
+---
+import ClientRouter from 'astro/components/ClientRouter.astro';
+import SEO from '../components/public/SEO.astro';
+import Sidebar from '../components/public/Sidebar.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  lang?: string;
+}
+
+const {
+  title = 'Edson Pedraza — Frontend Developer',
+  description = 'Portfolio personal de Edson Pedraza. Frontend Developer especializado en crear experiencias web interactivas y memorables.',
+  image,
+  lang = 'es',
+} = Astro.props;
+---
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <!-- FOUC prevention: apply stored theme before first paint -->
+    <script is:inline>
+      (function () {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light') {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
+    <SEO title={title} description={description} image={image} lang={lang} />
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="noise-overlay" aria-hidden="true"></div>
+    <Sidebar lang={lang} />
+    <main>
+      <slot />
+    </main>
+
+    <script>
+      import gsap from 'gsap';
+      import ScrollTrigger from 'gsap/ScrollTrigger';
+      import CustomEase from 'gsap/CustomEase';
+      import Lenis from 'lenis';
+
+      gsap.registerPlugin(ScrollTrigger, CustomEase);
+
+      let lenis: Lenis | null = null;
+
+      function initLenis() {
+        lenis = new Lenis({
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+
+        function raf(time: number) {
+          lenis!.raf(time);
+          requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        lenis.on('scroll', ScrollTrigger.update);
+
+        ScrollTrigger.scrollerProxy(document.body, {
+          scrollTop(value?: number) {
+            if (arguments.length && lenis && value !== undefined) {
+              lenis.scrollTo(value);
+            }
+            return window.scrollY;
+          },
+          getBoundingClientRect() {
+            return {
+              top: 0,
+              left: 0,
+              width: window.innerWidth,
+              height: window.innerHeight,
+            };
+          },
+        });
+
+        // Expose globally so Splash and other components can pause scroll
+        (window as unknown as Record<string, unknown>).lenis = lenis;
+      }
+
+      document.addEventListener('astro:before-swap', () => {
+        ScrollTrigger.getAll().forEach((st) => st.kill());
+        lenis?.stop();
+      });
+
+      document.addEventListener('astro:after-swap', () => {
+        lenis?.start();
+        ScrollTrigger.refresh();
+      });
+
+      // Initial page load
+      initLenis();
+    </script>
+  </body>
+</html>
