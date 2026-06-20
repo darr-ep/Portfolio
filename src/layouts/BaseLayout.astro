@@ -98,6 +98,10 @@ const {
             (e as any).swap = async () => {
               await lock;
               originalSwap();
+              // After swap the new .pt-blind elements inherit CSS scaleX:0.
+              // Force them to covered (scaleX:1) before the browser paints so
+              // astro:after-swap can animate them from 1→0 (the reveal).
+              gsap.set('.pt-blind', { scaleX: 1 });
             };
           }
         });
