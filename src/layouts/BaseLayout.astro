@@ -42,8 +42,14 @@ const {
     <!-- Reading progress bar -->
     <div id="progress-bar" aria-hidden="true"></div>
 
-    <!-- Page transition overlay — horizontal wipe left → right -->
+    <!-- Page transition overlay — vertical columns that wipe scaleX like the Splash -->
     <div id="page-transition" aria-hidden="true">
+      <div class="pt-blind"></div>
+      <div class="pt-blind"></div>
+      <div class="pt-blind"></div>
+      <div class="pt-blind"></div>
+      <div class="pt-blind"></div>
+      <div class="pt-blind"></div>
       <span id="transition-label"></span>
     </div>
 
@@ -100,17 +106,16 @@ const {
           createLenis();
           const label = document.getElementById('transition-label');
           if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
-          // Wipe out: panel slides off to the right, then resets for next use
-          gsap.fromTo('#page-transition',
-            { x: '0%' },
-            {
-              x: '100%',
-              duration: 0.5,
-              ease: 'power2.inOut',
-              delay: 0.05,
-              onComplete: () => gsap.set('#page-transition', { x: '-100%' }),
-            }
-          );
+          // Reveal: columns collapse right-to-left from right origin, staggered L→R
+          gsap.set('.pt-blind', { transformOrigin: 'right center' });
+          gsap.to('.pt-blind', {
+            scaleX: 0,
+            stagger: 0.06,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            delay: 0.05,
+            onComplete: () => gsap.set('.pt-blind', { transformOrigin: 'left center' }),
+          });
         });
 
         document.addEventListener('astro:page-load', () => {
@@ -147,17 +152,19 @@ const {
 
           if (label && labelEl) {
             labelEl.textContent = label;
-            gsap.to(labelEl, { opacity: 1, duration: 0.25, delay: 0.15 });
+            // Label fades in once most columns are covering (~60% through the stagger)
+            gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.25 });
           }
 
           exitAnimation();
 
-          // Lock: the before-swap handler will wait for this before swapping the DOM.
-          // Navigate fires immediately in parallel — fetch and animation race together.
+          // Cover: columns expand from left origin, staggered L→R
+          // Lock resolves when all columns are fully covering the screen.
           _animLock = new Promise<void>((resolve) => {
-            gsap.fromTo('#page-transition',
-              { x: '-100%' },
-              { x: '0%', duration: 0.5, ease: 'power2.inOut', onComplete: resolve }
+            gsap.set('.pt-blind', { transformOrigin: 'left center' });
+            gsap.fromTo('.pt-blind',
+              { scaleX: 0 },
+              { scaleX: 1, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', onComplete: resolve }
             );
           });
 
@@ -225,25 +232,23 @@ const {
         position: fixed;
         inset: 0;
         z-index: 10000;
+        display: flex;
+        pointer-events: none;
+      }
+      .pt-blind {
+        flex: 1;
+        height: 100%;
         background: var(--bg-primary);
+        transform: scaleX(0);
+        transform-origin: left center;
+        will-change: transform;
+      }
+      #transition-label {
+        position: absolute;
+        inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        pointer-events: none;
-        transform: translateX(-100%);
-        will-change: transform;
-      }
-      /* Accent line at the leading edge of the wipe */
-      #page-transition::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--accent);
-      }
-      #transition-label {
         font-family: var(--font-heading);
         font-size: clamp(3rem, 8vw, 6rem);
         font-weight: 100;
@@ -251,8 +256,6 @@ const {
         opacity: 0;
         letter-spacing: 0.2em;
         pointer-events: none;
-        position: relative;
-        z-index: 1;
       }
     </style>
   </body>
