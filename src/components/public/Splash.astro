@@ -35,7 +35,7 @@
     z-index: 9999;
     overflow: hidden;
     pointer-events: all;
-    display: flex;
+    display: none; /* hidden by default — script shows it on first load only */
     justify-content: center;
     align-items: center;
     background: transparent;
@@ -139,13 +139,24 @@
 <script>
   import gsap from 'gsap';
 
-  // ClientRouter re-renders this component on every navigation to a page that contains it.
-  // If splash already ran, hide the overlay immediately so it doesn't block the page.
+  // ClientRouter re-executes this script on every navigation to a page that contains Splash.
+  // The container is hidden by default in CSS — only show it on the very first load.
   if ((window as any).__splashDone) {
+    // Already ran: animate the blinds out exactly like the real exit, then leave hidden.
+    gsap.set('.splash-blind', { scaleX: 1 });
     const splashEl = document.getElementById('splash-screen');
-    if (splashEl) splashEl.style.display = 'none';
+    if (splashEl) splashEl.style.display = 'flex';
+    gsap.to('.splash-blind', {
+      scaleX: 0,
+      stagger: 0.08,
+      duration: 0.5,
+      ease: 'power3.inOut',
+      onComplete: () => { if (splashEl) splashEl.style.display = 'none'; },
+    });
   } else {
     (window as any).__splashDone = true;
+    const splashEl = document.getElementById('splash-screen');
+    if (splashEl) splashEl.style.display = 'flex';
 
     // Lock scroll immediately
     document.documentElement.style.overflow = 'hidden';
