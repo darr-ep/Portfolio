@@ -83,11 +83,11 @@ const {
         // Holds a promise that resolves when the exit animation finishes.
         // astro:before-swap waits on it before swapping the DOM.
         let _animLock: Promise<void> | null = null;
+        let _isTransitioning = false;
 
         createLenis();
 
         document.addEventListener('astro:before-swap', (e) => {
-          killPageAnimations();
           destroyLenis();
           if ((window as any).__splashDone) {
             const incoming = (e as any).newDocument as Document | undefined;
@@ -101,12 +101,15 @@ const {
             _animLock = null;
             (e as any).swap = async () => {
               await lock;
+              killPageAnimations(); // blinds fully closed — scroll jump is invisible
               originalSwap();
               // After swap the new .pt-blind elements inherit CSS scaleX:0.
               // Force them to covered (scaleX:1) before the browser paints so
               // astro:after-swap can animate them from 1→0 (the reveal).
               gsap.set('.pt-blind', { scaleX: 1 });
             };
+          } else {
+            killPageAnimations(); // fallback for navigations without animation
           }
         });
 
@@ -124,7 +127,10 @@ const {
               duration: 0.3,
               ease: 'power2.inOut',
               delay: 0.05,
-              onComplete: () => gsap.set('.pt-blind', { transformOrigin: 'left center' }),
+              onComplete: () => {
+                gsap.set('.pt-blind', { transformOrigin: 'left center' });
+                _isTransitioning = false;
+              },
             }
           );
         });
@@ -159,6 +165,8 @@ const {
         }, { passive: true });
 
         function runNavTransition(href: string, label?: string) {
+          if (_isTransitioning) return;
+          _isTransitioning = true;
           const labelEl = document.getElementById('transition-label');
 
           if (label && labelEl) {
@@ -197,12 +205,16 @@ const {
           try { url = new URL(href); } catch { return; }
           if (url.origin !== window.location.origin) return;
 
-          if (url.pathname === window.location.pathname && url.hash) {
+          const normalizePathname = (p: string) => p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p;
+          if (normalizePathname(url.pathname) === normalizePathname(window.location.pathname) && url.hash) {
             e.preventDefault();
             const target = document.querySelector(url.hash);
             if (target) {
-              if ((window as any).lenis) {
-                (window as any).lenis.scrollTo(target, { duration: 1.2 });
+              const l = (window as any).lenis;
+              if (l) {
+                l.stop();
+                l.start();
+                l.scrollTo(target, { duration: 1.2 });
               } else {
                 target.scrollIntoView({ behavior: 'smooth' });
               }

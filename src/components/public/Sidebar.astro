@@ -76,11 +76,16 @@ const navLinks = isEs
     </button>
 
     <!-- Language switcher -->
-    <div class="lang-selector lang-switcher" role="navigation" aria-label="Language selector">
-      <a href={esHref} class:list={['lang-btn', { active: isEs }]} aria-label="Español" aria-current={isEs ? 'true' : undefined}>ES</a>
-      <span class="divider" aria-hidden="true">/</span>
-      <a href={enHref} class:list={['lang-btn', { active: !isEs }]} aria-label="English" aria-current={!isEs ? 'true' : undefined}>EN</a>
-    </div>
+    <a
+      href={isEs ? enHref : esHref}
+      class="lang-toggle lang-switcher"
+      data-transition-label={isEs ? 'EN' : 'ES'}
+      aria-label={isEs ? 'Switch to English' : 'Cambiar a Español'}
+    >
+      <span class:list={['lang-opt', { active: isEs }]}>ES</span>
+      <span class="lang-divider" aria-hidden="true">/</span>
+      <span class:list={['lang-opt', { active: !isEs }]}>EN</span>
+    </a>
 
     <!-- Social links -->
     <div class="social-links">
@@ -228,42 +233,38 @@ const navLinks = isEs
     transform: rotate(15deg);
   }
 
-  /* Language selector */
-  .lang-selector {
+  /* Language switcher */
+  .lang-toggle {
     display: flex;
     align-items: center;
     font-family: var(--font-ui);
     font-size: 0.7rem;
     font-weight: 500;
-    color: var(--text-muted);
     gap: 0.2rem;
     border: 1px solid var(--border-color);
     padding: 0.3rem 0.5rem;
     border-radius: 4px;
+    text-decoration: none;
     background-color: rgba(255, 255, 255, 0.02);
     transition: border-color 0.3s ease;
-  }
-
-  .lang-btn {
-    background: none;
-    border: none;
-    color: inherit;
     cursor: pointer;
-    font-weight: 500;
-    font-size: inherit;
-    text-decoration: none;
-    transition: color 0.2s ease;
+    color: var(--text-muted);
   }
 
-  .lang-btn.active {
+  .lang-toggle:hover {
+    border-color: var(--accent);
+  }
+
+  .lang-opt {
+    transition: color 0.2s ease;
+    color: var(--text-muted);
+  }
+
+  .lang-opt.active {
     color: var(--text-primary);
   }
 
-  .lang-btn:hover:not(.active) {
-    color: var(--text-secondary);
-  }
-
-  .divider {
+  .lang-divider {
     opacity: 0.5;
   }
 
