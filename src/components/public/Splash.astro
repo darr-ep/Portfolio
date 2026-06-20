@@ -139,8 +139,12 @@
 <script>
   import gsap from 'gsap';
 
-  // Only run on initial page load — skip on View Transitions navigations
-  if (!(window as any).__splashDone) {
+  // ClientRouter re-renders this component on every navigation to a page that contains it.
+  // If splash already ran, hide the overlay immediately so it doesn't block the page.
+  if ((window as any).__splashDone) {
+    const splashEl = document.getElementById('splash-screen');
+    if (splashEl) splashEl.style.display = 'none';
+  } else {
     (window as any).__splashDone = true;
 
     // Lock scroll immediately
