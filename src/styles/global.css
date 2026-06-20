@@ -140,3 +140,58 @@ html.lenis body {
 .cursor-blend {
   mix-blend-mode: difference;
 }
+
+/* ---- Global responsive layout ---- */
+
+/* Sidebar: hide vertical nav on mobile, show top bar */
+@media (max-width: 768px) {
+  /* These override .sidebar styles defined in Sidebar.astro */
+  main {
+    padding-left: 0;
+    padding-top: 60px;
+  }
+}
+
+/* Padding-left compensation on section containers (desktop = 80px sidebar) */
+.section-padded {
+  padding-left: calc(80px + 6vw);
+}
+
+@media (max-width: 768px) {
+  .section-padded {
+    padding-left: 1.5rem;
+  }
+}
+
+/* Hero responsive: single column on mobile */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Services grid: 1 col on mobile */
+@media (max-width: 768px) {
+  .services-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Projects: remove pin transforms on mobile (handled in component script) */
+@media (max-width: 768px) {
+  .projects-section {
+    align-items: flex-start !important;
+  }
+}
+
+/* Details skills: 1 col on mobile */
+@media (max-width: 768px) {
+  .skills-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Smooth transitions for theme */
+:root {
+  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

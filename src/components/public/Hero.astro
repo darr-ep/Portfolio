@@ -1,0 +1,372 @@
+---
+import PixelBlast from '../islands/PixelBlast.tsx';
+import SpotifyWidget from '../islands/SpotifyWidget.tsx';
+---
+
+<section class="hero">
+  <!-- Left side: 60% -->
+  <div class="hero-left">
+    <!-- Background watermark -->
+    <div class="watermark" aria-hidden="true">01</div>
+
+    <!-- Header row: name + status ticker -->
+    <div class="header-name">
+      <span class="sub-name">EDSON PEDRAZA</span>
+
+      <div class="status-ticker">
+        <span class="ticker-dot" aria-hidden="true"></span>
+        <span class="ticker-text">STATUS: AVAILABLE FOR WORK</span>
+        <span class="ticker-divider" aria-hidden="true">/</span>
+        <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
+      </div>
+    </div>
+
+    <!-- SpotifyWidget positioned in header area -->
+    <div class="spotify-slot">
+      <SpotifyWidget client:only="react" />
+    </div>
+
+    <!-- Main title -->
+    <div class="title-container">
+      <h1 class="hero-title">
+        <span class="title-line"><span class="title-inner">CODE INTO —</span></span>
+        <span class="title-line"><span class="title-inner text-serif">experience</span></span>
+      </h1>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-explore">
+      <span class="scroll-text">DESLIZA PARA EXPLORAR</span>
+      <a href="#proyectos" class="scroll-btn" aria-label="Ir a proyectos">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Right side: 40% -->
+  <div class="hero-right">
+    <div class="image-container">
+      <!-- Layer 1: Background image -->
+      <img
+        src="/assets/Fondo-Imagen.png"
+        alt="Background portrait"
+        class="hero-img img-bg"
+      />
+
+      <!-- Layer 2: PixelBlast canvas -->
+      <PixelBlast
+        client:only="react"
+        color="#e3a857"
+        transparent={true}
+        enableRipples={true}
+        variant="circle"
+        edgeFade={0.3}
+        pixelSize={3}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }}
+      />
+
+      <!-- Layer 3: Foreground image -->
+      <img
+        src="/assets/Frente-Imagen.png"
+        alt="Edson Pedraza"
+        class="hero-img img-fg"
+      />
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+
+  // Set initial hidden state for animated elements
+  gsap.set('.img-bg', { scale: 1.08, opacity: 0 });
+  gsap.set('.img-fg', { x: 30, scale: 1.05, opacity: 0 });
+  gsap.set('.title-inner', { y: '100%' });
+
+  // Live clock
+  function updateTime() {
+    const el = document.getElementById('live-time');
+    if (el) {
+      const now = new Date();
+      el.innerText = `${now.toLocaleTimeString('es-AR', { hour12: false })} LOCAL`;
+    }
+  }
+  updateTime();
+  const clockInterval = setInterval(updateTime, 1000);
+
+  // Scroll button smooth scroll via Lenis
+  const scrollBtn = document.querySelector('.scroll-btn');
+  scrollBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.querySelector('#proyectos');
+    if (target && (window as any).lenis) {
+      (window as any).lenis.scrollTo(target, {
+        duration: 2.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+    } else if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  // Hero entrance — fires after Splash completes
+  window.addEventListener('splash:complete', () => {
+    const tl = gsap.timeline();
+    tl.to('.img-bg', { scale: 1, opacity: 1, duration: 1.8, ease: 'power2.out' }, 0)
+      .to('.img-fg', { x: 0, scale: 1, opacity: 1, duration: 1.6, ease: 'power2.out' }, 0.2)
+      .to('.title-inner', { y: '0%', stagger: 0.18, duration: 1, ease: 'power3.out' }, 0.4)
+      .from('.sub-name', { opacity: 0, y: 12, duration: 0.7 }, 0.5)
+      .from('.scroll-explore', { opacity: 0, y: 12, duration: 0.7 }, 0.7);
+  }, { once: true });
+
+  // Cleanup clock on View Transition
+  document.addEventListener('astro:before-swap', () => {
+    clearInterval(clockInterval);
+  }, { once: true });
+</script>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    min-height: 100vh;
+    width: 100%;
+    padding-left: 80px;
+    background-color: var(--bg-primary);
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Left */
+  .hero-left {
+    padding: 5rem 5vw 4rem 5vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+  }
+
+  .watermark {
+    position: absolute;
+    bottom: 0;
+    right: 30px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 20vw;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.012);
+    line-height: 0.75;
+    pointer-events: none;
+    user-select: none;
+    z-index: -1;
+  }
+
+  html.light .watermark {
+    color: rgba(0, 0, 0, 0.03);
+  }
+
+  .header-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .sub-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .status-ticker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .ticker-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--success, #0b9b3b);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px var(--success, #0b9b3b);
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  .ticker-divider { opacity: 0.5; }
+
+  .ticker-time {
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  .spotify-slot {
+    position: relative;
+    height: 0; /* Zero-height slot; SpotifyWidget positions itself fixed */
+  }
+
+  .title-container {
+    margin-top: -2rem;
+    position: relative;
+    z-index: 5;
+  }
+
+  .hero-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 100;
+    text-transform: uppercase;
+    font-size: clamp(3rem, 7.2vw, 7.8rem);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    transition: color 0.3s ease;
+  }
+
+  .title-line {
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .title-inner {
+    display: inline-block;
+    transform: translateY(100%);
+  }
+
+  .text-serif {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+    text-transform: lowercase;
+    font-size: clamp(3.5rem, 8.6vw, 9.4rem);
+    line-height: 0.8;
+    letter-spacing: -0.01em;
+    transition: color 0.3s ease;
+  }
+
+  .scroll-explore {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .scroll-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+  }
+
+  .scroll-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .scroll-btn:hover {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+    transform: translateY(3px);
+  }
+
+  /* Right */
+  .hero-right {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--bg-secondary, #111);
+    transition: background-color 0.3s ease;
+  }
+
+  .image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .img-bg {
+    z-index: 1;
+    filter: brightness(0.85) contrast(1.1);
+  }
+
+  .img-fg {
+    z-index: 3;
+    pointer-events: none;
+    object-position: bottom;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      grid-template-columns: 1fr;
+      grid-template-rows: 50vh 50vh;
+      padding-left: 0;
+      padding-top: 60px;
+      min-height: 100vh;
+    }
+
+    .hero-left {
+      order: 2;
+      padding: 3rem 1.5rem 2rem 1.5rem;
+    }
+
+    .hero-right {
+      order: 1;
+    }
+
+    .watermark {
+      font-size: 30vw;
+      right: 10px;
+    }
+
+    .header-name {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

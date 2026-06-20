@@ -1,9 +1,21 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Splash from '../../components/public/Splash.astro';
+import Hero from '../../components/public/Hero.astro';
+import Marquee from '../../components/public/Marquee.astro';
+import Services from '../../components/public/Services.astro';
+import Projects from '../../components/public/Projects.astro';
+import Timeline from '../../components/public/Timeline.astro';
+import Details from '../../components/public/Details.astro';
+import Contact from '../../components/public/Contact.astro';
 ---
-<BaseLayout title="Edson Pedraza — Frontend Developer" lang="en">
-  <!-- Sections will be added in Phase 2 -->
-  <div style="padding: 100px 100px 100px 180px; color: var(--text-primary);">
-    Portfolio V2 — EN Foundation OK
-  </div>
+<BaseLayout lang="en">
+  <Splash />
+  <Hero />
+  <Marquee />
+  <Services />
+  <Projects />
+  <Timeline />
+  <Details />
+  <Contact />
 </BaseLayout>

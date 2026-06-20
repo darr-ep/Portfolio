@@ -1,0 +1,532 @@
+---
+// Projects section — 3D accordion with ScrollTrigger pin (static placeholder data)
+const projects = [
+  {
+    id: 1,
+    title: 'Proyecto Alpha',
+    category: 'Aplicación Web',
+    description: 'Plataforma SaaS para gestión de equipos con dashboards en tiempo real y analítica avanzada.',
+    tech: ['React', 'Node.js', 'PostgreSQL'],
+    image: '/assets/Proyecto 1.png',
+    slug: 'proyecto-alpha',
+  },
+  {
+    id: 2,
+    title: 'Proyecto Beta',
+    category: 'Página Web',
+    description: 'Landing page de alta conversión con animaciones GSAP y diseño centrado en la experiencia del usuario.',
+    tech: ['Astro', 'GSAP', 'Tailwind'],
+    image: '/assets/Proyecto 2.png',
+    slug: 'proyecto-beta',
+  },
+  {
+    id: 3,
+    title: 'Proyecto Gamma',
+    category: 'App Móvil',
+    description: 'Aplicación móvil para delivery con geolocalización en tiempo real y sistema de pagos integrado.',
+    tech: ['React Native', 'Supabase'],
+    image: '/assets/Proyecto 3.png',
+    slug: 'proyecto-gamma',
+  },
+];
+---
+
+<section id="proyectos" class="projects-section">
+  <div class="container">
+    <!-- Section header -->
+    <div class="section-header">
+      <span class="section-num">02 /</span>
+      <h2 class="section-title">PROYECTOS</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Split layout -->
+    <div class="projects-split-layout">
+      <!-- Left: 3D visualizer -->
+      <div class="projects-visuals">
+        <!-- Back layer (dim) -->
+        <div class="visuals-layer-back">
+          {projects.map((p, i) => (
+            <div class={`visual-card-back ${i === 0 ? 'pos-center' : i === 1 ? 'pos-right' : 'pos-left'}`} data-index={i}>
+              <img src={p.image} alt={p.title} class="project-img" />
+              <div class="project-overlay"></div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Front layer (active/inactive opacity) -->
+        <div class="visuals-layer-front">
+          {projects.map((p, i) => (
+            <div class={`visual-card-front ${i === 0 ? 'pos-center' : i === 1 ? 'pos-right' : 'pos-left'}`} data-index={i}>
+              <img src={p.image} alt={p.title} class="project-img" />
+              <div class="project-overlay"></div>
+              <span class="project-number">0{i + 1}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Right: Accordion -->
+      <div class="projects-accordion">
+        {projects.map((p, i) => (
+          <div class={`accordion-item ${i === 0 ? 'active' : ''}`} data-index={i}>
+            <div class="accordion-header" role="button" tabindex="0" aria-expanded={i === 0 ? 'true' : 'false'}>
+              <span class="acc-num">0{i + 1}/</span>
+              <h3 class="acc-title">{p.title.toUpperCase()}</h3>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                <div class="project-meta">
+                  <span class="project-category">{p.category.toUpperCase()}</span>
+                </div>
+                <p class="project-desc">{p.description}</p>
+                <div class="project-tech">
+                  {p.tech.map((t) => <span>{t}</span>)}
+                </div>
+                <a href={`/proyectos/${p.slug}`} class="project-link">Ver más →</a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import ScrollTrigger from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const NUM_PROJECTS = 3;
+
+  // Position matrix for 3D arc
+  const positions: string[][] = [
+    ['pos-center', 'pos-right', 'pos-left'],
+    ['pos-left', 'pos-center', 'pos-right'],
+    ['pos-right', 'pos-left', 'pos-center'],
+  ];
+
+  function setActiveProject(idx: number) {
+    // Update accordion
+    document.querySelectorAll('.accordion-item').forEach((item, i) => {
+      const body = item.querySelector('.accordion-body') as HTMLElement | null;
+      const header = item.querySelector('.accordion-header');
+
+      if (i === idx) {
+        item.classList.add('active');
+        header?.setAttribute('aria-expanded', 'true');
+        if (body) {
+          gsap.to(body, { height: 'auto', opacity: 1, duration: 0.4, ease: 'power2.out' });
+        }
+      } else {
+        item.classList.remove('active');
+        header?.setAttribute('aria-expanded', 'false');
+        if (body) {
+          gsap.to(body, { height: 0, opacity: 0, duration: 0.4, ease: 'power2.out' });
+        }
+      }
+    });
+
+    // Update 3D card positions
+    document.querySelectorAll('.visual-card-front').forEach((card, i) => {
+      card.className = `visual-card-front ${positions[idx][i]}`;
+    });
+    document.querySelectorAll('.visual-card-back').forEach((card, i) => {
+      card.className = `visual-card-back ${positions[idx][i]}`;
+    });
+  }
+
+  // Initial state
+  gsap.set('.accordion-item:not(.active) .accordion-body', { height: 0, opacity: 0 });
+  gsap.set('.accordion-item.active .accordion-body', { height: 'auto', opacity: 1 });
+
+  const mm = gsap.matchMedia();
+
+  // Desktop: pin + scroll-driven accordion
+  mm.add('(min-width: 993px)', () => {
+    let currentActiveIdx = 0;
+
+    const projectsST = ScrollTrigger.create({
+      trigger: '.projects-section',
+      pin: true,
+      start: 'top top',
+      end: '+=150%',
+      anticipatePin: 1,
+      onUpdate: (self) => {
+        const idx = Math.min(
+          Math.floor(self.progress * NUM_PROJECTS),
+          NUM_PROJECTS - 1
+        );
+        if (idx !== currentActiveIdx) {
+          currentActiveIdx = idx;
+          setActiveProject(idx);
+        }
+      },
+    });
+
+    // Click on accordion header scrolls to that zone
+    document.querySelectorAll('.accordion-header').forEach((header) => {
+      header.addEventListener('click', () => {
+        const item = header.closest('.accordion-item');
+        if (!item) return;
+        const idx = parseInt(item.getAttribute('data-index') ?? '0', 10);
+
+        const start = projectsST.start;
+        const end = projectsST.end;
+        const range = end - start;
+
+        const centers = [0.15, 0.5, 0.85];
+        const targetScroll = start + range * centers[idx];
+
+        if ((window as any).lenis) {
+          (window as any).lenis.scrollTo(targetScroll, { duration: 1.0 });
+        } else {
+          window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+        }
+      });
+
+      header.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
+          (header as HTMLElement).click();
+        }
+      });
+    });
+  });
+
+  // Mobile: tap-to-expand accordion
+  mm.add('(max-width: 992px)', () => {
+    const items = document.querySelectorAll('.accordion-item');
+
+    // First item open by default
+    items.forEach((item, i) => {
+      const body = item.querySelector('.accordion-body') as HTMLElement | null;
+      if (body) {
+        body.style.height = i === 0 ? 'auto' : '0';
+        body.style.opacity = i === 0 ? '1' : '0';
+      }
+    });
+
+    items.forEach((item) => {
+      const header = item.querySelector('.accordion-header');
+      header?.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+
+        items.forEach((other) => {
+          other.classList.remove('active');
+          const otherBody = other.querySelector('.accordion-body') as HTMLElement | null;
+          if (otherBody) {
+            otherBody.style.height = '0';
+            otherBody.style.opacity = '0';
+          }
+        });
+
+        if (!isActive) {
+          item.classList.add('active');
+          const body = item.querySelector('.accordion-body') as HTMLElement | null;
+          if (body) {
+            body.style.height = 'auto';
+            body.style.opacity = '1';
+          }
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .projects-section {
+    width: 100%;
+    min-height: 100vh;
+    padding: 8rem 6vw;
+    padding-left: calc(80px + 6vw);
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    position: relative;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 5rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .section-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    margin-left: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Split layout */
+  .projects-split-layout {
+    display: flex;
+    gap: 5rem;
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  /* 3D Visualizer */
+  .projects-visuals {
+    width: 45%;
+    height: 48vh;
+    position: relative;
+    overflow: visible;
+    perspective: 1200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .visuals-layer-back,
+  .visuals-layer-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  .visuals-layer-back { z-index: 1; }
+  .visuals-layer-front { z-index: 2; }
+
+  .visual-card-back,
+  .visual-card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--bg-secondary, #111);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition:
+      transform 0.85s cubic-bezier(0.25, 1, 0.5, 1),
+      background-color 0.3s ease;
+  }
+
+  /* 3D positions */
+  .visual-card-back.pos-center,
+  .visual-card-front.pos-center { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); z-index: 5; }
+  .visual-card-back.pos-left,
+  .visual-card-front.pos-left   { transform: translate3d(-35%, 12%, -150px) scale(0.75) rotate(-8deg); z-index: 2; }
+  .visual-card-back.pos-right,
+  .visual-card-front.pos-right  { transform: translate3d(35%, 12%, -150px) scale(0.75) rotate(8deg); z-index: 2; }
+
+  .visual-card-back { opacity: 0.22; }
+  .visual-card-front {
+    opacity: 0;
+    transition:
+      transform 0.85s cubic-bezier(0.25, 1, 0.5, 1),
+      opacity 0.85s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .visual-card-front.pos-center { opacity: 1; pointer-events: auto; }
+
+  .project-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .visual-card-front.pos-center:hover .project-img { transform: scale(1.04); }
+
+  .project-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(13, 13, 15, 0.6) 0%, rgba(13, 13, 15, 0) 50%);
+    z-index: 1;
+  }
+
+  .project-number {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.03);
+    z-index: 2;
+    line-height: 0.8;
+  }
+
+  html.light .project-number { color: rgba(0, 0, 0, 0.03); }
+
+  /* Accordion */
+  .projects-accordion {
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    transition: border-color 0.4s ease;
+  }
+
+  .accordion-item.active { border-color: var(--accent); }
+
+  .accordion-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+  }
+
+  .accordion-header:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .acc-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    transition: color 0.4s ease;
+  }
+
+  .accordion-item.active .acc-num { color: var(--accent); }
+
+  .acc-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+    font-weight: 900;
+    color: var(--text-muted);
+    letter-spacing: -0.02em;
+    transition: color 0.4s ease, transform 0.4s ease;
+    text-transform: uppercase;
+  }
+
+  .accordion-item.active .acc-title {
+    color: var(--text-primary);
+    transform: translateX(4px);
+  }
+
+  .accordion-body {
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    will-change: height, opacity;
+  }
+
+  .accordion-content {
+    padding: 1.5rem 0 0.5rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .project-meta {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+  }
+
+  .project-desc {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 90%;
+  }
+
+  .project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .project-tech span {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .project-link {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: opacity 0.3s ease;
+  }
+
+  .project-link:hover { opacity: 0.7; }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .projects-split-layout {
+      flex-direction: column;
+      gap: 3.5rem;
+    }
+
+    .projects-visuals {
+      width: 100%;
+      height: 40vh;
+    }
+
+    .projects-accordion { width: 100%; }
+    .accordion-content { padding-left: 1.5rem; }
+  }
+
+  @media (max-width: 768px) {
+    .projects-section {
+      padding: 6rem 1.5rem;
+    }
+
+    .section-header { margin-bottom: 3rem; }
+  }
+</style>

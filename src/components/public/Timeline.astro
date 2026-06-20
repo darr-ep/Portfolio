@@ -1,0 +1,309 @@
+---
+// Timeline section — central vertical line + alternating cards
+const entries = [
+  {
+    period: '2024 - 2026',
+    company: 'Empresa Placeholder 1',
+    role: 'Frontend Developer',
+    description: 'Desarrollo de interfaces web de alta performance con React, TypeScript y GSAP. Lideré la migración de una SPA a arquitectura SSR con Astro.',
+    tech: ['React', 'TypeScript', 'GSAP'],
+  },
+  {
+    period: '2022 - 2024',
+    company: 'Empresa Placeholder 2',
+    role: 'UI Developer',
+    description: 'Diseño y desarrollo de sistemas de diseño escalables. Implementé componentes accesibles y animaciones que mejoraron el engagement un 40%.',
+    tech: ['Vue.js', 'Figma', 'SCSS'],
+  },
+];
+---
+
+<section id="experiencia" class="timeline">
+  <div class="timeline-container">
+    <!-- Section header -->
+    <div class="section-header">
+      <span class="section-num">01 /</span>
+      <h2 class="section-title">EXPERIENCIA</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Central line -->
+    <div class="timeline-track">
+      <div class="timeline-line">
+        <div class="timeline-line-fill"></div>
+      </div>
+
+      <!-- Timeline items -->
+      {entries.map((entry, i) => (
+        <div class={`timeline-item ${i % 2 === 0 ? 'item-left' : 'item-right'}`}>
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <span class="timeline-period">{entry.period}</span>
+            <h3 class="timeline-role">{entry.role}</h3>
+            <span class="timeline-company">{entry.company}</span>
+            <p class="timeline-desc">{entry.description}</p>
+            <div class="timeline-tech">
+              {entry.tech.map((t) => <span class="tech-tag">{t}</span>)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import ScrollTrigger from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Initial state for line and items
+  gsap.set('.timeline-line-fill', { scaleY: 0 });
+
+  // Line draw animation
+  gsap.to('.timeline-line-fill', {
+    scaleY: 1,
+    transformOrigin: 'top center',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.timeline',
+      scrub: true,
+      start: 'top center',
+      end: 'bottom center',
+    },
+  });
+
+  // Card reveal on scroll
+  gsap.from('.timeline-item', {
+    opacity: 0,
+    y: 30,
+    stagger: 0.2,
+    scrollTrigger: {
+      trigger: '.timeline',
+      start: 'top 80%',
+      end: 'bottom 20%',
+      scrub: 0.5,
+    },
+  });
+</script>
+
+<style>
+  .timeline {
+    width: 100%;
+    min-height: 100vh;
+    padding: 8rem 6vw;
+    padding-left: calc(80px + 6vw);
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .timeline-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 6rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .section-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    margin-left: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Track */
+  .timeline-track {
+    position: relative;
+    padding: 2rem 0;
+  }
+
+  /* Central vertical line */
+  .timeline-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border-color);
+    transform: translateX(-50%);
+  }
+
+  .timeline-line-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: top center;
+    will-change: transform;
+  }
+
+  /* Items */
+  .timeline-item {
+    position: relative;
+    width: 45%;
+    margin-bottom: 5rem;
+    will-change: opacity, transform;
+  }
+
+  .timeline-item:last-child { margin-bottom: 0; }
+
+  .item-left {
+    margin-left: 0;
+    margin-right: auto;
+    text-align: right;
+  }
+
+  .item-right {
+    margin-left: auto;
+    margin-right: 0;
+    text-align: left;
+  }
+
+  /* Dot */
+  .timeline-dot {
+    position: absolute;
+    top: 1.5rem;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(227, 168, 87, 0.4);
+  }
+
+  .item-left .timeline-dot {
+    right: -5.6%;
+    transform: translateX(50%);
+  }
+
+  .item-right .timeline-dot {
+    left: -5.6%;
+    transform: translateX(-50%);
+  }
+
+  /* Card */
+  .timeline-card {
+    background: rgba(128, 128, 128, 0.03);
+    border: 1px solid var(--border-color);
+    padding: 2rem 2rem;
+    border-radius: 4px;
+    transition: border-color 0.4s ease, transform 0.4s ease;
+  }
+
+  .timeline-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+
+  .timeline-period {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .timeline-role {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 700;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    margin-bottom: 0.4rem;
+    transition: color 0.3s ease;
+  }
+
+  .timeline-company {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 1rem;
+    transition: color 0.3s ease;
+  }
+
+  .timeline-desc {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    transition: color 0.3s ease;
+  }
+
+  .timeline-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .item-right .timeline-tech { justify-content: flex-start; }
+  .item-left .timeline-tech  { justify-content: flex-end; }
+
+  .tech-tag {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .timeline {
+      padding: 5rem 1.5rem;
+    }
+
+    .timeline-line { left: 24px; }
+
+    .timeline-item {
+      width: 100%;
+      margin-left: 0 !important;
+      text-align: left !important;
+      padding-left: 56px;
+    }
+
+    .item-left .timeline-dot,
+    .item-right .timeline-dot {
+      left: 19px;
+      right: auto;
+      transform: none;
+    }
+
+    .item-left .timeline-tech,
+    .item-right .timeline-tech {
+      justify-content: flex-start;
+    }
+  }
+</style>

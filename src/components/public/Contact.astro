@@ -1,0 +1,498 @@
+---
+// Contact section + Footer
+---
+
+<section id="contacto" class="contact-section">
+  <div class="container">
+    <!-- Section header -->
+    <div class="section-header">
+      <span class="section-num">04 /</span>
+      <h2 class="section-title">CONTACTO</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Content layout -->
+    <div class="contact-layout">
+      <!-- Left: Giant CTA text -->
+      <div class="contact-info reveal-contact-info">
+        <h3 class="contact-giant-text">
+          ¿HACEMOS<br />
+          ALGO<br />
+          <span class="glow-text">JUNTOS?</span>
+        </h3>
+
+        <div class="contact-details">
+          <div class="detail-item">
+            <span class="detail-label">EMAIL</span>
+            <a href="mailto:darr.pedraz@gmail.com" class="detail-link">darr.pedraz@gmail.com</a>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">UBICACIÓN</span>
+            <span class="detail-value">América Latina / Remoto</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Form -->
+      <div class="contact-form-wrap reveal-contact-form">
+        <form id="contact-form" class="contact-form" novalidate>
+          <!-- Name -->
+          <div class="form-group">
+            <input type="text" id="contact-name" name="name" required placeholder=" " autocomplete="name" />
+            <label for="contact-name">¿CÓMO TE LLAMÁS?</label>
+            <span class="group-line" aria-hidden="true"></span>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <input type="email" id="contact-email" name="email" required placeholder=" " autocomplete="email" />
+            <label for="contact-email">TU CORREO ELECTRÓNICO</label>
+            <span class="group-line" aria-hidden="true"></span>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group">
+            <textarea id="contact-message" name="message" rows="1" required placeholder=" "></textarea>
+            <label for="contact-message">CONTAME SOBRE TU PROYECTO</label>
+            <span class="group-line" aria-hidden="true"></span>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="submit-btn" class="submit-btn">
+            <span id="submit-label">Enviar →</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+
+          <!-- Feedback messages -->
+          <p id="form-success" class="form-feedback success" hidden>
+            Mensaje enviado — nos ponemos en contacto pronto.
+          </p>
+          <p id="form-error" class="form-feedback error" hidden>
+            Algo salió mal. Intentá de nuevo o escribime por email.
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span class="copyright">© 2025 Edson Pedraza</span>
+      <div class="footer-socials">
+        <a href="https://github.com/EdsonPedraz" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://linkedin.com/in/edsonpedraza" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import ScrollTrigger from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ---- Scroll reveal ----
+  gsap.set('.reveal-contact-info', { opacity: 0, y: 50 });
+  gsap.set('.reveal-contact-form', { opacity: 0, y: 50 });
+
+  gsap.to('.reveal-contact-info', {
+    opacity: 1,
+    y: 0,
+    duration: 1.2,
+    ease: 'power3.out',
+    scrollTrigger: { trigger: '.contact-layout', start: 'top 85%' },
+  });
+
+  gsap.to('.reveal-contact-form', {
+    opacity: 1,
+    y: 0,
+    duration: 1.2,
+    ease: 'power3.out',
+    scrollTrigger: { trigger: '.contact-layout', start: 'top 85%' },
+  });
+
+  // ---- Auto-resize textarea ----
+  const textarea = document.getElementById('contact-message') as HTMLTextAreaElement | null;
+  if (textarea) {
+    textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    });
+  }
+
+  // ---- Form submit ----
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const btn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+  const label = document.getElementById('submit-label') as HTMLElement | null;
+  const successMsg = document.getElementById('form-success') as HTMLElement | null;
+  const errorMsg = document.getElementById('form-error') as HTMLElement | null;
+
+  function showSuccess() {
+    if (successMsg) { successMsg.hidden = false; }
+    if (errorMsg)   { errorMsg.hidden = true; }
+    if (label) label.textContent = 'Enviado ✓';
+  }
+
+  function showError() {
+    if (errorMsg)   { errorMsg.hidden = false; }
+    if (successMsg) { successMsg.hidden = true; }
+    if (label) label.textContent = 'Enviar →';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!btn || !label) return;
+
+    btn.disabled = true;
+    label.textContent = 'Enviando...';
+
+    const name    = (form.querySelector('[name="name"]') as HTMLInputElement)?.value ?? '';
+    const email   = (form.querySelector('[name="email"]') as HTMLInputElement)?.value ?? '';
+    const message = (form.querySelector('[name="message"]') as HTMLTextAreaElement)?.value ?? '';
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      });
+      if (res.ok) {
+        showSuccess();
+        form.reset();
+      } else {
+        showError();
+      }
+    } catch {
+      showError();
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .contact-section {
+    width: 100%;
+    min-height: 100vh;
+    padding: 8rem 6vw 4rem 6vw;
+    padding-left: calc(80px + 6vw);
+    background-color: var(--bg-primary);
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 12rem);
+    justify-content: space-between;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 6rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .section-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    margin-left: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Layout */
+  .contact-layout {
+    display: flex;
+    gap: 5vw;
+    margin-bottom: 8rem;
+    align-items: flex-start;
+  }
+
+  .contact-info {
+    width: 45%;
+    will-change: opacity, transform;
+  }
+
+  .contact-form-wrap {
+    width: 55%;
+    will-change: opacity, transform;
+  }
+
+  /* Giant text */
+  .contact-giant-text {
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+    font-size: clamp(2.5rem, 5vw, 5.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 4rem;
+    transition: color 0.3s ease;
+  }
+
+  .glow-text {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--text-primary);
+    transition: -webkit-text-stroke 0.3s ease;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .detail-label {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+  }
+
+  .detail-link {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-block;
+  }
+
+  .detail-link:hover {
+    color: var(--accent);
+  }
+
+  .detail-value {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  /* Form */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+    width: 100%;
+  }
+
+  .form-group {
+    position: relative;
+    width: 100%;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0.8rem 0;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    outline: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color 0.4s ease, color 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .form-group textarea {
+    resize: none;
+    overflow-y: hidden;
+  }
+
+  /* Floating label */
+  .form-group label {
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.4s ease;
+    transform-origin: left top;
+  }
+
+  .form-group input:focus ~ label,
+  .form-group input:not(:placeholder-shown) ~ label,
+  .form-group textarea:focus ~ label,
+  .form-group textarea:not(:placeholder-shown) ~ label {
+    transform: translateY(-1.8rem) scale(0.8);
+    color: var(--accent);
+  }
+
+  /* Animated focus line */
+  .group-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--accent), #fce2b6);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .form-group input:focus ~ .group-line,
+  .form-group textarea:focus ~ .group-line {
+    transform: scaleX(1);
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: transparent;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 1.2rem 2.5rem;
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    width: fit-content;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    margin-top: 1rem;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    border-color: var(--text-primary);
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+  }
+
+  .submit-btn:hover svg {
+    transform: translateX(4px);
+  }
+
+  .submit-btn svg {
+    transition: transform 0.3s ease;
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Feedback messages */
+  .form-feedback {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    margin-top: -2rem;
+  }
+
+  .form-feedback.success { color: var(--success, #0b9b3b); }
+  .form-feedback.error   { color: var(--danger, #ef4444); }
+
+  /* Footer */
+  .footer {
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    padding: 2.5rem 0 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    transition: border-color 0.3s ease;
+  }
+
+  .copyright {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .footer-socials {
+    display: flex;
+    gap: 2.5rem;
+  }
+
+  .footer-socials a {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .footer-socials a:hover {
+    color: var(--text-primary);
+  }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .contact-layout {
+      flex-direction: column;
+      gap: 5rem;
+    }
+
+    .contact-info,
+    .contact-form-wrap { width: 100%; }
+  }
+
+  @media (max-width: 768px) {
+    .contact-section {
+      padding: 5rem 1.5rem 2.5rem 1.5rem;
+    }
+
+    .footer {
+      flex-direction: column;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .footer-socials { gap: 1.5rem; }
+  }
+</style>

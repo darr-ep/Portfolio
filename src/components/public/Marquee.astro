@@ -1,0 +1,120 @@
+---
+// Marquee — infinite horizontal text band driven by ScrollTrigger scrub
+const words = ['FRONTEND', 'DEVELOPER', 'ANIMATIONS', 'UI/UX', 'REACT', 'ASTRO', 'GSAP'];
+// Repeat 3x for seamless loop
+const items = [...words, ...words, ...words];
+---
+
+<div class="marquee">
+  <div class="marquee-wrapper">
+    <div class="marquee-inner" id="marquee-text-scroll">
+      <span class="marquee-spacer" aria-hidden="true">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+      {items.map((word, i) => (
+        <>
+          <span class={`marquee-item ${i % 2 === 0 ? 'marquee-solid' : 'marquee-outline'}`}>
+            {word}
+          </span>
+          <span class="marquee-separator" aria-hidden="true">—</span>
+        </>
+      ))}
+
+      <span class="marquee-spacer" aria-hidden="true">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  import gsap from 'gsap';
+  import ScrollTrigger from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  gsap.to('.marquee-inner', {
+    x: '-61%',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.marquee',
+      scrub: 1.2,
+      start: 'top bottom',
+      end: 'bottom top',
+    }
+  });
+</script>
+
+<style>
+  .marquee {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    padding: 4rem 0;
+    background: transparent;
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color 0.3s ease;
+  }
+
+  .marquee-wrapper {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .marquee-inner {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    will-change: transform;
+  }
+
+  .marquee-item,
+  .marquee-separator,
+  .marquee-spacer {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(4.5rem, 10vw, 13rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1;
+    user-select: none;
+    display: inline-block;
+    transition:
+      color 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+      -webkit-text-stroke 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+      transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .marquee-item {
+    cursor: pointer;
+  }
+
+  /* Filled text */
+  .marquee-solid {
+    color: var(--text-muted);
+  }
+
+  .marquee-solid:hover {
+    transform: scale(1.05) translateY(-2px);
+    color: var(--text-primary);
+  }
+
+  /* Outline text */
+  .marquee-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--border-color);
+  }
+
+  .marquee-outline:hover {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--text-primary);
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  .marquee-separator {
+    color: var(--border-color);
+    margin: 0 2rem;
+    transition: color 0.3s ease;
+  }
+
+  .marquee-spacer {
+    pointer-events: none;
+  }
+</style>

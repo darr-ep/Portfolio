@@ -1,0 +1,291 @@
+---
+// Details — philosophy left + skills grid right
+const skillGroups = [
+  {
+    category: 'Frontend',
+    skills: ['React', 'Astro', 'TypeScript', 'Next.js'],
+  },
+  {
+    category: 'Animación',
+    skills: ['GSAP', 'Three.js', 'Lenis', 'CSS Animations'],
+  },
+  {
+    category: 'Herramientas',
+    skills: ['Git', 'Docker', 'Figma', 'VS Code'],
+  },
+  {
+    category: 'Metodología',
+    skills: ['Clean Architecture', 'Atomic Design', 'Agile', 'TDD'],
+  },
+];
+---
+
+<section id="detalles" class="details-section">
+  <div class="container">
+    <!-- Section header -->
+    <div class="section-header">
+      <span class="section-num">03 /</span>
+      <h2 class="section-title">DETALLES</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Split layout -->
+    <div class="details-layout">
+      <!-- Left: Philosophy -->
+      <div class="details-left reveal-details-left">
+        <h3 class="philosophy-title">
+          CONCEPTS<br />
+          <span class="text-glow">&gt; CODE</span>
+        </h3>
+        <p class="philosophy-text">
+          Creo que una línea de código no vale nada sin una base conceptual sólida y un entendimiento del diseño interactivo. Mi enfoque está en cerrar la brecha entre el diseño visual de primer nivel y la ingeniería robusta.
+        </p>
+        <p class="philosophy-sub">
+          No programo para cumplir requisitos; programo para crear experiencias memorables y fluidas.
+        </p>
+      </div>
+
+      <!-- Right: Skills grid -->
+      <div class="details-right reveal-details-right">
+        <div class="skills-grid">
+          {skillGroups.map((group) => (
+            <div class="skill-box">
+              <span class="skill-bar" aria-hidden="true"></span>
+              <span class="skill-category">{group.category.toUpperCase()}</span>
+              <ul class="skill-list">
+                {group.skills.map((skill) => <li>{skill}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import ScrollTrigger from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Initial hidden state
+  gsap.set('.reveal-details-left', { opacity: 0, x: -50 });
+  gsap.set('.reveal-details-right', { opacity: 0, x: 50 });
+
+  gsap.to('.reveal-details-left', {
+    opacity: 1,
+    x: 0,
+    duration: 1.4,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: '.details-layout',
+      start: 'top 80%',
+    },
+  });
+
+  gsap.to('.reveal-details-right', {
+    opacity: 1,
+    x: 0,
+    duration: 1.4,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: '.details-layout',
+      start: 'top 80%',
+    },
+  });
+</script>
+
+<style>
+  .details-section {
+    width: 100%;
+    min-height: 100vh;
+    padding: 8rem 6vw;
+    padding-left: calc(80px + 6vw);
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 6rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .section-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    margin-left: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Split layout */
+  .details-layout {
+    display: flex;
+    gap: 5vw;
+    align-items: flex-start;
+  }
+
+  .details-left {
+    width: 45%;
+    will-change: opacity, transform;
+  }
+
+  .details-right {
+    width: 55%;
+    will-change: opacity, transform;
+  }
+
+  /* Philosophy */
+  .philosophy-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 2.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .text-glow {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--text-primary);
+    transition: -webkit-text-stroke 0.3s ease;
+  }
+
+  .philosophy-text {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .philosophy-sub {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.8rem;
+    color: var(--accent);
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.2rem;
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Skills grid */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .skill-box {
+    border: 1px solid var(--border-color);
+    background-color: rgba(128, 128, 128, 0.02);
+    padding: 2.5rem 2rem;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Top accent bar — expands on hover */
+  .skill-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .skill-box:hover {
+    border-color: var(--accent);
+    background-color: rgba(128, 128, 128, 0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .skill-box:hover .skill-bar { width: 100%; }
+
+  .skill-box:hover .skill-category { color: var(--accent); }
+
+  .skill-box:hover .skill-list li { color: var(--text-primary); }
+
+  .skill-category {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 1.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .skill-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .skill-list li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .details-layout {
+      flex-direction: column;
+      gap: 5rem;
+    }
+
+    .details-left,
+    .details-right { width: 100%; }
+  }
+
+  @media (max-width: 768px) {
+    .details-section {
+      padding: 5rem 1.5rem;
+    }
+
+    .skills-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .skill-box { padding: 2rem 1.5rem; }
+  }
+</style>

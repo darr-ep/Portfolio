@@ -1,0 +1,239 @@
+---
+// Splash preloader — venetian blind columns + accelerating word cycle
+---
+
+<div id="splash-screen" class="splash-container">
+  <!-- Venetian blind columns -->
+  <div class="splash-blinds">
+    <div class="splash-blind"></div>
+    <div class="splash-blind"></div>
+    <div class="splash-blind"></div>
+    <div class="splash-blind"></div>
+    <div class="splash-blind"></div>
+    <div class="splash-blind"></div>
+  </div>
+
+  <!-- Intro text -->
+  <div id="splash-text-container" class="splash-text-container">
+    <span class="static-text">Building</span>
+    <span class="word-mask">
+      <span id="active-word" class="active-word">Experiences</span>
+    </span>
+  </div>
+
+  <!-- Completion message -->
+  <div id="splash-ready" class="splash-ready">Ready :)</div>
+</div>
+
+<style>
+  .splash-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 9999;
+    overflow: hidden;
+    pointer-events: all;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+  }
+
+  .splash-blinds {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .splash-blind {
+    flex: 1;
+    height: 100%;
+    background-color: #0d0d0d;
+    transform-origin: top;
+    will-change: transform;
+    outline: 1px solid #0d0d0d;
+  }
+
+  .splash-blind:nth-child(even) {
+    transform-origin: bottom;
+  }
+
+  .splash-text-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .static-text {
+    font-family: 'Albert Sans', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 4.2rem);
+    font-weight: 100;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+    opacity: 0.9;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .word-mask {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    font-size: clamp(2.2rem, 4.8vw, 5rem);
+    height: 1.4em;
+    width: clamp(170px, 30vw, 325px);
+    padding-right: 0.2rem;
+  }
+
+  .active-word {
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1em;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent, #e3a857);
+    text-align: left;
+    white-space: nowrap;
+    line-height: 1;
+    will-change: transform;
+  }
+
+  .splash-ready {
+    position: absolute;
+    z-index: 3;
+    font-family: 'Albert Sans', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 4.2rem);
+    font-weight: 100;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+  }
+
+  @media (max-width: 768px) {
+    .splash-text-container {
+      gap: 0.4rem;
+    }
+    .word-mask {
+      width: 150px;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      height: 1.3em;
+    }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  // Only run on initial page load — skip on View Transitions navigations
+  if (!(window as any).__splashDone) {
+    (window as any).__splashDone = true;
+
+    // Lock scroll immediately
+    document.documentElement.style.overflow = 'hidden';
+    if ((window as any).lenis) {
+      (window as any).lenis.stop();
+    }
+
+    const words = [
+      'Experiences', 'Solutions', 'Ecosystems', 'Products', 'Realities',
+      'Interfaces', 'Platforms', 'Connections', 'Futures', 'Concepts',
+      'Systems', 'Interactions', 'Journeys', 'Worlds', 'Impact'
+    ];
+
+    const splashTl = gsap.timeline({
+      onComplete: () => {
+        document.documentElement.style.overflow = '';
+        if ((window as any).lenis) {
+          (window as any).lenis.start();
+        }
+        const splash = document.getElementById('splash-screen');
+        if (splash) splash.style.display = 'none';
+        window.dispatchEvent(new CustomEvent('splash:complete'));
+      }
+    });
+
+    // Set initial word state
+    splashTl.set('#active-word', { y: '0%' });
+
+    // 1. Reveal text container
+    splashTl.fromTo('#splash-text-container',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+    );
+
+    // Pause before cycling
+    splashTl.to({}, { duration: 0.8 });
+
+    // 2. Word cycling with exponential acceleration
+    let currentDuration = 0.4;
+
+    for (let i = 1; i < words.length; i++) {
+      const nextWord = words[i];
+      const d = currentDuration;
+
+      // Slide current word out upward
+      splashTl.to('#active-word', {
+        y: '100%',
+        duration: d * 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          const el = document.getElementById('active-word');
+          if (el) {
+            el.innerText = nextWord;
+            gsap.set(el, { y: '-100%' });
+          }
+        }
+      });
+
+      // Slide new word in from below
+      splashTl.to('#active-word', {
+        y: '0%',
+        duration: d * 0.5,
+        ease: 'power2.out'
+      });
+
+      // Accelerate: multiply by 0.72, min 0.03s (from 3rd word onward)
+      if (i >= 2) {
+        currentDuration = Math.max(currentDuration * 0.72, 0.03);
+      }
+    }
+
+    // 3. Hide text, show "Ready :)"
+    splashTl.to('#splash-text-container', { display: 'none', duration: 0 });
+
+    splashTl.to('#splash-ready', {
+      scale: 1,
+      opacity: 1,
+      duration: 0.5,
+      ease: 'back.out(2)',
+      from: { scale: 0.8, opacity: 0 }
+    });
+
+    splashTl.to({}, { duration: 0.8 });
+
+    splashTl.to('#splash-ready', { opacity: 0, duration: 0.25 });
+
+    // 4. Venetian blind exit
+    splashTl.to('.splash-blind', {
+      scaleX: 0,
+      stagger: 0.1,
+      ease: 'power3.inOut',
+      duration: 0.8
+    });
+  }
+</script>

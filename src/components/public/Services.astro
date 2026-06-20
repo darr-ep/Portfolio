@@ -1,0 +1,224 @@
+---
+// Services section — 3 hardcoded service cards
+const services = [
+  {
+    number: '01',
+    title: 'Frontend Development',
+    description: 'Interfaces web de alto rendimiento con React, Astro y animaciones GSAP de nivel premium.',
+    icon: 'dev',
+  },
+  {
+    number: '02',
+    title: 'UI/UX Design',
+    description: 'Diseño de experiencias digitales centradas en el usuario, desde wireframes hasta prototipos interactivos.',
+    icon: 'design',
+  },
+  {
+    number: '03',
+    title: 'Web Animation',
+    description: 'Animaciones complejas con GSAP, Three.js y Canvas que elevan la experiencia visual.',
+    icon: 'animation',
+  },
+];
+---
+
+<section class="services-section" id="servicios">
+  <div class="services-container">
+    <!-- Section header -->
+    <div class="section-header">
+      <span class="section-num">00 /</span>
+      <h2 class="section-title">SERVICIOS</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="services-grid">
+      {services.map((service) => (
+        <div class="service-card">
+          <div class="card-top">
+            <span class="service-number">{service.number}</span>
+            <div class="service-icon" aria-hidden="true">
+              {service.icon === 'dev' && (
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="10 10 4 16 10 22"></polyline>
+                  <polyline points="22 10 28 16 22 22"></polyline>
+                  <line x1="18" y1="8" x2="14" y2="24"></line>
+                </svg>
+              )}
+              {service.icon === 'design' && (
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="16 4 20 12 28 12 22 18 24 26 16 21 8 26 10 18 4 12 12 12"></polygon>
+                </svg>
+              )}
+              {service.icon === 'animation' && (
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 16 Q10 8 16 16 Q22 24 28 16"></path>
+                  <path d="M4 22 Q10 14 16 22 Q22 30 28 22" opacity="0.4"></path>
+                </svg>
+              )}
+            </div>
+          </div>
+          <h3 class="service-title">{service.title}</h3>
+          <p class="service-description">{service.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .services-section {
+    width: 100%;
+    padding: 8rem 6vw;
+    padding-left: calc(80px + 6vw);
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .services-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 5rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+
+  .section-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    margin-left: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Cards grid */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  /* Card */
+  .service-card {
+    position: relative;
+    border: 1px solid var(--border-color);
+    padding: 2.5rem 2rem;
+    border-radius: 4px;
+    overflow: hidden;
+    transition:
+      border-color 0.4s ease,
+      transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: default;
+  }
+
+  /* Golden border draw on hover */
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    transition: width 0.5s ease;
+  }
+
+  .service-card:hover::before {
+    width: 100%;
+  }
+
+  .service-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+
+  .service-card:hover .service-icon svg {
+    transform: rotate(3deg);
+    color: var(--accent);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+  }
+
+  .service-number {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    transition: color 0.3s ease;
+  }
+
+  .service-card:hover .service-number {
+    color: var(--accent);
+  }
+
+  .service-icon {
+    color: var(--text-secondary);
+    transition: color 0.4s ease;
+  }
+
+  .service-icon svg {
+    display: block;
+    transition: transform 0.4s ease, color 0.4s ease;
+  }
+
+  .service-title {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 700;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+    transition: color 0.3s ease;
+  }
+
+  .service-description {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .services-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .services-section {
+      padding: 5rem 1.5rem;
+    }
+  }
+</style>
