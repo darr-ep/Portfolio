@@ -9,7 +9,11 @@ if (user) {
   return Astro.redirect('/admin');
 }
 
-const oauthUrl = `${import.meta.env.SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${Astro.url.origin}/admin/auth/callback`;
+const { data } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: { redirectTo: `${Astro.url.origin}/admin/auth/callback` },
+});
+const oauthUrl = data?.url ?? '#';
 ---
 <AdminLayout title="Login — Admin">
   <div class="login-wrap">
