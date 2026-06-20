@@ -21,6 +21,9 @@ const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) =
   category,
   skills,
 }));
+
+const lang = Astro.currentLocale ?? 'es';
+const sectionTitle = lang === 'en' ? 'DETAILS' : 'DETALLES';
 ---
 
 <section id="detalles" class="details-section">
@@ -28,7 +31,7 @@ const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) =
     <!-- Section header -->
     <div class="section-header">
       <span class="section-num">03 /</span>
-      <h2 class="section-title">DETALLES</h2>
+      <h2 class="section-title">{sectionTitle}</h2>
       <div class="header-line"></div>
     </div>
 

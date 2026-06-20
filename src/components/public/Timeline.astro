@@ -8,6 +8,7 @@ const { data: timelineData } = await supabase
   .order('sort_order', { ascending: true });
 
 const lang = Astro.currentLocale ?? 'es';
+const sectionTitle = lang === 'en' ? 'EXPERIENCE' : 'TRAYECTORIA';
 
 const entries = (timelineData ?? []).map((t: TimelineEntry) => ({
   period: t.year,
@@ -23,7 +24,7 @@ const entries = (timelineData ?? []).map((t: TimelineEntry) => ({
     <!-- Section header -->
     <div class="section-header">
       <span class="section-num">01 /</span>
-      <h2 class="section-title">TRAYECTORIA</h2>
+      <h2 class="section-title">{sectionTitle}</h2>
       <div class="header-line"></div>
     </div>
 

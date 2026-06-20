@@ -18,7 +18,11 @@ const projects = (projectsData ?? []).map((p: Project, i: number) => ({
   tech: p.tech ?? [],
   image: p.main_image ?? FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
   slug: p.slug,
+  href: lang === 'en' ? `/en/projects/${p.slug}` : `/proyectos/${p.slug}`,
 }));
+
+const sectionTitle = lang === 'en' ? 'PROJECTS' : 'PROYECTOS';
+const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 ---
 
 <section id="proyectos" class="projects-section">
@@ -26,7 +30,7 @@ const projects = (projectsData ?? []).map((p: Project, i: number) => ({
     <!-- Section header -->
     <div class="section-header">
       <span class="section-num">02 /</span>
-      <h2 class="section-title">PROYECTOS</h2>
+      <h2 class="section-title">{sectionTitle}</h2>
       <div class="header-line"></div>
     </div>
 
@@ -73,7 +77,7 @@ const projects = (projectsData ?? []).map((p: Project, i: number) => ({
                 <div class="project-tech">
                   {p.tech.map((t) => <span>{t}</span>)}
                 </div>
-                <a href={`/proyectos/${p.slug}`} class="project-link">Ver más →</a>
+                <a href={p.href} class="project-link">{seeMoreLabel}</a>
               </div>
             </div>
           </div>

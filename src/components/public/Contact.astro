@@ -1,5 +1,21 @@
 ---
-// Contact section + Footer
+const lang = Astro.currentLocale ?? 'es';
+const t = {
+  sectionTitle:  lang === 'en' ? 'CONTACT'                         : 'CONTACTO',
+  ctaLine1:      lang === 'en' ? "LET'S BUILD"                     : '¿HACEMOS',
+  ctaLine2:      lang === 'en' ? 'SOMETHING'                       : 'ALGO',
+  ctaLine3:      lang === 'en' ? 'TOGETHER?'                       : 'JUNTOS?',
+  location:      lang === 'en' ? 'LOCATION'                        : 'UBICACIÓN',
+  locationValue: lang === 'en' ? 'Latin America / Remote'          : 'América Latina / Remoto',
+  labelName:     lang === 'en' ? 'YOUR NAME'                       : '¿CÓMO TE LLAMÁS?',
+  labelEmail:    lang === 'en' ? 'YOUR EMAIL'                      : 'TU CORREO ELECTRÓNICO',
+  labelMessage:  lang === 'en' ? 'TELL ME ABOUT YOUR PROJECT'      : 'CONTAME SOBRE TU PROYECTO',
+  submit:        lang === 'en' ? 'Send →'                          : 'Enviar →',
+  submitting:    lang === 'en' ? 'Sending...'                      : 'Enviando...',
+  sent:          lang === 'en' ? 'Sent ✓'                          : 'Enviado ✓',
+  successMsg:    lang === 'en' ? 'Message sent — we\'ll be in touch soon.' : 'Mensaje enviado — nos ponemos en contacto pronto.',
+  errorMsg:      lang === 'en' ? 'Something went wrong. Try again or email me directly.' : 'Algo salió mal. Intentá de nuevo o escribime por email.',
+};
 ---
 
 <section id="contacto" class="contact-section">
@@ -7,7 +23,7 @@
     <!-- Section header -->
     <div class="section-header">
       <span class="section-num">04 /</span>
-      <h2 class="section-title">CONTACTO</h2>
+      <h2 class="section-title">{t.sectionTitle}</h2>
       <div class="header-line"></div>
     </div>
 
@@ -16,9 +32,9 @@
       <!-- Left: Giant CTA text -->
       <div class="contact-info reveal-contact-info">
         <h3 class="contact-giant-text">
-          ¿HACEMOS<br />
-          ALGO<br />
-          <span class="glow-text">JUNTOS?</span>
+          {t.ctaLine1}<br />
+          {t.ctaLine2}<br />
+          <span class="glow-text">{t.ctaLine3}</span>
         </h3>
 
         <div class="contact-details">
@@ -27,8 +43,8 @@
             <a href="mailto:darr.pedraz@gmail.com" class="detail-link">darr.pedraz@gmail.com</a>
           </div>
           <div class="detail-item">
-            <span class="detail-label">UBICACIÓN</span>
-            <span class="detail-value">América Latina / Remoto</span>
+            <span class="detail-label">{t.location}</span>
+            <span class="detail-value">{t.locationValue}</span>
           </div>
         </div>
       </div>
@@ -39,27 +55,30 @@
           <!-- Name -->
           <div class="form-group">
             <input type="text" id="contact-name" name="name" required placeholder=" " autocomplete="name" />
-            <label for="contact-name">¿CÓMO TE LLAMÁS?</label>
+            <label for="contact-name">{t.labelName}</label>
             <span class="group-line" aria-hidden="true"></span>
           </div>
 
           <!-- Email -->
           <div class="form-group">
             <input type="email" id="contact-email" name="email" required placeholder=" " autocomplete="email" />
-            <label for="contact-email">TU CORREO ELECTRÓNICO</label>
+            <label for="contact-email">{t.labelEmail}</label>
             <span class="group-line" aria-hidden="true"></span>
           </div>
 
           <!-- Message -->
           <div class="form-group">
             <textarea id="contact-message" name="message" rows="1" required placeholder=" "></textarea>
-            <label for="contact-message">CONTAME SOBRE TU PROYECTO</label>
+            <label for="contact-message">{t.labelMessage}</label>
             <span class="group-line" aria-hidden="true"></span>
           </div>
 
           <!-- Submit -->
-          <button type="submit" id="submit-btn" class="submit-btn">
-            <span id="submit-label">Enviar →</span>
+          <button type="submit" id="submit-btn" class="submit-btn"
+            data-label-default={t.submit}
+            data-label-sending={t.submitting}
+            data-label-sent={t.sent}>
+            <span id="submit-label">{t.submit}</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -67,12 +86,8 @@
           </button>
 
           <!-- Feedback messages -->
-          <p id="form-success" class="form-feedback success" hidden>
-            Mensaje enviado — nos ponemos en contacto pronto.
-          </p>
-          <p id="form-error" class="form-feedback error" hidden>
-            Algo salió mal. Intentá de nuevo o escribime por email.
-          </p>
+          <p id="form-success" class="form-feedback success" hidden>{t.successMsg}</p>
+          <p id="form-error" class="form-feedback error" hidden>{t.errorMsg}</p>
         </form>
       </div>
     </div>
@@ -105,16 +120,20 @@
   const successMsg = document.getElementById('form-success') as HTMLElement | null;
   const errorMsg = document.getElementById('form-error') as HTMLElement | null;
 
+  const labelDefault  = btn?.dataset.labelDefault  ?? 'Send →';
+  const labelSending  = btn?.dataset.labelSending  ?? 'Sending...';
+  const labelSent     = btn?.dataset.labelSent     ?? 'Sent ✓';
+
   function showSuccess() {
     if (successMsg) { successMsg.hidden = false; }
     if (errorMsg)   { errorMsg.hidden = true; }
-    if (label) label.textContent = 'Enviado ✓';
+    if (label) label.textContent = labelSent;
   }
 
   function showError() {
     if (errorMsg)   { errorMsg.hidden = false; }
     if (successMsg) { successMsg.hidden = true; }
-    if (label) label.textContent = 'Enviar →';
+    if (label) label.textContent = labelDefault;
   }
 
   form?.addEventListener('submit', async (e) => {
@@ -122,7 +141,7 @@
     if (!btn || !label) return;
 
     btn.disabled = true;
-    label.textContent = 'Enviando...';
+    label.textContent = labelSending;
 
     const name    = (form.querySelector('[name="name"]') as HTMLInputElement)?.value ?? '';
     const email   = (form.querySelector('[name="email"]') as HTMLInputElement)?.value ?? '';
