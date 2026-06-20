@@ -18,6 +18,9 @@
   --border-color: rgba(255, 255, 255, 0.07);
   --sidebar-bg: #0d0d0d;
   --accent: #e3a857;
+  --scrollbar-track: #0d0d0d;
+  --scrollbar-thumb: #262626;
+  --scrollbar-thumb-hover: #404040;
 
   --magicui-theme-toggle-vt-duration: 400ms;
 
@@ -43,6 +46,9 @@ html.light {
   --border-color: rgba(0, 0, 0, 0.08);
   --sidebar-bg: hsl(0, 0%, 90%);
   --accent: #e3a857;
+  --scrollbar-track: hsl(0, 0%, 90%);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
 }
 
 /* Disable default cross-fade for clip-path view transitions */
@@ -111,14 +117,14 @@ html.lenis body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0d0d;
+  background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Noise overlay — fixed full-viewport decorative layer */

@@ -55,10 +55,10 @@
   .splash-blind {
     flex: 1;
     height: 100%;
-    background-color: #0d0d0d;
+    background-color: var(--bg-primary);
     transform-origin: top;
     will-change: transform;
-    outline: 1px solid #0d0d0d;
+    outline: 1px solid var(--bg-primary);
   }
 
   .splash-blind:nth-child(even) {
@@ -81,7 +81,7 @@
     font-size: clamp(1.8rem, 4vw, 4.2rem);
     font-weight: 100;
     letter-spacing: -0.04em;
-    color: #ffffff;
+    color: var(--text-primary);
     opacity: 0.9;
     white-space: nowrap;
     line-height: 1;
@@ -118,7 +118,7 @@
     font-size: clamp(1.8rem, 4vw, 4.2rem);
     font-weight: 100;
     letter-spacing: -0.04em;
-    color: #ffffff;
+    color: var(--text-primary);
     opacity: 0;
     pointer-events: none;
     will-change: opacity;
