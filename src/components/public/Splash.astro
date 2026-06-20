@@ -136,19 +136,11 @@
   }
 </style>
 
-<!-- Runs synchronously before first paint — hides splash on every re-render after first load -->
-<script is:inline>
-  if (window.__splashDone) {
-    var el = document.getElementById('splash-screen');
-    if (el) el.style.display = 'none';
-  }
-</script>
-
 <script>
   import gsap from 'gsap';
 
-  // Only runs the real animation on the very first page load.
-  // Re-renders are handled synchronously above via is:inline.
+  // Hiding on re-renders is handled in BaseLayout's astro:before-swap handler,
+  // which modifies event.newDocument before the swap — no paint flash possible.
   if (!(window as any).__splashDone) {
     (window as any).__splashDone = true;
 
