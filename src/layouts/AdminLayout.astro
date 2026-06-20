@@ -1,8 +1,4 @@
 ---
-// Admin layout — no Sidebar, no GSAP/Lenis, no public nav
-// TODO: import admin.css (Tailwind v4 entry) — configured in Phase 5
-// import '../styles/admin.css';
-
 interface Props {
   title?: string;
 }
@@ -17,20 +13,156 @@ const { title = 'Admin — Portfolio CMS' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <style>
+      :root {
+        --admin-bg: #0a0a0a;
+        --admin-sidebar: #111111;
+        --admin-surface: #1a1a1a;
+        --admin-border: rgba(255, 255, 255, 0.08);
+        --admin-text: #e5e5e5;
+        --admin-muted: rgba(255, 255, 255, 0.5);
+        --admin-accent: #e3a857;
+      }
+
       *, *::before, *::after {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
+
       body {
-        font-family: system-ui, sans-serif;
-        background: #0a0a0a;
-        color: #e5e5e5;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: var(--admin-bg);
+        color: var(--admin-text);
         min-height: 100vh;
+        display: flex;
+      }
+
+      .sidebar {
+        width: 220px;
+        min-height: 100vh;
+        background: var(--admin-sidebar);
+        border-right: 1px solid var(--admin-border);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+      }
+
+      .sidebar-brand {
+        padding: 24px 20px;
+        border-bottom: 1px solid var(--admin-border);
+      }
+
+      .sidebar-brand .logo {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--admin-accent);
+        letter-spacing: -0.5px;
+      }
+
+      .sidebar-brand .subtitle {
+        font-size: 11px;
+        color: var(--admin-muted);
+        margin-top: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 16px 0;
+      }
+
+      .nav-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--admin-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 8px 20px 4px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        color: var(--admin-muted);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.15s, background 0.15s;
+        border-left: 2px solid transparent;
+      }
+
+      .nav-link:hover {
+        color: var(--admin-text);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .nav-link.active {
+        color: var(--admin-accent);
+        border-left-color: var(--admin-accent);
+        background: rgba(227, 168, 87, 0.06);
+      }
+
+      .sidebar-footer {
+        padding: 16px 20px;
+        border-top: 1px solid var(--admin-border);
+      }
+
+      .logout-form {
+        width: 100%;
+      }
+
+      .logout-btn {
+        width: 100%;
+        padding: 9px 16px;
+        background: transparent;
+        color: var(--admin-muted);
+        border: 1px solid var(--admin-border);
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        text-align: left;
+      }
+
+      .logout-btn:hover {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+
+      .main {
+        margin-left: 220px;
+        flex: 1;
+        min-height: 100vh;
+        padding: 32px 40px;
       }
     </style>
   </head>
   <body>
-    <slot />
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo">EP</div>
+        <div class="subtitle">Admin Panel</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Menu</div>
+        <a href="/admin" class="nav-link">Dashboard</a>
+        <a href="/admin/projects" class="nav-link">Projects</a>
+        <a href="/admin/timeline" class="nav-link">Timeline</a>
+        <a href="/admin/technologies" class="nav-link">Technologies</a>
+      </nav>
+      <div class="sidebar-footer">
+        <form action="/admin/auth/logout" method="POST" class="logout-form">
+          <button type="submit" class="logout-btn">Sign out</button>
+        </form>
+      </div>
+    </aside>
+    <main class="main">
+      <slot />
+    </main>
   </body>
 </html>

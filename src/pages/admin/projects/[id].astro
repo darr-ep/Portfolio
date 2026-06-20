@@ -1,0 +1,188 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { id } = Astro.params;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const tech = (form.get('tech') as string ?? '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  await supabase.from('projects').update({
+    slug: form.get('slug'),
+    sort_order: Number(form.get('sort_order')),
+    title_es: form.get('title_es'),
+    title_en: form.get('title_en'),
+    category_es: form.get('category_es'),
+    category_en: form.get('category_en'),
+    description_es: form.get('description_es'),
+    description_en: form.get('description_en'),
+    detailed_content_es: form.get('detailed_content_es') || null,
+    detailed_content_en: form.get('detailed_content_en') || null,
+    tech,
+    main_image: form.get('main_image') || null,
+  }).eq('id', id!);
+
+  return Astro.redirect('/admin/projects');
+}
+
+const { data: project } = await supabase
+  .from('projects')
+  .select('*')
+  .eq('id', id!)
+  .single();
+
+if (!project) {
+  return Astro.redirect('/admin/projects');
+}
+---
+<AdminLayout title={`Edit: ${project.title_es} — Admin`}>
+  <div class="page-header">
+    <h1>Edit Project</h1>
+    <a href="/admin/projects" class="btn-secondary">← Back</a>
+  </div>
+
+  <form method="POST" class="form">
+    <div class="form-row">
+      <div class="field">
+        <label>Slug</label>
+        <input type="text" name="slug" value={project.slug} required />
+      </div>
+      <div class="field field-sm">
+        <label>Sort order</label>
+        <input type="number" name="sort_order" value={project.sort_order} required />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Title (ES)</label>
+        <input type="text" name="title_es" value={project.title_es} required />
+      </div>
+      <div class="field">
+        <label>Title (EN)</label>
+        <input type="text" name="title_en" value={project.title_en} required />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Category (ES)</label>
+        <input type="text" name="category_es" value={project.category_es} required />
+      </div>
+      <div class="field">
+        <label>Category (EN)</label>
+        <input type="text" name="category_en" value={project.category_en} required />
+      </div>
+    </div>
+    <div class="field">
+      <label>Description (ES)</label>
+      <textarea name="description_es" rows="3" required>{project.description_es}</textarea>
+    </div>
+    <div class="field">
+      <label>Description (EN)</label>
+      <textarea name="description_en" rows="3" required>{project.description_en}</textarea>
+    </div>
+    <div class="field">
+      <label>Detailed content (ES)</label>
+      <textarea name="detailed_content_es" rows="6">{project.detailed_content_es}</textarea>
+    </div>
+    <div class="field">
+      <label>Detailed content (EN)</label>
+      <textarea name="detailed_content_en" rows="6">{project.detailed_content_en}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Tech (comma-separated)</label>
+        <input type="text" name="tech" value={project.tech?.join(', ')} />
+      </div>
+      <div class="field">
+        <label>Main image URL</label>
+        <input type="text" name="main_image" value={project.main_image ?? ''} />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Save changes</button>
+      <a href="/admin/projects" class="btn-secondary">Cancel</a>
+      <form action={`/admin/projects/${id}/delete`} method="POST" style="margin-left:auto">
+        <button type="submit" class="btn-danger" onclick="return confirm('Delete this project?')">Delete</button>
+      </form>
+    </div>
+  </form>
+</AdminLayout>
+
+<style>
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-header h1 { font-size: 24px; font-weight: 600; }
+  .form {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    padding: 28px;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field-sm { max-width: 160px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, textarea {
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    color: var(--admin-text);
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
+  textarea { resize: vertical; }
+  .form-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
+  .btn-primary {
+    padding: 10px 20px;
+    background: var(--admin-accent);
+    color: #000;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
+  .btn-danger {
+    padding: 10px 20px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-danger:hover { opacity: 0.85; }
+</style>

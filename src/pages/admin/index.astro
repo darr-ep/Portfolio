@@ -1,0 +1,116 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { supabase } from '../../lib/supabase';
+
+const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }] = await Promise.all([
+  supabase.from('projects').select('*', { count: 'exact', head: true }),
+  supabase.from('timeline_entries').select('*', { count: 'exact', head: true }),
+  supabase.from('technologies').select('*', { count: 'exact', head: true }),
+]);
+---
+<AdminLayout title="Dashboard — Admin">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+  </div>
+
+  <div class="stats-grid">
+    <a href="/admin/projects" class="stat-card">
+      <div class="stat-value">{projectsCount ?? 0}</div>
+      <div class="stat-label">Projects</div>
+    </a>
+    <a href="/admin/timeline" class="stat-card">
+      <div class="stat-value">{timelineCount ?? 0}</div>
+      <div class="stat-label">Timeline entries</div>
+    </a>
+    <a href="/admin/technologies" class="stat-card">
+      <div class="stat-value">{techCount ?? 0}</div>
+      <div class="stat-label">Technologies</div>
+    </a>
+  </div>
+
+  <div class="quick-links">
+    <h2>Quick access</h2>
+    <div class="links-grid">
+      <a href="/admin/projects/new" class="link-card">+ New project</a>
+      <a href="/admin/timeline/new" class="link-card">+ New timeline entry</a>
+      <a href="/admin/technologies/new" class="link-card">+ New technology</a>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--admin-text);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    padding: 28px 24px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--admin-accent);
+    background: rgba(227, 168, 87, 0.04);
+  }
+
+  .stat-value {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--admin-accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--admin-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .quick-links h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 16px;
+  }
+
+  .links-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .link-card {
+    padding: 10px 18px;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: var(--admin-text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .link-card:hover {
+    border-color: var(--admin-accent);
+    color: var(--admin-accent);
+  }
+</style>

@@ -1,0 +1,81 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  await supabase.from('timeline_entries').insert({
+    sort_order: Number(form.get('sort_order')),
+    year: form.get('year'),
+    company: form.get('company'),
+    role_es: form.get('role_es'),
+    role_en: form.get('role_en'),
+    description_es: form.get('description_es'),
+    description_en: form.get('description_en'),
+  });
+  return Astro.redirect('/admin/timeline');
+}
+---
+<AdminLayout title="New Timeline Entry — Admin">
+  <div class="page-header">
+    <h1>New Timeline Entry</h1>
+    <a href="/admin/timeline" class="btn-secondary">← Back</a>
+  </div>
+
+  <form method="POST" class="form">
+    <div class="form-row">
+      <div class="field">
+        <label>Year</label>
+        <input type="text" name="year" placeholder="2024" required />
+      </div>
+      <div class="field field-sm">
+        <label>Sort order</label>
+        <input type="number" name="sort_order" value="0" required />
+      </div>
+    </div>
+    <div class="field">
+      <label>Company</label>
+      <input type="text" name="company" required />
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Role (ES)</label>
+        <input type="text" name="role_es" required />
+      </div>
+      <div class="field">
+        <label>Role (EN)</label>
+        <input type="text" name="role_en" required />
+      </div>
+    </div>
+    <div class="field">
+      <label>Description (ES)</label>
+      <textarea name="description_es" rows="4" required></textarea>
+    </div>
+    <div class="field">
+      <label>Description (EN)</label>
+      <textarea name="description_en" rows="4" required></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Create entry</button>
+      <a href="/admin/timeline" class="btn-secondary">Cancel</a>
+    </div>
+  </form>
+</AdminLayout>
+
+<style>
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .page-header h1 { font-size: 24px; font-weight: 600; }
+  .form { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 28px; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field-sm { max-width: 160px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, textarea { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); padding: 9px 12px; font-size: 14px; font-family: inherit; transition: border-color 0.15s; width: 100%; }
+  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
+  textarea { resize: vertical; }
+  .form-actions { display: flex; gap: 12px; margin-top: 8px; }
+  .btn-primary { padding: 10px 20px; background: var(--admin-accent); color: #000; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary { padding: 10px 20px; background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); border-radius: 7px; font-size: 14px; text-decoration: none; cursor: pointer; transition: border-color 0.15s; display: inline-flex; align-items: center; }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
+</style>

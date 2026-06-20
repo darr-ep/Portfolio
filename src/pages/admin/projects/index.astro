@@ -1,0 +1,151 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { data: projects } = await supabase
+  .from('projects')
+  .select('id, sort_order, title_es, category_es, slug')
+  .order('sort_order');
+---
+<AdminLayout title="Projects — Admin">
+  <div class="page-header">
+    <h1>Projects</h1>
+    <a href="/admin/projects/new" class="btn-primary">+ New project</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Sort</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Slug</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {projects?.map((p) => (
+          <tr>
+            <td class="muted">{p.sort_order}</td>
+            <td>{p.title_es}</td>
+            <td class="muted">{p.category_es}</td>
+            <td class="mono muted">{p.slug}</td>
+            <td class="actions">
+              <a href={`/admin/projects/${p.id}`} class="btn-secondary">Edit</a>
+              <form action={`/admin/projects/${p.id}/delete`} method="POST" style="display:inline">
+                <button type="submit" class="btn-danger" onclick="return confirm('Delete this project?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        ))}
+        {!projects?.length && (
+          <tr>
+            <td colspan="5" class="empty">No projects yet.</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
+
+<style>
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    padding: 9px 18px;
+    background: var(--admin-accent);
+    color: #000;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .table-wrap {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--admin-muted);
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  td {
+    padding: 13px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+  .muted { color: var(--admin-muted); }
+
+  .mono { font-family: monospace; font-size: 13px; }
+
+  .actions { display: flex; gap: 8px; }
+
+  .btn-secondary {
+    padding: 6px 12px;
+    background: transparent;
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
+
+  .btn-danger {
+    padding: 6px 12px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-danger:hover { opacity: 0.85; }
+
+  .empty {
+    text-align: center;
+    color: var(--admin-muted);
+    padding: 40px;
+  }
+</style>

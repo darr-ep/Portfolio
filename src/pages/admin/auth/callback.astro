@@ -1,0 +1,10 @@
+---
+import { createAuthClient } from '../../../lib/supabase';
+
+const code = Astro.url.searchParams.get('code');
+if (code) {
+  const supabase = createAuthClient(Astro.request, Astro.cookies);
+  await supabase.auth.exchangeCodeForSession(code);
+}
+return Astro.redirect('/admin');
+---
