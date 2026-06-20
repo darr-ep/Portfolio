@@ -1,21 +1,19 @@
 ---
-// Timeline section — central vertical line + alternating cards
-const entries = [
-  {
-    period: '2024 - 2026',
-    company: 'Empresa Placeholder 1',
-    role: 'Frontend Developer',
-    description: 'Desarrollo de interfaces web de alta performance con React, TypeScript y GSAP. Lideré la migración de una SPA a arquitectura SSR con Astro.',
-    tech: ['React', 'TypeScript', 'GSAP'],
-  },
-  {
-    period: '2022 - 2024',
-    company: 'Empresa Placeholder 2',
-    role: 'UI Developer',
-    description: 'Diseño y desarrollo de sistemas de diseño escalables. Implementé componentes accesibles y animaciones que mejoraron el engagement un 40%.',
-    tech: ['Vue.js', 'Figma', 'SCSS'],
-  },
-];
+import { supabase } from '../../lib/supabase';
+import type { TimelineEntry } from '../../types/database';
+
+const { data: timelineData } = await supabase
+  .from('timeline')
+  .select('*')
+  .order('sort_order', { ascending: true });
+
+const entries = (timelineData ?? []).map((t: TimelineEntry) => ({
+  period: t.year,
+  company: t.company,
+  role: t.role_es,
+  description: t.description_es,
+  tech: [] as string[],
+}));
 ---
 
 <section id="trayectoria" class="timeline">

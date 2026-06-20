@@ -1,34 +1,23 @@
 ---
-// Projects section — 3D accordion with ScrollTrigger pin (static placeholder data)
-const projects = [
-  {
-    id: 1,
-    title: 'Proyecto Alpha',
-    category: 'Aplicación Web',
-    description: 'Plataforma SaaS para gestión de equipos con dashboards en tiempo real y analítica avanzada.',
-    tech: ['React', 'Node.js', 'PostgreSQL'],
-    image: '/assets/Proyecto 1.png',
-    slug: 'proyecto-alpha',
-  },
-  {
-    id: 2,
-    title: 'Proyecto Beta',
-    category: 'Página Web',
-    description: 'Landing page de alta conversión con animaciones GSAP y diseño centrado en la experiencia del usuario.',
-    tech: ['Astro', 'GSAP', 'Tailwind'],
-    image: '/assets/Proyecto 2.png',
-    slug: 'proyecto-beta',
-  },
-  {
-    id: 3,
-    title: 'Proyecto Gamma',
-    category: 'App Móvil',
-    description: 'Aplicación móvil para delivery con geolocalización en tiempo real y sistema de pagos integrado.',
-    tech: ['React Native', 'Supabase'],
-    image: '/assets/Proyecto 3.png',
-    slug: 'proyecto-gamma',
-  },
-];
+import { supabase } from '../../lib/supabase';
+import type { Project } from '../../types/database';
+
+const { data: projectsData } = await supabase
+  .from('projects')
+  .select('*')
+  .order('sort_order', { ascending: true });
+
+const FALLBACK_IMAGES = ['/assets/Proyecto 1.png', '/assets/Proyecto 2.png', '/assets/Proyecto 3.png'];
+
+const projects = (projectsData ?? []).map((p: Project, i: number) => ({
+  id: p.id,
+  title: p.title_es,
+  category: p.category_es,
+  description: p.description_es,
+  tech: p.tech ?? [],
+  image: p.main_image ?? FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+  slug: p.slug,
+}));
 ---
 
 <section id="proyectos" class="projects-section">

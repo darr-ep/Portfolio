@@ -1,23 +1,26 @@
 ---
-// Details — philosophy left + skills grid right
-const skillGroups = [
-  {
-    category: 'Frontend',
-    skills: ['React', 'Astro', 'TypeScript', 'Next.js'],
-  },
-  {
-    category: 'Animación',
-    skills: ['GSAP', 'Three.js', 'Lenis', 'CSS Animations'],
-  },
-  {
-    category: 'Herramientas',
-    skills: ['Git', 'Docker', 'Figma', 'VS Code'],
-  },
-  {
-    category: 'Metodología',
-    skills: ['Clean Architecture', 'Atomic Design', 'Agile', 'TDD'],
-  },
-];
+import { supabase } from '../../lib/supabase';
+import type { Technology } from '../../types/database';
+
+const { data: techData } = await supabase
+  .from('technologies')
+  .select('*')
+  .order('sort_order', { ascending: true });
+
+const technologies: Technology[] = techData ?? [];
+
+// Group by category for the grid display
+const categoryMap = new Map<string, string[]>();
+for (const tech of technologies) {
+  const list = categoryMap.get(tech.category) ?? [];
+  list.push(tech.name);
+  categoryMap.set(tech.category, list);
+}
+
+const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) => ({
+  category,
+  skills,
+}));
 ---
 
 <section id="detalles" class="details-section">

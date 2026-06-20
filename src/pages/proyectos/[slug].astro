@@ -1,21 +1,30 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import type { Project } from '../../types/database';
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 
-// Placeholder until Phase 3 wires Supabase
-const project = {
-  title: slug?.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? 'Proyecto',
-  category: 'Aplicación Web',
-  description: 'Información detallada disponible próximamente.',
-  tech: ['React', 'Astro', 'TypeScript'],
-  slug,
-};
+const { data, error } = await supabase
+  .from('projects')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!data || error) {
+  return new Response(null, { status: 404, statusText: 'Not Found' });
+}
+
+const project = data as Project;
+const title = project.title_es;
+const category = project.category_es;
+const description = project.description_es;
+const content = project.detailed_content_es ?? '';
 ---
 
-<BaseLayout title={`${project.title} — Edson Pedraza`} lang="es">
+<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={project.main_image ?? undefined} lang="es">
   <div class="project-detail">
     <div class="project-detail__header">
       <a href="/#proyectos" class="back-link">
@@ -26,19 +35,27 @@ const project = {
         </svg>
         Volver a proyectos
       </a>
-      <span class="project-detail__cat">{project.category}</span>
+      <span class="project-detail__cat">{category}</span>
     </div>
 
-    <h1 class="project-detail__title">{project.title}</h1>
-    <p class="project-detail__desc">{project.description}</p>
+    {project.main_image && (
+      <div class="project-detail__hero">
+        <img src={project.main_image} alt={title} class="project-detail__img" />
+      </div>
+    )}
 
-    <div class="project-detail__tech">
-      {project.tech.map((t) => <span class="tech-tag">{t}</span>)}
-    </div>
+    <h1 class="project-detail__title">{title}</h1>
+    <p class="project-detail__desc">{description}</p>
 
-    <div class="project-detail__placeholder">
-      <p>Contenido completo disponible en Phase 3 (integración con Supabase).</p>
-    </div>
+    {project.tech && project.tech.length > 0 && (
+      <div class="project-detail__tech">
+        {project.tech.map((t: string) => <span class="tech-tag">{t}</span>)}
+      </div>
+    )}
+
+    {content && (
+      <div class="project-detail__content" set:html={content.replace(/\n/g, '<br>')} />
+    )}
   </div>
 </BaseLayout>
 
@@ -47,6 +64,7 @@ const project = {
     padding: 8rem 5vw 6rem calc(80px + 5vw);
     min-height: 100vh;
     background: var(--bg-primary);
+    max-width: 900px;
   }
 
   .project-detail__header {
@@ -79,6 +97,21 @@ const project = {
     border: 1px solid var(--accent);
     padding: 0.25rem 0.75rem;
     border-radius: 2px;
+  }
+
+  .project-detail__hero {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 4px;
+    margin-bottom: 3rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .project-detail__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .project-detail__title {
@@ -114,16 +147,21 @@ const project = {
     border: 1px solid var(--border-color);
     padding: 0.25rem 0.6rem;
     border-radius: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
   }
 
-  .project-detail__placeholder {
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 4rem;
-    text-align: center;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
+  .tech-tag:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .project-detail__content {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    border-top: 1px solid var(--border-color);
+    padding-top: 3rem;
   }
 
   @media (max-width: 768px) {
