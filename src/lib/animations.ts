@@ -137,108 +137,135 @@ export function initMarquee() {
 export function initProjects() {
   if (!document.querySelector('.projects-section')) return;
 
-  const NUM_PROJECTS = 3;
-  const positions: string[][] = [
-    ['pos-center', 'pos-right', 'pos-left'],
-    ['pos-left', 'pos-center', 'pos-right'],
-    ['pos-right', 'pos-left', 'pos-center'],
-  ];
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.accordion-item'));
+  const headers = Array.from(document.querySelectorAll<HTMLAnchorElement>('.accordion-header'));
+  const frontCards = Array.from(document.querySelectorAll<HTMLElement>('.visual-card-front'));
+  const backCards = Array.from(document.querySelectorAll<HTMLElement>('.visual-card-back'));
 
+  // Generalized 3D layout: active card centers, earlier cards stack left, later stack right.
+  const posClass = (i: number, active: number) =>
+    i === active ? 'pos-center' : i < active ? 'pos-left' : 'pos-right';
+
+  const marquees = headers.map((h) => h.querySelector<HTMLElement>('.flow-marquee'));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let activeIdx = 0;
+  // Selection (click) changes the active project: visualizer card + expanded details.
+  // The flowing strip is NOT tied to this — it's a hover-only decoration (see below).
   function setActiveProject(idx: number) {
-    document.querySelectorAll('.accordion-item').forEach((item, i) => {
-      const body = item.querySelector('.accordion-body') as HTMLElement | null;
-      const header = item.querySelector('.accordion-header');
-      if (i === idx) {
-        item.classList.add('active');
-        header?.setAttribute('aria-expanded', 'true');
-        if (body) gsap.to(body, { height: 'auto', opacity: 1, duration: 0.4, ease: 'power2.out' });
-      } else {
-        item.classList.remove('active');
-        header?.setAttribute('aria-expanded', 'false');
-        if (body) gsap.to(body, { height: 0, opacity: 0, duration: 0.4, ease: 'power2.out' });
-      }
+    if (idx === activeIdx && items[idx]?.classList.contains('active')) return;
+    activeIdx = idx;
+    items.forEach((item, i) => {
+      const on = i === idx;
+      const body = item.querySelector<HTMLElement>('.accordion-body');
+      item.classList.toggle('active', on);
+      if (body) gsap.to(body, { height: on ? 'auto' : 0, opacity: on ? 1 : 0, duration: 0.4, ease: 'power2.out' });
     });
-    document.querySelectorAll('.visual-card-front').forEach((card, i) => {
-      card.className = `visual-card-front ${positions[idx][i]}`;
-    });
-    document.querySelectorAll('.visual-card-back').forEach((card, i) => {
-      card.className = `visual-card-back ${positions[idx][i]}`;
-    });
+    frontCards.forEach((card, i) => { card.className = `visual-card-front ${posClass(i, idx)}`; });
+    backCards.forEach((card, i) => { card.className = `visual-card-back ${posClass(i, idx)}`; });
   }
 
   gsap.set('.accordion-item:not(.active) .accordion-body', { height: 0, opacity: 0 });
   gsap.set('.accordion-item.active .accordion-body', { height: 'auto', opacity: 1 });
+  // Normalize the strips with a GSAP-owned transform (y:0, yPercent:101) so later yPercent
+  // tweens are not offset by the pixel value GSAP reads from the CSS translateY(101%) matrix.
+  marquees.forEach((m) => { if (m) gsap.set(m, { yPercent: 101, y: 0 }); });
+
+  // Clicking a title SELECTS the project (does not navigate). Opening happens via the
+  // "Ver más" link or the centered 3D card.
+  headers.forEach((header, i) => {
+    header.addEventListener('click', (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setActiveProject(i);
+    });
+  });
+
+  // Clicking the centered 3D card opens the active project via the page transition.
+  const visuals = document.querySelector<HTMLElement>('.projects-visuals');
+  const onVisualsClick = () => {
+    const header = headers[activeIdx];
+    const run = (window as any).__runNavTransition;
+    if (header && run) run(header.href, header.getAttribute('data-transition-label') ?? undefined);
+  };
+  visuals?.addEventListener('click', onVisualsClick);
 
   projectsMM = gsap.matchMedia();
 
+  // Desktop only: flowing-menu strip on hover (transient) + visualizer tilt.
   projectsMM.add('(min-width: 993px)', () => {
-    let currentActiveIdx = 0;
-    const projectsST = ScrollTrigger.create({
-      trigger: '.projects-section',
-      pin: true,
-      start: 'top top',
-      end: '+=80%',
-      anticipatePin: 1,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => {
-        const idx = Math.min(Math.floor(self.progress * NUM_PROJECTS), NUM_PROJECTS - 1);
-        if (idx !== currentActiveIdx) {
-          currentActiveIdx = idx;
-          setActiveProject(idx);
-        }
-      },
-    });
+    const cleanups: Array<() => void> = [];
 
-    document.querySelectorAll('.accordion-header').forEach((header) => {
-      header.addEventListener('click', () => {
-        const item = header.closest('.accordion-item');
-        if (!item) return;
-        const idx = parseInt(item.getAttribute('data-index') ?? '0', 10);
-        const start = projectsST.start;
-        const end = projectsST.end;
-        const centers = [0.15, 0.5, 0.85];
-        const targetScroll = start + (end - start) * centers[idx];
-        if ((window as any).lenis) {
-          (window as any).lenis.scrollTo(targetScroll, { duration: 1.0 });
-        } else {
-          window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-        }
-      });
-      header.addEventListener('keydown', (e) => {
-        if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
-          (header as HTMLElement).click();
-        }
-      });
-    });
+    const SCROLL_SECONDS = 20;
+    const STRIP_TWEEN = { duration: 0.6, ease: 'expo.out' };
 
-    return () => { projectsST.kill(); };
-  });
+    headers.forEach((header, i) => {
+      const marquee = marquees[i];
+      if (!marquee) return;
+      const inner = marquee.querySelector<HTMLElement>('.flow-marquee__inner');
+      if (!inner) return;
 
-  projectsMM.add('(max-width: 992px)', () => {
-    const items = document.querySelectorAll('.accordion-item');
-    items.forEach((item, i) => {
-      const body = item.querySelector('.accordion-body') as HTMLElement | null;
-      if (body) {
-        body.style.height = i === 0 ? 'auto' : '0';
-        body.style.opacity = i === 0 ? '1' : '0';
-      }
-    });
-    items.forEach((item) => {
-      const header = item.querySelector('.accordion-header');
-      header?.addEventListener('click', () => {
-        const isActive = item.classList.contains('active');
-        items.forEach((other) => {
-          other.classList.remove('active');
-          const otherBody = other.querySelector('.accordion-body') as HTMLElement | null;
-          if (otherBody) { otherBody.style.height = '0'; otherBody.style.opacity = '0'; }
-        });
-        if (!isActive) {
-          item.classList.add('active');
-          const body = item.querySelector('.accordion-body') as HTMLElement | null;
-          if (body) { body.style.height = 'auto'; body.style.opacity = '1'; }
-        }
+      // Continuous horizontal scroll via GSAP — content is duplicated (8 units), so -50% loops
+      // seamlessly. Driving it with GSAP (not CSS) lets the same element also do the vertical
+      // parallax below without a transform conflict.
+      const scrollTween = reduce
+        ? null
+        : gsap.to(inner, { xPercent: -50, duration: SCROLL_SECONDS, ease: 'none', repeat: -1 });
+
+      // Strip enters/exits from the edge nearest the cursor (top: -101%, bottom: 101%).
+      const edge = (e: MouseEvent) => {
+        const r = header.getBoundingClientRect();
+        return e.clientY - r.top < r.height / 2 ? -101 : 101;
+      };
+      // Outer cover and inner content slide from OPPOSITE edges and meet at 0 — the counter-move
+      // is what gives the flowing menu its parallax depth.
+      const onEnter = (e: MouseEvent) => {
+        const ed = edge(e);
+        gsap.killTweensOf(marquee);
+        gsap.killTweensOf(inner, 'yPercent');
+        if (reduce) { gsap.set(marquee, { yPercent: 0, y: 0 }); return; }
+        gsap.timeline({ defaults: STRIP_TWEEN })
+          .set(marquee, { yPercent: ed, y: 0 }, 0)
+          .set(inner, { yPercent: -ed, y: 0 }, 0)
+          .to([marquee, inner], { yPercent: 0 }, 0);
+      };
+      const onLeave = (e: MouseEvent) => {
+        const ed = edge(e);
+        gsap.killTweensOf(marquee);
+        gsap.killTweensOf(inner, 'yPercent');
+        if (reduce) { gsap.set(marquee, { yPercent: 101, y: 0 }); return; }
+        gsap.timeline({ defaults: STRIP_TWEEN })
+          .to(marquee, { yPercent: ed }, 0)
+          .to(inner, { yPercent: -ed }, 0);
+      };
+      header.addEventListener('mouseenter', onEnter);
+      header.addEventListener('mouseleave', onLeave);
+      cleanups.push(() => {
+        header.removeEventListener('mouseenter', onEnter);
+        header.removeEventListener('mouseleave', onLeave);
+        scrollTween?.kill();
       });
     });
+
+    // Parallax tilt on the front card layer following the cursor.
+    const frontLayer = document.querySelector<HTMLElement>('.visuals-layer-front');
+    if (visuals && frontLayer && !reduce) {
+      const onMove = (e: MouseEvent) => {
+        const r = visuals.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        gsap.to(frontLayer, { rotateY: px * 10, rotateX: -py * 10, duration: 0.5, ease: 'power2.out' });
+      };
+      const onLeave = () => gsap.to(frontLayer, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power2.out' });
+      visuals.addEventListener('mousemove', onMove);
+      visuals.addEventListener('mouseleave', onLeave);
+      cleanups.push(() => {
+        visuals.removeEventListener('mousemove', onMove);
+        visuals.removeEventListener('mouseleave', onLeave);
+      });
+    }
+
+    return () => cleanups.forEach((fn) => fn());
   });
 }
 

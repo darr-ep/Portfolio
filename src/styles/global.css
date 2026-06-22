@@ -1,11 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&family=Albert+Sans:wght@100;200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
 /* Suppress Astro ClientRouter crossfade — venetian blinds handle all transitions.
-   Theme toggle overrides this via element.animate() which has higher priority. */
+   Both snapshots hidden by default; theme toggle opts back in via [data-magicui-theme-vt]. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
+  animation: none;
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+/* Theme toggle: show snapshots and animate the clip-path expansion for the new theme. */
+[data-magicui-theme-vt="active"]::view-transition-old(root) {
+  opacity: 1;
+  z-index: 1;
+}
+[data-magicui-theme-vt="active"]::view-transition-new(root) {
+  opacity: 1;
+  z-index: 99999;
+  clip-path: var(--magicui-theme-vt-clip-from);
 }
 
 :root {
@@ -49,24 +60,6 @@ html.light {
   --scrollbar-track: hsl(0, 0%, 90%);
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
-}
-
-/* Disable default cross-fade for clip-path view transitions */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-old(root) {
-  z-index: 1;
-}
-::view-transition-new(root) {
-  z-index: 99999;
-}
-
-[data-magicui-theme-vt="active"]::view-transition-new(root) {
-  clip-path: var(--magicui-theme-vt-clip-from);
 }
 
 /* Reset */

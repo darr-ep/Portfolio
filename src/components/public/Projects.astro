@@ -60,14 +60,24 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
         </div>
       </div>
 
-      <!-- Right: Accordion -->
+      <!-- Right: Interactive project list with flowing-menu hover -->
       <div class="projects-accordion">
         {projects.map((p, i) => (
           <div class={`accordion-item ${i === 0 ? 'active' : ''}`} data-index={i}>
-            <div class="accordion-header" role="button" tabindex="0" aria-expanded={i === 0 ? 'true' : 'false'}>
+            <a href={p.href} class="accordion-header" data-index={i} data-transition-label={p.title.toUpperCase()}>
               <span class="acc-num">0{i + 1}/</span>
               <h3 class="acc-title">{p.title.toUpperCase()}</h3>
-            </div>
+              <span class="flow-marquee" aria-hidden="true">
+                <span class="flow-marquee__inner">
+                  {Array.from({ length: 8 }).map(() => (
+                    <span class="flow-unit">
+                      <span class="flow-text">{p.title.toUpperCase()}</span>
+                      <span class="flow-img" style={`background-image:url('${p.image}')`}></span>
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </a>
             <div class="accordion-body">
               <div class="accordion-content">
                 <div class="project-meta">
@@ -209,7 +219,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
       opacity 0.85s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
-  .visual-card-front.pos-center { opacity: 1; pointer-events: auto; }
+  .visual-card-front.pos-center { opacity: 1; pointer-events: auto; cursor: pointer; }
 
   .project-img {
     position: absolute;
@@ -253,20 +263,75 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 
   .accordion-item {
     border-bottom: 1px solid var(--border-color);
-    padding: 1.5rem 0;
     transition: border-color 0.4s ease;
   }
 
   .accordion-item.active { border-color: var(--accent); }
 
   .accordion-header {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: baseline;
     gap: 1.25rem;
+    padding: 0.8rem 0;
     cursor: pointer;
     user-select: none;
     outline: none;
+    text-decoration: none;
+    color: inherit;
   }
+
+  /* Flowing-menu hover strip — covers the header from the cursor's entry edge */
+  .flow-marquee {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: var(--accent);
+    transform: translateY(101%);
+    pointer-events: none;
+  }
+
+  .flow-marquee__inner {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: max-content;
+    white-space: nowrap;
+    will-change: transform;
+  }
+
+  .flow-unit {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    gap: 1.5rem;
+    padding: 0 1.25rem;
+  }
+
+  .flow-text {
+    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-weight: 900;
+    font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--bg-primary);
+    white-space: nowrap;
+  }
+
+  .flow-img {
+    height: calc(100% - 4px);
+    aspect-ratio: 2 / 1;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background-size: cover;
+    background-position: center;
+  }
+
 
   .accordion-header:focus-visible {
     outline: 2px solid var(--accent);
@@ -288,6 +353,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
     font-family: var(--font-ui, 'Albert Sans', sans-serif);
     font-size: clamp(1.4rem, 2.8vw, 2.2rem);
     font-weight: 900;
+    line-height: 1;
     color: var(--text-muted);
     letter-spacing: -0.02em;
     transition: color 0.4s ease, transform 0.4s ease;
@@ -373,6 +439,8 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 
     .projects-accordion { width: 100%; }
     .accordion-content { padding-left: 1.5rem; }
+    /* No hover on touch — the flowing strip has no purpose */
+    .flow-marquee { display: none; }
   }
 
   @media (max-width: 768px) {

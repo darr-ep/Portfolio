@@ -79,37 +79,17 @@ const {
       if (!(window as any).__appInitialized) {
         (window as any).__appInitialized = true;
         let isFirstLoad = true;
-
-        // Holds a promise that resolves when the exit animation finishes.
-        // astro:before-swap waits on it before swapping the DOM.
-        let _animLock: Promise<void> | null = null;
         let _isTransitioning = false;
 
         createLenis();
 
         document.addEventListener('astro:before-swap', (e) => {
+          killPageAnimations();
           destroyLenis();
           if ((window as any).__splashDone) {
             const incoming = (e as any).newDocument as Document | undefined;
             const splashEl = incoming?.getElementById('splash-screen');
             if (splashEl) (splashEl as HTMLElement).style.display = 'none';
-          }
-          // If an exit animation is running, defer the DOM swap until it finishes.
-          if (_animLock) {
-            const originalSwap = (e as any).swap as () => void;
-            const lock = _animLock;
-            _animLock = null;
-            (e as any).swap = async () => {
-              await lock;
-              killPageAnimations(); // blinds fully closed — scroll jump is invisible
-              originalSwap();
-              // After swap the new .pt-blind elements inherit CSS scaleX:0.
-              // Force them to covered (scaleX:1) before the browser paints so
-              // astro:after-swap can animate them from 1→0 (the reveal).
-              gsap.set('.pt-blind', { scaleX: 1 });
-            };
-          } else {
-            killPageAnimations(); // fallback for navigations without animation
           }
         });
 
@@ -117,27 +97,39 @@ const {
           createLenis();
           const label = document.getElementById('transition-label');
           if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
-          // Reveal: columns collapse right-to-left from right origin, staggered L→R
+          // gsap.set is synchronous — covers the new page on THIS frame before any paint.
+          // gsap.fromTo's "from" values only apply on the next tick, leaving a one-frame gap
+          // where new .pt-blind elements sit at CSS default scaleX(0), causing a double-reveal flash.
           gsap.killTweensOf('.pt-blind');
-          gsap.fromTo('.pt-blind',
-            { scaleX: 1, transformOrigin: 'right center' },
-            {
-              scaleX: 0,
-              stagger: 0.06,
-              duration: 0.3,
-              ease: 'power2.inOut',
-              delay: 0.05,
-              onComplete: () => {
-                gsap.set('.pt-blind', { transformOrigin: 'left center' });
-                _isTransitioning = false;
-              },
-            }
-          );
+          gsap.set('.pt-blind', { scaleX: 1, transformOrigin: 'right center' });
+          gsap.to('.pt-blind', {
+            scaleX: 0,
+            stagger: 0.06,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            delay: 0.05,
+            onComplete: () => {
+              gsap.set('.pt-blind', { transformOrigin: 'left center' });
+              _isTransitioning = false;
+            },
+          });
         });
 
         document.addEventListener('astro:page-load', () => {
           initPageAnimations();
           ScrollTrigger.refresh();
+
+          // Hash scroll runs after refresh() so pinned-section positions are correct.
+          // The blinds are still opening (~0.6s) so the jump is invisible.
+          const hash = window.location.hash;
+          if (hash) {
+            const target = document.querySelector(hash) as HTMLElement | null;
+            if (target) {
+              const l = (window as any).lenis;
+              if (l) l.scrollTo(target, { immediate: true });
+              else window.scrollTo({ top: (target as HTMLElement).offsetTop });
+            }
+          }
 
           if (!isFirstLoad) {
             enterAnimation();
@@ -167,27 +159,32 @@ const {
         function runNavTransition(href: string, label?: string) {
           if (_isTransitioning) return;
           _isTransitioning = true;
-          const labelEl = document.getElementById('transition-label');
+          // Safety reset if navigate() somehow never triggers after-swap
+          setTimeout(() => { _isTransitioning = false; }, 5000);
 
+          const labelEl = document.getElementById('transition-label');
           if (label && labelEl) {
             labelEl.textContent = label;
-            // Label fades in once most columns are covering (~60% through the stagger)
             gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.25 });
           }
 
+          gsap.killTweensOf('.pt-blind');
           exitAnimation();
 
-          // Cover: columns expand from left origin, staggered L→R
-          // Lock resolves when all columns are fully covering the screen.
-          _animLock = new Promise<void>((resolve) => {
-            gsap.set('.pt-blind', { transformOrigin: 'left center' });
-            gsap.fromTo('.pt-blind',
-              { scaleX: 0 },
-              { scaleX: 1, stagger: 0.06, duration: 0.3, ease: 'power2.inOut', onComplete: resolve }
-            );
-          });
-
-          navigate(href);
+          // Cover completes first, THEN navigate — this runs entirely before
+          // startViewTransition() is called, so the browser never pauses rendering
+          // and the user always sees the cover animation play.
+          gsap.set('.pt-blind', { transformOrigin: 'left center' });
+          gsap.fromTo('.pt-blind',
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              stagger: 0.06,
+              duration: 0.3,
+              ease: 'power2.inOut',
+              onComplete: () => navigate(href),
+            }
+          );
         }
 
         (window as any).__runNavTransition = runNavTransition;
@@ -208,13 +205,20 @@ const {
           const normalizePathname = (p: string) => p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p;
           if (normalizePathname(url.pathname) === normalizePathname(window.location.pathname) && url.hash) {
             e.preventDefault();
-            const target = document.querySelector(url.hash);
+            const target = document.querySelector(url.hash) as HTMLElement | null;
             if (target) {
               const l = (window as any).lenis;
               if (l) {
-                l.stop();
+                // Lenis ignores scrollTo() when stopped/locked unless force:true — the splash
+                // calls lenis.stop() and a lingering stopped state makes clicks do nothing.
                 l.start();
-                l.scrollTo(target, { duration: 1.2 });
+                // Resolve an explicit numeric Y. Only the PINNED section (.projects-section) needs
+                // its ScrollTrigger.start — while pinned it's position:fixed so its rect is unreliable.
+                // We must filter by t.pin: other sections (e.g. .timeline) also have ScrollTriggers,
+                // but with animation start values like 'top center' that are NOT the section top.
+                const pin = ScrollTrigger.getAll().find((t) => t.trigger === target && t.pin);
+                const y = pin ? pin.start : target.getBoundingClientRect().top + window.scrollY;
+                l.scrollTo(y, { duration: 1.2, force: true });
               } else {
                 target.scrollIntoView({ behavior: 'smooth' });
               }
