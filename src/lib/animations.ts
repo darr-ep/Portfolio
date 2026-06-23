@@ -41,22 +41,6 @@ export function killPageAnimations() {
   projectsMM = null;
 }
 
-// ── EXIT ANIMATION ────────────────────────────────────────────────────────────
-// Runs in parallel with venetian blinds closing (~0.3s).
-
-export function exitAnimation() {
-  const tl = gsap.timeline();
-
-  // Non-hero pages get a subtle fade before the columns cover them.
-  // The hero handles its own entrance; no exit animation needed there —
-  // the column wipe is the only transition effect on the hero.
-  if (!document.querySelector('.hero')) {
-    tl.to('main > *', { opacity: 0, y: -20, duration: 0.22, ease: 'power2.in', stagger: 0.03, overwrite: true }, 0);
-  }
-
-  return tl;
-}
-
 // ── ENTER ANIMATION ───────────────────────────────────────────────────────────
 // Runs in astro:page-load — blinds are still opening, content animates in behind them.
 

@@ -50,8 +50,56 @@ Required (see `.env.example`, not committed):
 
 ## Architecture notes
 
-### Page transitions
-`src/layouts/BaseLayout.astro` orchestrates everything: `astro:before-swap` / `astro:after-swap` / `astro:page-load`, a global click handler (`__runNavTransition`, hash scroll, lang switch), and the Venetian-blind curtain (`.pt-blind`). The motion logic (exit/enter animations, section inits, FlowingMenu) lives in `src/lib/animations.ts`. View-transition CSS rules are consolidated in `src/styles/global.css`.
+### Page transitions — current design (fully rewritten 2026-06-22)
+
+`src/layouts/BaseLayout.astro` is the complete orchestrator. All logic lives in a single `<script>` block guarded by `__appInitialized` to survive HMR without re-registering listeners.
+
+**Key state variables:**
+- `_isTransitioning` — lock to prevent concurrent transitions
+- `_nav: { label, useLogo, ready }` — in-flight nav descriptor; `ready()` is the resolver of `pageReady`
+- `MIN_COVER_MS = 1000` — minimum cover duration; prevents fast loads from cutting the exit short
+
+**Two-timeline architecture:**
+- **EXIT timeline** — owned by `runNavTransition`. Fades in label/logo via CSS `.pt-show`, covers screen with `.pt-blind` columns, then calls `navigate(href)`.
+- **REVEAL timeline** — fires only when `Promise.all([pageReady, minTime])` resolves. `pageReady` is set by `astro:page-load`; `minTime` is a `gsap.delayedCall` of 1s. Removes `.pt-show`, opens blinds, calls `enterAnimation()`.
+
+**`ptSet(el, show)` helper:**
+```typescript
+function ptSet(el: Element | null, show: boolean) {
+  if (!el) return;
+  const s = (el as HTMLElement).style;
+  s.transition = 'none';
+  el.classList.toggle('pt-show', show);
+  void (el as HTMLElement).offsetWidth; // force the 'none' to apply before re-enabling
+  s.transition = '';
+}
+```
+Used in `after-swap` to re-assert label/logo state WITHOUT triggering the CSS fade (which read as flicker). **NEVER use `gsap.set(el, { opacity: ... })` on `#transition-label` or `#transition-logo`** — inline style beats the `.pt-show` stylesheet rule and permanently breaks the toggle.
+
+**CSS transition (not GSAP) for label/logo opacity:**
+```css
+#transition-label, #transition-logo { opacity: 0; transition: opacity 0.2s ease; }
+#transition-label.pt-show, #transition-logo.pt-show { opacity: 1; }
+```
+Compositor-driven — immune to main-thread jank that snapped GSAP tweens to their end during heavy page init.
+
+**Capture-phase click listener:**
+```typescript
+document.addEventListener('click', handler, true); // true = capture
+```
+Runs BEFORE Astro ClientRouter's bubbling listener. `preventDefault()` fires first → no double navigation.
+
+**`lagSmoothing` management:**
+- `animations.ts` sets `gsap.ticker.lagSmoothing(0)` globally for Lenis compatibility.
+- `runNavTransition` sets `lagSmoothing(100, 16)` for the duration of the transition to cap per-tick advance.
+- Restored to `(0)` in `onComplete` of the REVEAL timeline.
+
+**Logo navigation:**
+- Links with `data-logo-link` show the logotype (`#transition-logo`) instead of text during transition.
+- Same-page logo click scrolls to top; different-page logo click triggers `runNavTransition(href, undefined, true)`.
+
+**Label/logo show during overlay:**
+- `#transition-logo` has dark/light variants: `.tl-dark` (default) / `.tl-light` (shown when `html.light`).
 
 ### Projects section
 `src/components/public/Projects.astro` uses an interactive **FlowingMenu** (no scroll pin — the pin was the source of jank and was removed). Hover shows a transient ribbon; click SELECTS (swaps the 3D card + expands); the 3D card / "Ver más" OPENS the project. Double-layer parallax: outer ribbon and inner content enter from OPPOSITE edges and meet at 0. Horizontal scroll is driven by GSAP (`xPercent`, `width: max-content`), not CSS.
@@ -62,20 +110,36 @@ Required (see `.env.example`, not committed):
 - **GSAP %-transform px bug**: GSAP reads the initial transform from the computed matrix in **pixels**, not %. If CSS sets `translateY(101%)` and you then animate `yPercent`, GSAP adds a phantom px offset. Fix: normalize first with `gsap.set(el, { yPercent: X, y: 0 })`.
 - **Pinned section + scroll-to**: to scroll to a section, filter `ScrollTrigger` by `t.pin` — not just any trigger on the element. Animation triggers with `start: 'top center'` are NOT the element's top position.
 - **HMR + animations.ts**: Vite's HMR leaves stale listeners after editing `animations.ts`. After such changes, hard reload (`Ctrl+Shift+R`).
+- **`lagSmoothing(0)` + GSAP opacity tween**: When `lagSmoothing(0)` is active, a single heavy frame (e.g. hero init on page load) causes GSAP to advance a 0.2s tween in one tick — completing it instantly. Fix: use CSS `transition` on compositor-driven properties, or temporarily set `lagSmoothing(100, 16)` around the affected animation.
+- **Inline style vs. CSS class**: `gsap.set(el, { opacity: 1 })` writes `style.opacity: 1`. This beats any stylesheet `.pt-show { opacity: 1 }` rule, so removing `.pt-show` afterwards does nothing — the inline style wins. Never mix inline opacity with CSS class–driven fades on the same element.
+- **ClientRouter double navigation**: Astro ClientRouter has a bubbling `click` listener on `<a>` elements. If you also have a custom click handler at the document level, BOTH fire — ClientRouter swaps at ~370ms while your cover is still closing at ~900ms. Fix: register your handler in **capture phase** so `preventDefault()` runs before ClientRouter sees the click.
+- **`transition:persist` and fresh nodes**: Even with `transition:persist`, the node is NOT always reused (theme mismatch, DOM order change). Always re-assert state in `after-swap` using `ptSet` (not `gsap.set`) to handle both cases (reuse = no-op; fresh = instant re-assert without triggering the CSS fade).
+- **`try/finally` in `astro:page-load`**: `_nav.ready()` MUST be called even if `initPageAnimations()` throws. Wrap the whole page-load body in `try { ... } finally { _nav?.ready(); }` — otherwise the page stays covered forever.
 
 ## Pending work — page transitions
 
-Bugs identified but not yet confirmed fixed (verify in browser before touching code):
+Status as of 2026-06-22 (verify in browser on a new machine before touching code):
 
-1. **Double enter animation** — entering a project/CV plays the enter animation twice. Prior patch: `gsap.set` instead of `fromTo` in `astro:after-swap`.
-2. **"Back to projects"** — should return to the project's section, not the hero. Projects is no longer pinned; the back-link goes to `/#proyectos`.
-3. **Exit via sidebar from a project** — should show the destination label (Contact/Services) and land on that section, not the hero.
-4. **Lang toggle inside a project/CV** — translation happens almost immediately and replays the enter animation twice; it should show EXIT then ENTER.
+### ✅ Confirmed fixed
+1. **Exit transition cut short on fast loads** — `Promise.all([pageReady, minTime])` gate holds reveal for ≥1s.
+2. **Double enter animation** — same gate decouples reveal from Astro swap timing.
+3. **Destination visible through closing blinds** — capture-phase click listener prevents double navigation.
+4. **Label stuck on screen** — dual-timeline owning `_nav` state prevents orphaned state.
+5. **Label/logo snapping to end on return to landing** — moved opacity fade to CSS `transition` (compositor-driven).
+6. **Label flicker at transition start** — `ptSet` re-asserts state in `after-swap` without triggering the CSS fade.
+
+### ⚠️ Deployed but not yet confirmed on user's real machine
+- **Label/logo fade-out when returning to landing** — headless tests pass; user had not confirmed on real browser at session end.
+
+### 🔲 Not yet started
+- **"Back to projects"** — back-link should return to the project section (with scroll), not the hero.
+- **Exit via sidebar from a project** — should show the sidebar destination label and land on that section.
+- **Lang toggle inside a project/CV** — should show EXIT then ENTER; currently replays enter twice.
 
 ## Key files
 
-- `src/layouts/BaseLayout.astro` — transition orchestrator.
-- `src/lib/animations.ts` — centralized GSAP/Lenis module.
+- `src/layouts/BaseLayout.astro` — transition orchestrator (all logic: listeners, state, `runNavTransition`, `ptSet`).
+- `src/lib/animations.ts` — centralized GSAP/Lenis module (`enterAnimation`, `initPageAnimations`, `killPageAnimations`, `createLenis`, `destroyLenis`, `heroEnterFromSplash`).
 - `src/components/public/Projects.astro` — FlowingMenu projects section.
 - `src/components/public/Sidebar.astro` — nav with `data-transition-label`, lang switcher.
 - `src/components/public/Splash.astro` — splash; calls `lenis.stop()`/`start()`.

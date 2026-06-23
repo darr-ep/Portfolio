@@ -47,7 +47,7 @@ const {
     <div id="progress-bar" aria-hidden="true"></div>
 
     <!-- Page transition overlay — vertical columns that wipe scaleX like the Splash -->
-    <div id="page-transition" aria-hidden="true">
+    <div id="page-transition" aria-hidden="true" transition:persist>
       <div class="pt-blind"></div>
       <div class="pt-blind"></div>
       <div class="pt-blind"></div>
@@ -55,6 +55,10 @@ const {
       <div class="pt-blind"></div>
       <div class="pt-blind"></div>
       <span id="transition-label"></span>
+      <div id="transition-logo" aria-hidden="true">
+        <img src="/assets/Logo-Dark.png" alt="" class="tl-logo tl-dark" />
+        <img src="/assets/Logo-Light.png" alt="" class="tl-logo tl-light" />
+      </div>
     </div>
 
     <Sidebar />
@@ -70,7 +74,6 @@ const {
         createLenis,
         destroyLenis,
         killPageAnimations,
-        exitAnimation,
         enterAnimation,
         heroEnterFromSplash,
         initPageAnimations,
@@ -80,6 +83,24 @@ const {
         (window as any).__appInitialized = true;
         let isFirstLoad = true;
         let _isTransitioning = false;
+        // The in-flight navigation WE initiated, or null for popstate / first load. Holds the
+        // destination label and a resolver fired when astro:page-load signals the page is ready.
+        let _nav: { label: string | null; useLogo: boolean; ready: () => void } | null = null;
+        // Minimum time the screen stays covered, measured from the exit start. A near-instant
+        // data load can't cut the exit short; the reveal waits out this floor. Tunable.
+        const MIN_COVER_MS = 1000;
+
+        // Toggle the .pt-show class WITHOUT animating — used across the swap so re-asserting the
+        // cue on a fresh (non-persisted) node doesn't re-trigger the CSS fade (which read as a
+        // flicker). Disable the transition, flip the class, force reflow, then restore it.
+        function ptSet(el: Element | null, show: boolean) {
+          if (!el) return;
+          const s = (el as HTMLElement).style;
+          s.transition = 'none';
+          el.classList.toggle('pt-show', show);
+          void (el as HTMLElement).offsetWidth; // force the 'none' to apply before re-enabling
+          s.transition = '';
+        }
 
         createLenis();
 
@@ -95,32 +116,43 @@ const {
 
         document.addEventListener('astro:after-swap', () => {
           createLenis();
-          const label = document.getElementById('transition-label');
-          if (label) gsap.to(label, { opacity: 0, duration: 0.15 });
-          // gsap.set is synchronous — covers the new page on THIS frame before any paint.
-          // gsap.fromTo's "from" values only apply on the next tick, leaving a one-frame gap
-          // where new .pt-blind elements sit at CSS default scaleX(0), causing a double-reveal flash.
-          gsap.killTweensOf('.pt-blind');
+          // Only OUR navigations cover the screen. Popstate (browser back/forward) never closed
+          // the blinds, so leave them open and let the swap show instantly.
+          if (!_nav) return;
+
+          // Defensive + synchronous (after-swap runs before the browser paints the new page):
+          // #page-transition uses transition:persist so the covered node SHOULD survive the swap,
+          // but if it didn't, the incoming blinds/label are fresh — re-assert the covered state
+          // and the label here so nothing flashes through, regardless of how persist resolved.
           gsap.set('.pt-blind', { scaleX: 1, transformOrigin: 'right center' });
-          gsap.to('.pt-blind', {
-            scaleX: 0,
-            stagger: 0.06,
-            duration: 0.3,
-            ease: 'power2.inOut',
-            delay: 0.05,
-            onComplete: () => {
-              gsap.set('.pt-blind', { transformOrigin: 'left center' });
-              _isTransitioning = false;
-            },
-          });
+          // Re-assert the cue INSTANTLY (ptSet, no transition). If the overlay node wasn't reused
+          // across the swap, the fresh #transition-label starts hidden; animating it back in here
+          // is exactly the flicker (visible → swap shows empty → fade in again). ptSet matches the
+          // pre-swap visible state in one frame, so the swap is seamless.
+          const label = document.getElementById('transition-label');
+          const logo = document.getElementById('transition-logo');
+          if (_nav.useLogo) {
+            ptSet(label, false);
+            ptSet(logo, true);
+          } else if (_nav.label) {
+            if (label) label.textContent = _nav.label;
+            ptSet(label, true);
+            ptSet(logo, false);
+          } else {
+            ptSet(label, false);
+            ptSet(logo, false);
+          }
         });
 
         document.addEventListener('astro:page-load', () => {
+          // try/finally so a throw in section init can NEVER strand the reveal: _nav.ready() in
+          // the finally always resolves pageReady, otherwise the page stays covered + label stuck.
+          try {
           initPageAnimations();
           ScrollTrigger.refresh();
 
-          // Hash scroll runs after refresh() so pinned-section positions are correct.
-          // The blinds are still opening (~0.6s) so the jump is invisible.
+          // Hash scroll runs after refresh() so pinned-section positions are correct, and while
+          // the blinds are still covering — the jump is invisible.
           const hash = window.location.hash;
           if (hash) {
             const target = document.querySelector(hash) as HTMLElement | null;
@@ -131,9 +163,7 @@ const {
             }
           }
 
-          if (!isFirstLoad) {
-            enterAnimation();
-          } else {
+          if (isFirstLoad) {
             // Pre-hide hero elements while splash covers the screen — prevents 1-frame flash
             if (document.querySelector('.hero')) {
               gsap.set('.img-bg', { scale: 1.08, opacity: 0 });
@@ -147,7 +177,12 @@ const {
               heroEnterFromSplash();
             }, { once: true });
           }
-          isFirstLoad = false;
+          } finally {
+            isFirstLoad = false;
+            // Signal the in-flight navigation that the new page is swapped AND initialized. The
+            // reveal (owned by runNavTransition) fires from here via Promise resolution.
+            _nav?.ready();
+          }
         });
 
         window.addEventListener('scroll', () => {
@@ -156,35 +191,83 @@ const {
           if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
         }, { passive: true });
 
-        function runNavTransition(href: string, label?: string) {
+        // One timeline owns the EXIT (label-in + content fade + blinds cover), one owns the
+        // REVEAL (label-out + blinds open + hero enter). The reveal fires only when BOTH the page
+        // is ready (astro:page-load) AND the time floor has elapsed — whichever finishes last.
+        // Nothing visual is tied to Astro's swap timing, so fast/slow loads look identical.
+        function runNavTransition(href: string, label?: string, useLogo = false) {
           if (_isTransitioning) return;
           _isTransitioning = true;
-          // Safety reset if navigate() somehow never triggers after-swap
-          setTimeout(() => { _isTransitioning = false; }, 5000);
+
+          // animations.ts sets lagSmoothing(0) globally (for Lenis). That makes a single janky
+          // frame — e.g. the destination's heavy page-load init + hero enter — get fully absorbed
+          // by GSAP on the next tick, snapping the reveal timeline to its end (label + blinds jump
+          // instead of fading). Cap per-tick advance for the duration of the transition only.
+          gsap.ticker.lagSmoothing(100, 16);
+
+          const pageReady = new Promise<void>((resolve) => {
+            _nav = { label: label ?? null, useLogo, ready: resolve };
+          });
+          const minTime = new Promise<void>((resolve) => {
+            gsap.delayedCall(MIN_COVER_MS / 1000, resolve);
+          });
+          // Safety: never strand the lock if navigation never completes.
+          const safety = setTimeout(() => { gsap.ticker.lagSmoothing(0); _isTransitioning = false; _nav = null; }, 8000);
 
           const labelEl = document.getElementById('transition-label');
-          if (label && labelEl) {
-            labelEl.textContent = label;
-            gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.25 });
-          }
-
+          const logoEl = document.getElementById('transition-logo');
           gsap.killTweensOf('.pt-blind');
-          exitAnimation();
 
-          // Cover completes first, THEN navigate — this runs entirely before
-          // startViewTransition() is called, so the browser never pauses rendering
-          // and the user always sees the cover animation play.
-          gsap.set('.pt-blind', { transformOrigin: 'left center' });
-          gsap.fromTo('.pt-blind',
-            { scaleX: 0 },
-            {
-              scaleX: 1,
-              stagger: 0.06,
-              duration: 0.3,
-              ease: 'power2.inOut',
-              onComplete: () => navigate(href),
+          // ── EXIT ──
+          const exitTl = gsap.timeline({ onComplete: () => { navigate(href); } });
+          // Fade in the destination cue (logo or text) via CSS class — compositor-driven, so a
+          // heavy destination load can't snap it. ptSet guarantees a clean hidden start (no flicker
+          // if it was left visible), then add .pt-show after ~0.1s to fade in as the cover closes.
+          if (useLogo && logoEl) {
+            ptSet(labelEl, false);
+            ptSet(logoEl, false);
+            setTimeout(() => logoEl.classList.add('pt-show'), 100);
+          } else {
+            ptSet(logoEl, false);
+            if (labelEl) {
+              if (label) {
+                labelEl.textContent = label;
+                ptSet(labelEl, false);
+                setTimeout(() => labelEl.classList.add('pt-show'), 100);
+              } else {
+                ptSet(labelEl, false);
+              }
             }
-          );
+          }
+          // Non-hero pages get a subtle content fade before the columns cover them.
+          if (!document.querySelector('.hero')) {
+            exitTl.to('main > *', { opacity: 0, y: -20, duration: 0.22, ease: 'power2.in', stagger: 0.03, overwrite: true }, 0);
+          }
+          exitTl.set('.pt-blind', { transformOrigin: 'left center' }, 0);
+          exitTl.fromTo('.pt-blind',
+            { scaleX: 0 },
+            { scaleX: 1, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0);
+
+          // ── REVEAL ──
+          Promise.all([pageReady, minTime]).then(() => {
+            clearTimeout(safety);
+            const reveal = gsap.timeline({
+              onComplete: () => {
+                gsap.set('.pt-blind', { transformOrigin: 'left center' });
+                gsap.ticker.lagSmoothing(0); // restore Lenis-friendly setting
+                _isTransitioning = false;
+                _nav = null;
+              },
+            });
+            // Fade the label/logo out via CSS class (compositor-driven, immune to the heavy
+            // destination-init jank that was snapping the GSAP tween). Fires as the reveal starts;
+            // removing pt-show from a hidden element is a no-op.
+            document.getElementById('transition-label')?.classList.remove('pt-show');
+            document.getElementById('transition-logo')?.classList.remove('pt-show');
+            reveal.set('.pt-blind', { transformOrigin: 'right center' }, 0);
+            reveal.to('.pt-blind', { scaleX: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0);
+            reveal.add(enterAnimation(), 0);
+          });
         }
 
         (window as any).__runNavTransition = runNavTransition;
@@ -236,16 +319,22 @@ const {
             return;
           }
 
+          // Logo navigating to a DIFFERENT page (return to landing): show the logotype instead
+          // of text. (Same-page logo click is handled above as a scroll-to-top.)
+          const isLogo = link.hasAttribute('data-logo-link');
           const dataLabel = link.getAttribute('data-transition-label') ?? undefined;
-          const isLangSwitch = !dataLabel && !!link.closest('.lang-switcher');
+          const isLangSwitch = !dataLabel && !isLogo && !!link.closest('.lang-switcher');
           const switchLabel = isLangSwitch
             ? (href.includes('/en') ? 'EN' : 'ES')
             : undefined;
           const label = dataLabel ?? switchLabel;
 
           e.preventDefault();
-          runNavTransition(href, label);
-        });
+          runNavTransition(href, label, isLogo);
+        // Capture phase: run BEFORE Astro ClientRouter's own (bubbling) click listener so our
+        // preventDefault() lands first. Otherwise ClientRouter swaps immediately on click — a
+        // second navigation that races our cover (page shows through before the blinds close).
+        }, true);
       }
 
       // Page transition panel starts off-screen left (set via CSS transform: translateX(-100%))
@@ -290,13 +379,37 @@ const {
         align-items: center;
         justify-content: center;
         font-family: var(--font-heading);
-        font-size: clamp(3rem, 8vw, 6rem);
+        font-size: clamp(1.8rem, 4vw, 4.2rem);
         font-weight: 100;
         color: var(--text-primary);
         opacity: 0;
         letter-spacing: 0.2em;
         pointer-events: none;
+        /* Compositor-driven fade — immune to main-thread jank during heavy page-load init,
+           which would otherwise let a GSAP opacity tween snap to its end. */
+        transition: opacity 0.2s ease;
       }
+      #transition-logo {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+      #transition-label.pt-show,
+      #transition-logo.pt-show { opacity: 1; }
+      /* A touch larger than the transition label. */
+      #transition-logo .tl-logo {
+        height: clamp(2.4rem, 5.5vw, 5.6rem);
+        width: auto;
+        display: block;
+      }
+      #transition-logo .tl-light { display: none; }
+      html.light #transition-logo .tl-dark { display: none; }
+      html.light #transition-logo .tl-light { display: block; }
     </style>
   </body>
 </html>
