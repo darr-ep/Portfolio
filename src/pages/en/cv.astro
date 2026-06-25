@@ -1,22 +1,47 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { supabase } from '../../lib/supabase';
-import type { Project, TimelineEntry } from '../../types/database';
+import type { Profile, Project, TimelineEntry, Technology, Education, Language } from '../../types/database';
 
 export const prerender = false;
 
-const { data: projectsData } = await supabase
-  .from('projects')
-  .select('id, title_en, description_en, tech, sort_order')
-  .order('sort_order', { ascending: true });
+// Fetch all data in parallel
+const [
+  { data: profileData },
+  { data: projectsData },
+  { data: timelineData },
+  { data: techData },
+  { data: educationData },
+  { data: languagesData },
+] = await Promise.all([
+  supabase.from('profile').select('*').single(),
+  supabase.from('projects').select('id, title_en, description_en, tech, sort_order').order('sort_order', { ascending: true }),
+  supabase.from('timeline').select('id, role_en, company, year, description_en, sort_order').order('sort_order', { ascending: true }),
+  supabase.from('technologies').select('*').order('sort_order', { ascending: true }),
+  supabase.from('education').select('*').order('sort_order', { ascending: true }),
+  supabase.from('languages').select('*').order('sort_order', { ascending: true }),
+]);
 
-const { data: timelineData } = await supabase
-  .from('timeline')
-  .select('id, role_en, company, year, description_en, sort_order')
-  .order('sort_order', { ascending: true });
-
+const profile = profileData as Profile | null;
 const projects = (projectsData ?? []) as Pick<Project, 'id' | 'title_en' | 'description_en' | 'tech' | 'sort_order'>[];
 const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 'company' | 'year' | 'description_en' | 'sort_order'>[];
+const technologies: Technology[] = techData ?? [];
+const education: Education[] = educationData ?? [];
+const languages: Language[] = languagesData ?? [];
+
+// Group technologies by category (mirrors Details.astro pattern)
+const categoryMap = new Map<string, string[]>();
+for (const tech of technologies) {
+  const list = categoryMap.get(tech.category) ?? [];
+  list.push(tech.name);
+  categoryMap.set(tech.category, list);
+}
+const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) => ({ category, skills }));
+
+// Strip protocol prefix from URLs for display
+function displayUrl(url: string): string {
+  return url.replace(/^https?:\/\//, '');
+}
 ---
 
 <BaseLayout
@@ -41,17 +66,37 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
       <!-- Header -->
       <header class="cv-header">
         <div class="cv-header__name-block">
-          <h1 class="cv-name">Edson Pedraza</h1>
-          <p class="cv-role">Frontend Developer</p>
+          <h1 class="cv-name">{profile?.full_name ?? 'Edson Pedraza'}</h1>
+          <p class="cv-role">{profile?.role_en ?? 'Frontend Developer'}</p>
+          {profile?.phone && <p class="cv-meta">{profile.phone}</p>}
+          {profile?.location_en && <p class="cv-meta">{profile.location_en}</p>}
         </div>
         <address class="cv-contact">
-          <a href="mailto:darr.pedraz@gmail.com" class="cv-contact__link">darr.pedraz@gmail.com</a>
-          <a href="https://github.com/darr-ep" target="_blank" rel="noopener noreferrer" class="cv-contact__link">github.com/darr-ep</a>
-          <a href="https://linkedin.com/in/edson-pedraza" target="_blank" rel="noopener noreferrer" class="cv-contact__link">linkedin.com/in/edson-pedraza</a>
+          {profile?.email && (
+            <a href={`mailto:${profile.email}`} class="cv-contact__link">{profile.email}</a>
+          )}
+          {profile?.github_url && (
+            <a href={profile.github_url} target="_blank" rel="noopener noreferrer" class="cv-contact__link">
+              {displayUrl(profile.github_url)}
+            </a>
+          )}
+          {profile?.linkedin_url && (
+            <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" class="cv-contact__link">
+              {displayUrl(profile.linkedin_url)}
+            </a>
+          )}
         </address>
       </header>
 
       <hr class="cv-divider" />
+
+      <!-- About -->
+      {profile?.about_en && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">About</h2>
+          <p class="cv-about__text">{profile.about_en}</p>
+        </section>
+      )}
 
       <!-- Experience -->
       {timeline.length > 0 && (
@@ -94,6 +139,63 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
                     ))}
                   </div>
                 )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Skills -->
+      {skillGroups.length > 0 && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">Skills</h2>
+          <ul class="cv-skills">
+            {skillGroups.map(({ category, skills }) => (
+              <li class="cv-skills__group">
+                <span class="cv-skills__category">{category}</span>
+                <div class="cv-skills__items">
+                  {skills.map((skill) => (
+                    <span class="cv-skills__item">{skill}</span>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Education -->
+      {education.length > 0 && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">Education</h2>
+          <ul class="cv-education">
+            {education.map((item) => (
+              <li class="cv-education__item">
+                <div class="cv-education__meta">
+                  <span class="cv-education__period">{item.period}</span>
+                  <span class="cv-education__institution">{item.institution}</span>
+                </div>
+                <div class="cv-education__body">
+                  <h3 class="cv-education__degree">{item.degree_en}</h3>
+                  {item.description_en && (
+                    <p class="cv-education__desc">{item.description_en}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Languages -->
+      {languages.length > 0 && (
+        <section class="cv-section">
+          <h2 class="cv-section__title">Languages</h2>
+          <ul class="cv-languages">
+            {languages.map((langItem) => (
+              <li class="cv-lang__item">
+                <span class="cv-lang__name">{langItem.name_en}</span>
+                {langItem.level_en ? ` — ${langItem.level_en}` : ''}
               </li>
             ))}
           </ul>
@@ -175,6 +277,14 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
     letter-spacing: 0.15em;
     color: var(--accent);
     text-transform: uppercase;
+  }
+
+  .cv-meta {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
   }
 
   .cv-contact {
@@ -325,6 +435,124 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
     border-radius: 2px;
   }
 
+  /* About */
+  .cv-about__text {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  /* Skills */
+  .cv-skills {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cv-skills__group {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 1.5rem;
+    align-items: baseline;
+  }
+
+  .cv-skills__category {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .cv-skills__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .cv-skills__item {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+
+  /* Education */
+  .cv-education {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .cv-education__item {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 1.5rem;
+  }
+
+  .cv-education__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 0.15rem;
+  }
+
+  .cv-education__period {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .cv-education__institution {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .cv-education__degree {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .cv-education__desc {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  /* Languages */
+  .cv-languages {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cv-lang__item {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .cv-lang__name {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .cv-wrapper {
@@ -343,7 +571,9 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
       text-align: left;
     }
 
-    .cv-timeline__item {
+    .cv-timeline__item,
+    .cv-education__item,
+    .cv-skills__group {
       grid-template-columns: 1fr;
       gap: 0.5rem;
     }
@@ -382,24 +612,34 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
 
     .cv-name,
     .cv-timeline__role,
-    .cv-project__title {
+    .cv-project__title,
+    .cv-education__degree,
+    .cv-lang__name {
       color: #111111;
     }
 
     .cv-role,
-    .cv-timeline__period {
+    .cv-timeline__period,
+    .cv-education__period {
       color: #555555;
     }
 
     .cv-timeline__company,
+    .cv-education__institution,
     .cv-contact__link,
     .cv-section__title,
-    .cv-tech-tag {
+    .cv-tech-tag,
+    .cv-skills__item,
+    .cv-skills__category,
+    .cv-meta {
       color: #666666;
     }
 
     .cv-timeline__desc,
-    .cv-project__desc {
+    .cv-project__desc,
+    .cv-education__desc,
+    .cv-about__text,
+    .cv-lang__item {
       color: #333333;
     }
 
@@ -409,7 +649,8 @@ const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 
       border-color: #cccccc;
     }
 
-    .cv-tech-tag {
+    .cv-tech-tag,
+    .cv-skills__item {
       border-color: #cccccc;
     }
 

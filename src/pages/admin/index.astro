@@ -2,10 +2,12 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { supabase } from '../../lib/supabase';
 
-const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }] = await Promise.all([
+const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }, { count: educationCount }, { count: languagesCount }] = await Promise.all([
   supabase.from('projects').select('*', { count: 'exact', head: true }),
   supabase.from('timeline').select('*', { count: 'exact', head: true }),
   supabase.from('technologies').select('*', { count: 'exact', head: true }),
+  supabase.from('education').select('*', { count: 'exact', head: true }),
+  supabase.from('languages').select('*', { count: 'exact', head: true }),
 ]);
 ---
 <AdminLayout title="Dashboard — Admin">
@@ -26,6 +28,14 @@ const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }]
       <div class="stat-value">{techCount ?? 0}</div>
       <div class="stat-label">Technologies</div>
     </a>
+    <a href="/admin/education" class="stat-card">
+      <div class="stat-value">{educationCount ?? 0}</div>
+      <div class="stat-label">Education</div>
+    </a>
+    <a href="/admin/languages" class="stat-card">
+      <div class="stat-value">{languagesCount ?? 0}</div>
+      <div class="stat-label">Languages</div>
+    </a>
   </div>
 
   <div class="quick-links">
@@ -34,6 +44,9 @@ const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }]
       <a href="/admin/projects/new" class="link-card">+ New project</a>
       <a href="/admin/timeline/new" class="link-card">+ New timeline entry</a>
       <a href="/admin/technologies/new" class="link-card">+ New technology</a>
+      <a href="/admin/education/new" class="link-card">+ New education</a>
+      <a href="/admin/languages/new" class="link-card">+ New language</a>
+      <a href="/admin/profile" class="link-card">Edit profile</a>
     </div>
   </div>
 </AdminLayout>
@@ -51,7 +64,7 @@ const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }]
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
     margin-bottom: 40px;
   }
