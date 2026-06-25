@@ -1,5 +1,6 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
+import StaggeredMenu from '../islands/StaggeredMenu.tsx';
 
 const isEs = Astro.currentLocale !== 'en';
 const logoHref = getRelativeLocaleUrl(Astro.currentLocale ?? 'es', '/');
@@ -18,12 +19,12 @@ if (currentPath.startsWith('/en/projects/')) {
   const slug = currentPath.replace('/proyectos/', '');
   esHref = `/proyectos/${slug}`;
   enHref = `/en/projects/${slug}`;
-} else if (currentPath === '/cv') {
+} else if (currentPath === '/cv' || currentPath === '/en/cv') {
   esHref = '/cv';
   enHref = '/en/cv';
-} else if (currentPath === '/en/cv') {
-  esHref = '/cv';
-  enHref = '/en/cv';
+} else if (currentPath === '/proyectos' || currentPath === '/en/projects') {
+  esHref = '/proyectos';
+  enHref = '/en/projects';
 } else {
   esHref = '/';
   enHref = '/en/';
@@ -31,27 +32,35 @@ if (currentPath.startsWith('/en/projects/')) {
 
 const navLinks = isEs
   ? [
-      { href: '/#proyectos', label: 'PROYECTOS' },
+      { href: '/proyectos', label: 'PROYECTOS' },
       { href: '/#servicios', label: 'SERVICIOS' },
       { href: '/#trayectoria', label: 'TRAYECTORIA' },
       { href: '/#detalles', label: 'DETALLES' },
       { href: '/#contacto', label: 'CONTACTO' },
     ]
   : [
-      { href: '/en/#proyectos', label: 'PROJECTS' },
+      { href: '/en/projects', label: 'PROJECTS' },
       { href: '/en/#servicios', label: 'SERVICES' },
       { href: '/en/#trayectoria', label: 'EXPERIENCE' },
       { href: '/en/#detalles', label: 'DETAILS' },
       { href: '/en/#contacto', label: 'CONTACT' },
     ];
+
+// Mobile staggered menu data (reuses the same localized nav links)
+const menuItems = navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }));
+const socialItems = [
+  { label: 'LinkedIn', link: 'https://www.linkedin.com/in/edson-pedraza/' },
+  { label: 'GitHub', link: 'https://github.com/darr-ep' },
+];
+const langHref = isEs ? enHref : esHref;
 ---
 
 <aside class="sidebar" aria-label="Site navigation">
   <!-- Logo -->
   <div class="logo">
     <a href={logoHref} class="logo-link" aria-label="Home — Edson Pedraza" data-logo-link>
-      <img src="/assets/Logo-Dark.png" alt="Edson Pedraza" class="logo-img logo-dark" />
-      <img src="/assets/Logo-Light.png" alt="Edson Pedraza" class="logo-img logo-light" />
+      <img src="/assets/Logo-Dark.webp" alt="Edson Pedraza" class="logo-img logo-dark" />
+      <img src="/assets/Logo-Light.webp" alt="Edson Pedraza" class="logo-img logo-light" />
     </a>
   </div>
 
@@ -117,6 +126,19 @@ const navLinks = isEs
     </div>
   </div>
 </aside>
+
+<!-- Mobile navigation — slide-in staggered menu (hidden on desktop via CSS) -->
+<StaggeredMenu
+  client:only="react"
+  position="right"
+  items={menuItems}
+  socialItems={socialItems}
+  logoHref={logoHref}
+  isEs={isEs}
+  langHref={langHref}
+  colors={['#e3a857', '#1a1a1f']}
+  accentColor="#e3a857"
+/>
 
 <style>
   .sidebar {
@@ -290,31 +312,10 @@ const navLinks = isEs
     transform: translateY(-2px);
   }
 
-  /* Mobile: collapse to top bar */
+  /* Mobile: the desktop sidebar is replaced by the StaggeredMenu island */
   @media (max-width: 768px) {
     .sidebar {
-      width: 100%;
-      height: 60px;
-      flex-direction: row;
-      padding: 0 1.5rem;
-      border-right: none;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .nav-menu {
       display: none;
-    }
-
-    .sidebar-bottom {
-      flex-direction: row;
-      justify-content: flex-end;
-      width: auto;
-      gap: 1rem;
-    }
-
-    .social-links {
-      flex-direction: row;
-      gap: 1rem;
     }
   }
 </style>

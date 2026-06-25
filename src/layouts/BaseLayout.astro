@@ -1,4 +1,5 @@
 ---
+import { Font } from 'astro:assets';
 import ClientRouter from 'astro/components/ClientRouter.astro';
 import SEO from '../components/public/SEO.astro';
 import Sidebar from '../components/public/Sidebar.astro';
@@ -38,6 +39,14 @@ const {
       })();
     </script>
     <SEO title={title} description={description} image={image} lang={lang} includePersonSchema={includePersonSchema} includeWebPageSchema={includeWebPageSchema} />
+    <!-- Self-hosted fonts (Astro Fonts API), replacing the Google Fonts @import FOUT. No `preload`:
+         each font now ships many weights, and <Font preload> preloads ALL of them — most go unused
+         on a given page (console warnings + wasted bytes). @font-face are inline + files are local,
+         so the browser fetches just the weights each page renders. -->
+    <Font cssVariable="--font-albert-sans" />
+    <Font cssVariable="--font-inter" />
+    <Font cssVariable="--font-outfit" />
+    <Font cssVariable="--font-cormorant" />
     <ClientRouter />
   </head>
   <body>
@@ -56,8 +65,8 @@ const {
       <div class="pt-blind"></div>
       <span id="transition-label"></span>
       <div id="transition-logo" aria-hidden="true">
-        <img src="/assets/Logo-Dark.png" alt="" class="tl-logo tl-dark" />
-        <img src="/assets/Logo-Light.png" alt="" class="tl-logo tl-light" />
+        <img src="/assets/Logo-Dark.webp" alt="" class="tl-logo tl-dark" />
+        <img src="/assets/Logo-Light.webp" alt="" class="tl-logo tl-light" />
       </div>
     </div>
 
@@ -83,23 +92,26 @@ const {
         (window as any).__appInitialized = true;
         let isFirstLoad = true;
         let _isTransitioning = false;
-        // The in-flight navigation WE initiated, or null for popstate / first load. Holds the
+        // The in-flight navigation (click OR popstate), or null when idle / first load. Holds the
         // destination label and a resolver fired when astro:page-load signals the page is ready.
         let _nav: { label: string | null; useLogo: boolean; ready: () => void } | null = null;
         // Minimum time the screen stays covered, measured from the exit start. A near-instant
         // data load can't cut the exit short; the reveal waits out this floor. Tunable.
         const MIN_COVER_MS = 1000;
+        // Destination cues keyed by normalized pathname, recorded on every forward navigation so
+        // browser back/forward (popstate) can replay the SAME cue that first reached that page.
+        const _pathLabels = new Map<string, { label: string | null; useLogo: boolean }>();
+        const normalizePathname = (p: string) => (p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p);
+        const isHomePath = (p: string) => p === '/' || p === '/en';
 
-        // Toggle the .pt-show class WITHOUT animating — used across the swap so re-asserting the
-        // cue on a fresh (non-persisted) node doesn't re-trigger the CSS fade (which read as a
-        // flicker). Disable the transition, flip the class, force reflow, then restore it.
+        // Set the cue's opacity INSTANTLY via GSAP — used across the swap to re-assert state on a
+        // fresh (non-persisted) node without animating (which read as a flicker). The label/logo
+        // fades are GSAP-driven now (same reliable ticker as the blinds); a CSS opacity transition
+        // proved fragile — a main-thread stall at the transition's START skipped it and snapped the
+        // cue straight to the end value (the "text disappears without fading" bug).
         function ptSet(el: Element | null, show: boolean) {
           if (!el) return;
-          const s = (el as HTMLElement).style;
-          s.transition = 'none';
-          el.classList.toggle('pt-show', show);
-          void (el as HTMLElement).offsetWidth; // force the 'none' to apply before re-enabling
-          s.transition = '';
+          gsap.set(el, { opacity: show ? 1 : 0 });
         }
 
         createLenis();
@@ -158,8 +170,20 @@ const {
             const target = document.querySelector(hash) as HTMLElement | null;
             if (target) {
               const l = (window as any).lenis;
-              if (l) l.scrollTo(target, { immediate: true });
-              else window.scrollTo({ top: (target as HTMLElement).offsetTop });
+              if (l) {
+                // Lenis was just created in after-swap with no raf tick yet, so its internal `limit`
+                // is still 0 — a plain scrollTo to a Y below the fold clamps to 0 and lands on the
+                // hero. resize() measures the document first. start() + force defeat any stopped/
+                // locked state (the documented Lenis gotcha). Compute Y the same robust way as the
+                // same-page handler (pin.start for pinned sections, rect otherwise).
+                l.start();
+                l.resize();
+                const pin = ScrollTrigger.getAll().find((t) => t.trigger === target && t.pin);
+                const y = pin ? pin.start : target.getBoundingClientRect().top + window.scrollY;
+                l.scrollTo(y, { immediate: true, force: true });
+              } else {
+                window.scrollTo({ top: (target as HTMLElement).offsetTop });
+              }
             }
           }
 
@@ -181,7 +205,24 @@ const {
             isFirstLoad = false;
             // Signal the in-flight navigation that the new page is swapped AND initialized. The
             // reveal (owned by runNavTransition) fires from here via Promise resolution.
-            _nav?.ready();
+            //
+            // Gate the resolve so the reveal never opens onto a still-mounting page. Two problems
+            // converge in the page-load frame: (a) it runs right after the heavy SYNCHRONOUS
+            // initPageAnimations() + ScrollTrigger.refresh(), and (b) enterAnimation() immediately
+            // tweens opacity/scale on the hero <img>s — if those aren't decoded yet, the first tick
+            // DECODES them on the main thread (~230ms stall). Either stall eats the label's CSS fade
+            // (it snaps to opacity 0 instead of fading) and the blinds' first frame (dead black gap).
+            // So: wait for the above-the-fold hero images to decode, THEN two rAFs for a clean painted
+            // frame, and only then resolve. img.decode() also waits out the download — the cover hides it.
+            const ready = _nav?.ready;
+            if (ready) {
+              const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('.hero-img'));
+              const decode = (img: HTMLImageElement): Promise<unknown> => {
+                try { return img.decode().catch(() => {}); } catch { return Promise.resolve(); }
+              };
+              Promise.all(imgs.map(decode)).then(() =>
+                requestAnimationFrame(() => requestAnimationFrame(ready)));
+            }
           }
         });
 
@@ -191,66 +232,58 @@ const {
           if (progressBar) progressBar.style.transform = `scaleX(${Math.min(scrolled, 1)})`;
         }, { passive: true });
 
-        // One timeline owns the EXIT (label-in + content fade + blinds cover), one owns the
-        // REVEAL (label-out + blinds open + hero enter). The reveal fires only when BOTH the page
-        // is ready (astro:page-load) AND the time floor has elapsed — whichever finishes last.
-        // Nothing visual is tied to Astro's swap timing, so fast/slow loads look identical.
-        function runNavTransition(href: string, label?: string, useLogo = false) {
-          if (_isTransitioning) return;
-          _isTransitioning = true;
-
-          // animations.ts sets lagSmoothing(0) globally (for Lenis). That makes a single janky
-          // frame — e.g. the destination's heavy page-load init + hero enter — get fully absorbed
-          // by GSAP on the next tick, snapping the reveal timeline to its end (label + blinds jump
-          // instead of fading). Cap per-tick advance for the duration of the transition only.
-          gsap.ticker.lagSmoothing(100, 16);
-
-          const pageReady = new Promise<void>((resolve) => {
-            _nav = { label: label ?? null, useLogo, ready: resolve };
-          });
-          const minTime = new Promise<void>((resolve) => {
-            gsap.delayedCall(MIN_COVER_MS / 1000, resolve);
-          });
-          // Safety: never strand the lock if navigation never completes.
-          const safety = setTimeout(() => { gsap.ticker.lagSmoothing(0); _isTransitioning = false; _nav = null; }, 8000);
-
+        // EXIT: fade the destination cue in, fade non-hero content out, close the blinds. Resolves
+        // when the cover is fully closed. It does NOT navigate — the caller decides what comes next
+        // (runNavTransition navigates; the popstate loader wrapper lets ClientRouter swap).
+        function playExitCover(label?: string | null, useLogo = false) {
           const labelEl = document.getElementById('transition-label');
           const logoEl = document.getElementById('transition-logo');
           gsap.killTweensOf('.pt-blind');
 
-          // ── EXIT ──
-          const exitTl = gsap.timeline({ onComplete: () => { navigate(href); } });
-          // Fade in the destination cue (logo or text) via CSS class — compositor-driven, so a
-          // heavy destination load can't snap it. ptSet guarantees a clean hidden start (no flicker
-          // if it was left visible), then add .pt-show after ~0.1s to fade in as the cover closes.
-          if (useLogo && logoEl) {
-            ptSet(labelEl, false);
-            ptSet(logoEl, false);
-            setTimeout(() => logoEl.classList.add('pt-show'), 100);
-          } else {
-            ptSet(logoEl, false);
-            if (labelEl) {
-              if (label) {
-                labelEl.textContent = label;
-                ptSet(labelEl, false);
-                setTimeout(() => labelEl.classList.add('pt-show'), 100);
-              } else {
-                ptSet(labelEl, false);
+          return new Promise<void>((resolve) => {
+            const exitTl = gsap.timeline({ onComplete: () => resolve() });
+            // Fade in the destination cue (logo or text) with GSAP — same reliable ticker as the
+            // blinds. ptSet gives a clean hidden start (opacity 0), then fade to 1 after ~0.1s as the
+            // cover closes.
+            if (useLogo && logoEl) {
+              ptSet(labelEl, false);
+              ptSet(logoEl, false);
+              gsap.to(logoEl, { opacity: 1, duration: 0.2, delay: 0.1 });
+            } else {
+              ptSet(logoEl, false);
+              if (labelEl) {
+                if (label) {
+                  labelEl.textContent = label;
+                  ptSet(labelEl, false);
+                  gsap.to(labelEl, { opacity: 1, duration: 0.2, delay: 0.1 });
+                } else {
+                  ptSet(labelEl, false);
+                }
               }
             }
-          }
-          // Non-hero pages get a subtle content fade before the columns cover them.
-          if (!document.querySelector('.hero')) {
-            exitTl.to('main > *', { opacity: 0, y: -20, duration: 0.22, ease: 'power2.in', stagger: 0.03, overwrite: true }, 0);
-          }
-          exitTl.set('.pt-blind', { transformOrigin: 'left center' }, 0);
-          exitTl.fromTo('.pt-blind',
-            { scaleX: 0 },
-            { scaleX: 1, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0);
+            // Non-hero pages get a subtle content fade before the columns cover them.
+            if (!document.querySelector('.hero')) {
+              exitTl.to('main > *', { opacity: 0, y: -20, duration: 0.22, ease: 'power2.in', stagger: 0.03, overwrite: true }, 0);
+            }
+            exitTl.set('.pt-blind', { transformOrigin: 'left center' }, 0);
+            exitTl.fromTo('.pt-blind',
+              { scaleX: 0 },
+              { scaleX: 1, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0);
+          });
+        }
 
-          // ── REVEAL ──
+        // REVEAL: one GSAP timeline owns the whole thing, so nothing rides the fragile CSS path and
+        // enterAnimation can't share a frame with the fade. Fires only when BOTH the page is ready
+        // (astro:page-load) AND the time floor has elapsed — whichever finishes last. (1) Fade the
+        // cue out. (2) Only AFTER it has faded (0.25s) open the blinds + run enterAnimation, so
+        // enter's heavy hero work can't jank the fade or the blinds' first frame.
+        function scheduleReveal(pageReady: Promise<void>, minTime: Promise<void>, safetyId: number) {
           Promise.all([pageReady, minTime]).then(() => {
-            clearTimeout(safety);
+            clearTimeout(safetyId);
+            const labelOut = document.getElementById('transition-label');
+            const logoOut = document.getElementById('transition-logo');
+            const cues = [labelOut, logoOut].filter((el): el is HTMLElement => !!el);
+
             const reveal = gsap.timeline({
               onComplete: () => {
                 gsap.set('.pt-blind', { transformOrigin: 'left center' });
@@ -259,22 +292,86 @@ const {
                 _nav = null;
               },
             });
-            // Fade the label/logo out via CSS class (compositor-driven, immune to the heavy
-            // destination-init jank that was snapping the GSAP tween). Fires as the reveal starts;
-            // removing pt-show from a hidden element is a no-op.
-            document.getElementById('transition-label')?.classList.remove('pt-show');
-            document.getElementById('transition-logo')?.classList.remove('pt-show');
-            reveal.set('.pt-blind', { transformOrigin: 'right center' }, 0);
-            reveal.to('.pt-blind', { scaleX: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0);
-            reveal.add(enterAnimation(), 0);
+            reveal.to(cues, { opacity: 0, duration: 0.25, ease: 'power1.out' }, 0);
+            reveal.set('.pt-blind', { transformOrigin: 'right center' }, 0.25);
+            reveal.to('.pt-blind', { scaleX: 0, stagger: 0.06, duration: 0.3, ease: 'power2.inOut' }, 0.25);
+            reveal.add(enterAnimation(), 0.25);
           });
         }
+
+        // Shared setup for any covered transition: cap lagSmoothing, build the pageReady/minTime
+        // gate (pageReady's resolver lives on _nav, fired by astro:page-load), arm the safety
+        // timeout, and schedule the reveal.
+        //
+        // animations.ts sets lagSmoothing(0) globally (for Lenis). That makes a single janky frame —
+        // e.g. the destination's heavy page-load init + hero enter — get fully absorbed by GSAP on
+        // the next tick, snapping the reveal to its end (label + blinds jump instead of fading). Cap
+        // per-tick advance for the duration of the transition only.
+        function beginCoveredTransition(label: string | null, useLogo: boolean) {
+          gsap.ticker.lagSmoothing(100, 16);
+          const pageReady = new Promise<void>((resolve) => {
+            _nav = { label, useLogo, ready: resolve };
+          });
+          const minTime = new Promise<void>((resolve) => {
+            gsap.delayedCall(MIN_COVER_MS / 1000, resolve);
+          });
+          // Safety: never strand the lock if navigation never completes.
+          const safety = window.setTimeout(() => { gsap.ticker.lagSmoothing(0); _isTransitioning = false; _nav = null; }, 8000);
+          scheduleReveal(pageReady, minTime, safety);
+        }
+
+        // Click-initiated navigation: cover, then navigate; the reveal plays after page-load.
+        function runNavTransition(href: string, label?: string, useLogo = false) {
+          if (_isTransitioning) return;
+          _isTransitioning = true;
+
+          // Record this destination's cue so a later back/forward to it replays the same transition.
+          // Skip hash links: they share a pathname with the page itself (e.g. '/#servicios' → '/'),
+          // and the popstate lookup matches on pathname only — recording them would clobber the home
+          // entry (back to '/' would show 'SERVICIOS' instead of the logo).
+          try {
+            const dest = new URL(href);
+            if (!dest.hash) _pathLabels.set(normalizePathname(dest.pathname), { label: label ?? null, useLogo });
+          } catch { /* ignore malformed href */ }
+
+          beginCoveredTransition(label ?? null, useLogo);
+          playExitCover(label, useLogo).then(() => { navigate(href); });
+        }
+
+        // Browser back/forward: ClientRouter does NOT wait for us on traverse (unlike click, which we
+        // preventDefault). So we hook the preparation phase — the only pre-swap hook on popstate —
+        // and wrap its loader: close the blinds FIRST, then load under cover. The destination cue
+        // comes from _pathLabels (recorded on the forward trip) or the logo for the home pages.
+        document.addEventListener('astro:before-preparation', (event) => {
+          const ev = event as any;
+          if (ev.navigationType !== 'traverse') return; // back/forward only
+          if (_isTransitioning) return; // our own click nav already owns the transition
+
+          _isTransitioning = true;
+          let destPath = '/';
+          try { destPath = normalizePathname(new URL(ev.to, window.location.origin).pathname); } catch { /* keep default */ }
+          const entry = _pathLabels.get(destPath);
+          const useLogo = entry?.useLogo ?? isHomePath(destPath);
+          const label = entry?.label ?? null;
+
+          beginCoveredTransition(label, useLogo);
+
+          const originalLoader = ev.loader;
+          ev.loader = async () => {
+            await playExitCover(label, useLogo);
+            await originalLoader();
+          };
+        });
 
         (window as any).__runNavTransition = runNavTransition;
 
         document.addEventListener('click', (e: MouseEvent) => {
           const link = (e.target as Element).closest<HTMLAnchorElement>('a[href]');
           if (!link) return;
+          // Projects accordion: the header is an <a> for SEO/SSR, but clicking it SELECTS the
+          // project (swaps the 3D image + expands its details) rather than navigating. Its own
+          // listener in initProjects handles selection; opening happens via the image or "See more".
+          if (link.classList.contains('accordion-header')) return;
           if (link.target === '_blank') return;
           if (link.hasAttribute('download')) return;
 
@@ -285,7 +382,6 @@ const {
           try { url = new URL(href); } catch { return; }
           if (url.origin !== window.location.origin) return;
 
-          const normalizePathname = (p: string) => p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p;
           if (normalizePathname(url.pathname) === normalizePathname(window.location.pathname) && url.hash) {
             e.preventDefault();
             const target = document.querySelector(url.hash) as HTMLElement | null;
@@ -354,7 +450,7 @@ const {
         pointer-events: none;
       }
       @media (max-width: 768px) {
-        #progress-bar { left: 0; top: 60px; }
+        #progress-bar { left: 0; top: 0; }
       }
 
       #page-transition {
@@ -368,6 +464,10 @@ const {
         flex: 1;
         height: 100%;
         background: var(--bg-primary);
+        /* Same-colour 1px bleed on every side. It scales with the blind (transform applies to the
+           shadow too), so when the blinds are closed it overlaps neighbours and seals the sub-pixel
+           seams that would otherwise flash the page behind; at rest (scaleX 0) it collapses to nothing. */
+        box-shadow: 0 0 0 1px var(--bg-primary);
         transform: scaleX(0);
         transform-origin: left center;
         will-change: transform;
@@ -385,9 +485,8 @@ const {
         opacity: 0;
         letter-spacing: 0.2em;
         pointer-events: none;
-        /* Compositor-driven fade — immune to main-thread jank during heavy page-load init,
-           which would otherwise let a GSAP opacity tween snap to its end. */
-        transition: opacity 0.2s ease;
+        /* opacity is driven by GSAP (see runNavTransition). No CSS transition here — GSAP's instant
+           ptSet re-assert across the swap would otherwise re-trigger it and flicker. */
       }
       #transition-logo {
         position: absolute;
@@ -397,10 +496,7 @@ const {
         justify-content: center;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s ease;
       }
-      #transition-label.pt-show,
-      #transition-logo.pt-show { opacity: 1; }
       /* A touch larger than the transition label. */
       #transition-logo .tl-logo {
         height: clamp(2.4rem, 5.5vw, 5.6rem);

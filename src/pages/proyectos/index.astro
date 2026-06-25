@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectsIndex from '../../components/public/ProjectsIndex.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Proyectos — Edson Pedraza"
+  description="Proyectos y casos seleccionados de Edson Pedraza."
+  lang="es"
+  includeWebPageSchema={true}
+>
+  <ProjectsIndex lang="es" />
+</BaseLayout>

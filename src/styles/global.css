@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&family=Albert+Sans:wght@100;200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+/* Fonts are self-hosted + preloaded via Astro's Fonts API (see astro.config.mjs + <Font> in
+   BaseLayout). The CSS variables below reference the cssVariable each font exposes. */
 
 /* Suppress Astro ClientRouter crossfade — venetian blinds handle all transitions.
    Both snapshots hidden by default; theme toggle opts back in via [data-magicui-theme-vt]. */
@@ -39,11 +40,11 @@
   --danger: #ef4444;
   --info: #3b82f6;
 
-  /* Typography */
-  --font-body: 'Inter', sans-serif;
-  --font-ui: 'Outfit', sans-serif;
-  --font-heading: 'Albert Sans', sans-serif;
-  --font-serif: 'Cormorant Garamond', serif;
+  /* Typography — values come from Astro's Fonts API (cssVariable per font). */
+  --font-body: var(--font-inter), sans-serif;
+  --font-ui: var(--font-outfit), sans-serif;
+  --font-heading: var(--font-albert-sans), sans-serif;
+  --font-serif: var(--font-cormorant), serif;
   --font-mono: 'Courier New', Courier, monospace;
 }
 
@@ -152,10 +153,12 @@ html.lenis body {
 
 /* Sidebar: hide vertical nav on mobile, show top bar */
 @media (max-width: 768px) {
-  /* These override .sidebar styles defined in Sidebar.astro */
+  /* These override .sidebar styles defined in Sidebar.astro.
+     The mobile nav is now a transparent overlay header (StaggeredMenu), so the hero goes
+     full-bleed to the top; non-hero pages carry their own top padding to clear the floating button. */
   main {
     padding-left: 0;
-    padding-top: 60px;
+    padding-top: 0;
   }
 }
 

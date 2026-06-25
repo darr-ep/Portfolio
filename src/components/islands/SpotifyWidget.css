@@ -1,0 +1,202 @@
+.spotify-widget {
+  position: relative;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  will-change: opacity, transform;
+}
+
+/* Floating: bottom-left of the content area on desktop, beside the hamburger on mobile.
+   z-index sits below the mobile menu wrapper (120) so the open full-screen menu covers it. */
+.spotify-widget--floating {
+  position: fixed;
+  bottom: 2rem;
+  left: calc(80px + 1.5rem);
+  z-index: 90;
+}
+
+@media (max-width: 768px) {
+  /* Pinned to the left edge where the logo sat, vertically centred at the hamburger's level. */
+  .spotify-widget--floating {
+    bottom: auto;
+    right: auto;
+    top: 1.5rem;
+    left: 1.4rem;
+  }
+}
+
+/* ---- Listening card ---- */
+.spotify-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(13, 13, 15, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 1rem 0.5rem 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+  color: inherit;
+}
+
+html.light .spotify-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.spotify-art {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.spotify-art img {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.spotify-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 15px;
+  height: 15px;
+  background: #1db954;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  box-shadow: 0 0 6px rgba(29, 185, 84, 0.6);
+  z-index: 5;
+}
+
+.spotify-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.spotify-now-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.spotify-now {
+  font-family: var(--font-ui);
+  font-size: 0.55rem;
+  color: #1db954;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.spotify-track {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.15rem;
+  overflow: hidden;
+}
+
+.spotify-song {
+  font-family: var(--font-ui);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.light .spotify-song { color: #14141a; }
+
+.spotify-artist {
+  font-family: var(--font-ui);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.65rem;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.05rem;
+}
+
+html.light .spotify-artist { color: rgba(0, 0, 0, 0.5); }
+
+/* ---- Offline pill ---- */
+.spotify-offline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem 0.45rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(13, 13, 15, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+html.light .spotify-offline {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.spotify-offline-icon {
+  color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+}
+
+html.light .spotify-offline-icon { color: rgba(0, 0, 0, 0.25); }
+
+.spotify-offline-text {
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.08em;
+}
+
+html.light .spotify-offline-text { color: rgba(0, 0, 0, 0.4); }
+
+/* ---- Mobile: smaller and pill-rounded ---- */
+@media (max-width: 768px) {
+  .spotify-card {
+    gap: 0.55rem;
+    padding: 0.3rem 0.85rem 0.3rem 0.3rem;
+    border-radius: 999px;
+  }
+
+  .spotify-art {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+  }
+
+  .spotify-art img { border-radius: 50%; }
+
+  .spotify-badge {
+    width: 13px;
+    height: 13px;
+    bottom: -2px;
+    right: -2px;
+  }
+
+  .spotify-now { font-size: 0.5rem; }
+  .spotify-song { font-size: 0.66rem; max-width: 120px; }
+  .spotify-artist { font-size: 0.58rem; max-width: 120px; }
+
+  .spotify-offline {
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem 0.35rem 0.65rem;
+  }
+}

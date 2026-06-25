@@ -8,26 +8,37 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
 ---
 
 <section class="hero">
+  <!-- Mobile hero bar: logo + menu trigger — embedded in hero, not fixed -->
+  <div class="hero-mobile-bar">
+    <a href="/" class="hmb-logo" data-logo-link aria-label="Edson Pedraza — home">
+      <img src="/assets/Logo-Dark.webp" alt="Edson Pedraza" class="hmb-logo-img" draggable="false" />
+    </a>
+    <button class="hmb-menu" id="hero-menu-trigger" type="button" aria-label="Open navigation menu">
+      MENU
+    </button>
+  </div>
+
   <!-- Left side: 60% -->
   <div class="hero-left">
     <!-- Background watermark -->
     <div class="watermark" aria-hidden="true">01</div>
 
-    <!-- Header row: name + status ticker -->
-    <div class="header-name">
-      <span class="sub-name">EDSON PEDRAZA</span>
+    <!-- Header block: name + status + spotify stacked together -->
+    <div class="header-block">
+      <div class="header-name">
+        <span class="sub-name">EDSON PEDRAZA</span>
 
-      <div class="status-ticker">
-        <span class="ticker-dot" aria-hidden="true"></span>
-        <span class="ticker-text">STATUS: AVAILABLE FOR WORK</span>
-        <span class="ticker-divider" aria-hidden="true">/</span>
-        <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
+        <div class="status-ticker">
+          <span class="ticker-dot" aria-hidden="true"></span>
+          <span class="ticker-text">STATUS: AVAILABLE FOR WORK</span>
+          <span class="ticker-divider" aria-hidden="true">/</span>
+          <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
+        </div>
       </div>
-    </div>
 
-    <!-- SpotifyWidget positioned in header area -->
-    <div class="spotify-slot">
-      <SpotifyWidget client:only="react" />
+      <div class="spotify-slot">
+        <SpotifyWidget client:only="react" />
+      </div>
     </div>
 
     <!-- Main title -->
@@ -55,7 +66,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
     <div class="image-container">
       <!-- Layer 1: Background image -->
       <img
-        src="/assets/Fondo-Imagen.png"
+        src="/assets/Fondo-Imagen.webp"
         alt="Background portrait"
         class="hero-img img-bg"
       />
@@ -74,7 +85,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
 
       <!-- Layer 3: Foreground image -->
       <img
-        src="/assets/Frente-Imagen.png"
+        src="/assets/Frente-Imagen.webp"
         alt="Edson Pedraza"
         class="hero-img img-fg"
       />
@@ -84,6 +95,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
 
 <script>
   // Live clock
+  let clockInterval: ReturnType<typeof setInterval> | undefined;
   function updateTime() {
     const el = document.getElementById('live-time');
     if (el) {
@@ -91,9 +103,17 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
       el.innerText = `${now.toLocaleTimeString('es-AR', { hour12: false })} LOCAL`;
     }
   }
-  updateTime();
-  const clockInterval = setInterval(updateTime, 1000);
-  document.addEventListener('astro:before-swap', () => clearInterval(clockInterval), { once: true });
+  function startClock() {
+    updateTime();
+    clearInterval(clockInterval);
+    clockInterval = setInterval(updateTime, 1000);
+  }
+  // This module runs once, but the listeners persist on document. astro:page-load fires on the
+  // initial load AND after every ClientRouter navigation, so coming back to the landing restarts
+  // the clock (the fresh DOM ships the SSR "00:00:00" placeholder otherwise).
+  startClock();
+  document.addEventListener('astro:page-load', startClock);
+  document.addEventListener('astro:before-swap', () => clearInterval(clockInterval));
 
   // Scroll button — delegates smooth scroll to Lenis if available
   const scrollBtn = document.querySelector('.scroll-btn');
@@ -109,6 +129,17 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
       target.scrollIntoView({ behavior: 'smooth' });
     }
   });
+
+  // Hero menu trigger — opens mobile StaggeredMenu from within the hero
+  function setupHeroMenuTrigger() {
+    const trigger = document.getElementById('hero-menu-trigger');
+    if (!trigger) return;
+    trigger.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('hero:menu-open'));
+    });
+  }
+  setupHeroMenuTrigger();
+  document.addEventListener('astro:page-load', setupHeroMenuTrigger);
 </script>
 
 <style>
@@ -139,7 +170,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
     position: absolute;
     bottom: 0;
     right: 30px;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-ui);
     font-size: 20vw;
     font-weight: 900;
     color: rgba(255, 255, 255, 0.012);
@@ -163,7 +194,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
   }
 
   .sub-name {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-ui);
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.25em;
@@ -205,20 +236,30 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
     transition: color 0.3s ease;
   }
 
-  .spotify-slot {
-    position: relative;
+  .header-block {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    /* Anchor for the absolutely-positioned Spotify slot below the name. */
+    position: relative;
+  }
+
+  /* The Spotify widget hangs below the name but is OUT of the flex flow, so when it
+     transitions to its floating (fixed) state nothing reflows in the hero. */
+  .spotify-slot {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.85rem;
   }
 
   .title-container {
-    margin-top: -2rem;
     position: relative;
     z-index: 5;
   }
 
   .hero-title {
-    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-family: var(--font-heading);
     font-weight: 100;
     text-transform: uppercase;
     font-size: clamp(3rem, 7.2vw, 7.8rem);
@@ -240,7 +281,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
   }
 
   .text-serif {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-serif);
     font-style: italic;
     font-weight: 300;
     color: var(--accent);
@@ -258,7 +299,7 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
   }
 
   .scroll-text {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-ui);
     font-size: 0.65rem;
     font-weight: 500;
     letter-spacing: 0.2em;
@@ -323,33 +364,169 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
     object-position: bottom;
   }
 
-  /* Responsive */
+  /* Responsive — full-bleed image background with overlaid text */
   @media (max-width: 768px) {
     .hero {
-      grid-template-columns: 1fr;
-      grid-template-rows: 50vh 50vh;
+      display: block;
+      position: relative;
       padding-left: 0;
-      padding-top: 60px;
       min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
     }
 
-    .hero-left {
-      order: 2;
-      padding: 3rem 1.5rem 2rem 1.5rem;
-    }
-
+    /* Image layers become the full hero background */
     .hero-right {
-      order: 1;
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      z-index: 0;
+      /* Let touches scroll the page through to the document, and stop the
+         PixelBlast canvas from capturing them (it would block vertical scroll). */
+      pointer-events: none;
     }
 
-    .watermark {
-      font-size: 30vw;
-      right: 10px;
+    /* Bias the portrait toward the top so the face stays visible above the title */
+    .img-fg {
+      object-position: top center;
+    }
+
+    /* Text overlays the image; the gradient scrim keeps it readable over the photo */
+    .hero-left {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      min-height: 100dvh;
+      /* extra top padding clears the transparent overlay header (logo + menu button) */
+      padding: 5rem 1.5rem 2.75rem;
+      gap: 1.5rem;
+      justify-content: space-between;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.35) 30%,
+        rgba(0, 0, 0, 0.45) 62%,
+        rgba(0, 0, 0, 0.9) 100%
+      );
+    }
+
+    /* Force light text over the photo regardless of the active theme */
+    .sub-name,
+    .status-ticker,
+    .ticker-text,
+    .ticker-time,
+    .scroll-text {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+
+    .hero-title {
+      color: #fff;
+      font-size: clamp(2.6rem, 13vw, 4rem);
+      line-height: 0.9;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+    }
+
+    .text-serif {
+      /* keep the gold accent — it pops on the dark scrim */
+      font-size: clamp(3rem, 15vw, 4.6rem);
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .scroll-btn {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .scroll-btn:hover {
+      background-color: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .header-block {
+      gap: 1rem;
     }
 
     .header-name {
       flex-direction: column;
       align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .scroll-explore {
+      gap: 1rem;
+    }
+
+    /* The giant "01" watermark only clutters the small screen */
+    .watermark {
+      display: none;
+    }
+  }
+
+  /* Mobile hero bar — hidden on desktop */
+  .hero-mobile-bar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .hero-mobile-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.4rem;
+      pointer-events: none;
+    }
+
+    .hero-mobile-bar > * {
+      pointer-events: auto;
+    }
+
+    .hmb-logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .hmb-logo-img {
+      display: block;
+      height: 30px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .hmb-menu {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem 0;
+    }
+
+    .hmb-menu:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+  }
+
+  /* Very small phones — keep the title on a single line per row */
+  @media (max-width: 380px) {
+    .hero-title {
+      font-size: clamp(2.2rem, 12vw, 2.8rem);
+    }
+
+    .text-serif {
+      font-size: clamp(2.6rem, 14vw, 3.4rem);
     }
   }
 </style>

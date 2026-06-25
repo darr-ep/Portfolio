@@ -52,7 +52,7 @@ const items = [...words, ...words, ...words];
   .marquee-item,
   .marquee-separator,
   .marquee-spacer {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(4.5rem, 10vw, 13rem);
     font-weight: 900;
     text-transform: uppercase;
@@ -99,5 +99,22 @@ const items = [...words, ...words, ...words];
 
   .marquee-spacer {
     pointer-events: none;
+  }
+
+  /* Responsive — tighter band on mobile */
+  @media (max-width: 768px) {
+    .marquee {
+      padding: 2.5rem 0;
+    }
+
+    .marquee-item,
+    .marquee-separator,
+    .marquee-spacer {
+      font-size: clamp(3rem, 14vw, 5rem);
+    }
+
+    .marquee-separator {
+      margin: 0 1rem;
+    }
   }
 </style>

@@ -7,7 +7,7 @@ const { data: projectsData } = await supabase
   .select('*')
   .order('sort_order', { ascending: true });
 
-const FALLBACK_IMAGES = ['/assets/Proyecto 1.png', '/assets/Proyecto 2.png', '/assets/Proyecto 3.png'];
+const FALLBACK_IMAGES = ['/assets/Proyecto 1.webp', '/assets/Proyecto 2.webp', '/assets/Proyecto 3.webp'];
 const lang = Astro.currentLocale ?? 'es';
 
 const projects = (projectsData ?? []).map((p: Project, i: number) => ({
@@ -23,6 +23,13 @@ const projects = (projectsData ?? []).map((p: Project, i: number) => ({
 
 const sectionTitle = lang === 'en' ? 'PROJECTS' : 'PROYECTOS';
 const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
+const moreLabel = lang === 'en' ? 'More projects' : 'Más proyectos';
+const allProjectsHref = lang === 'en' ? '/en/projects' : '/proyectos';
+const allProjectsLabel = lang === 'en' ? 'PROJECTS' : 'PROYECTOS';
+
+// Landing shows a curated teaser; the full grid lives on the dedicated /proyectos page.
+const featuredDesktop = projects.slice(0, 4);
+const featuredMobile = projects.slice(0, 2);
 ---
 
 <section id="proyectos" class="projects-section">
@@ -34,13 +41,13 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
       <div class="header-line"></div>
     </div>
 
-    <!-- Split layout -->
-    <div class="projects-split-layout">
+    <!-- Split layout (desktop / tablet): 3D visualizer + interactive accordion -->
+    <div class="projects-split-layout projects-featured-desktop">
       <!-- Left: 3D visualizer -->
       <div class="projects-visuals">
         <!-- Back layer (dim) -->
         <div class="visuals-layer-back">
-          {projects.map((p, i) => (
+          {featuredDesktop.map((p, i) => (
             <div class={`visual-card-back ${i === 0 ? 'pos-center' : i === 1 ? 'pos-right' : 'pos-left'}`} data-index={i}>
               <img src={p.image} alt={p.title} class="project-img" />
               <div class="project-overlay"></div>
@@ -50,7 +57,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 
         <!-- Front layer (active/inactive opacity) -->
         <div class="visuals-layer-front">
-          {projects.map((p, i) => (
+          {featuredDesktop.map((p, i) => (
             <div class={`visual-card-front ${i === 0 ? 'pos-center' : i === 1 ? 'pos-right' : 'pos-left'}`} data-index={i}>
               <img src={p.image} alt={p.title} class="project-img" />
               <div class="project-overlay"></div>
@@ -62,7 +69,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 
       <!-- Right: Interactive project list with flowing-menu hover -->
       <div class="projects-accordion">
-        {projects.map((p, i) => (
+        {featuredDesktop.map((p, i) => (
           <div class={`accordion-item ${i === 0 ? 'active' : ''}`} data-index={i}>
             <a href={p.href} class="accordion-header" data-index={i} data-transition-label={p.title.toUpperCase()}>
               <span class="acc-num">0{i + 1}/</span>
@@ -93,6 +100,39 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
           </div>
         ))}
       </div>
+    </div>
+
+    <!-- Mobile: the first projects fully expanded (no tabs), each with its own image -->
+    <div class="projects-featured-mobile">
+      {featuredMobile.map((p, i) => (
+        <article class="m-project">
+          <a href={p.href} class="m-project__media" data-transition-label={p.title.toUpperCase()}>
+            <img src={p.image} alt={p.title} class="m-project__img" loading="lazy" />
+            <span class="m-project__num">0{i + 1}</span>
+          </a>
+          <div class="m-project__body">
+            <span class="m-project__cat">{p.category.toUpperCase()}</span>
+            <h3 class="m-project__title">{p.title.toUpperCase()}</h3>
+            <p class="m-project__desc">{p.description}</p>
+            <div class="m-project__tech">
+              {p.tech.slice(0, 4).map((t) => <span>{t}</span>)}
+            </div>
+            <a href={p.href} class="m-project__link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- Gateway to the full projects page -->
+    <div class="projects-more">
+      <a href={allProjectsHref} class="projects-more__link" data-transition-label={allProjectsLabel}>
+        <span>{moreLabel}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
     </div>
   </div>
 </section>
@@ -136,7 +176,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
   }
 
   .section-title {
-    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-family: var(--font-heading);
     font-weight: 900;
     font-size: clamp(2rem, 4vw, 3.5rem);
     letter-spacing: -0.02em;
@@ -244,7 +284,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
     position: absolute;
     bottom: 1.5rem;
     right: 2rem;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(3rem, 6vw, 5rem);
     font-weight: 900;
     color: rgba(255, 255, 255, 0.03);
@@ -313,7 +353,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
   }
 
   .flow-text {
-    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-family: var(--font-heading);
     font-weight: 900;
     font-size: clamp(1.4rem, 2.8vw, 2.2rem);
     line-height: 1;
@@ -350,7 +390,7 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
   .accordion-item.active .acc-num { color: var(--accent); }
 
   .acc-title {
-    font-family: var(--font-ui, 'Albert Sans', sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(1.4rem, 2.8vw, 2.2rem);
     font-weight: 900;
     line-height: 1;
@@ -425,19 +465,154 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
 
   .project-link:hover { opacity: 0.7; }
 
+  /* Gateway link to the full projects page */
+  .projects-more {
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .projects-more__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: 0.9rem 1.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    transition: color 0.3s ease, border-color 0.3s ease, gap 0.3s ease;
+  }
+
+  .projects-more__link svg { transition: transform 0.3s ease; }
+
+  .projects-more__link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    gap: 1.1rem;
+  }
+
+  .projects-more__link:hover svg { transform: translateX(3px); }
+
+  /* Mobile expanded cards — hidden on desktop, shown ≤768px */
+  .projects-featured-mobile { display: none; }
+
+  .m-project { display: flex; flex-direction: column; }
+
+  .m-project__media {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary, #111);
+    margin-bottom: 1.25rem;
+    text-decoration: none;
+  }
+
+  .m-project__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .m-project__num {
+    position: absolute;
+    top: 0.9rem;
+    left: 1.1rem;
+    z-index: 2;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.8rem;
+    color: #fff;
+    mix-blend-mode: difference;
+  }
+
+  .m-project__body { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .m-project__cat {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+  }
+
+  .m-project__title {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+
+  .m-project__desc {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .m-project__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.1rem;
+  }
+
+  .m-project__tech span {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+  }
+
+  .m-project__link {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
   /* Responsive */
   @media (max-width: 992px) {
     .projects-split-layout {
       flex-direction: column;
-      gap: 3.5rem;
+      gap: 2.5rem;
     }
 
     .projects-visuals {
       width: 100%;
-      height: 40vh;
+      height: 34vh;
+      max-height: 300px;
+    }
+
+    /* On touch screens the 3D side-stack only sticks out and hides the project tabs.
+       Show just the active image — flat and centered — and drop the dim back layer,
+       so image + tabs + the active description all fit comfortably. */
+    .visuals-layer-back { display: none; }
+    .visual-card-front.pos-center,
+    .visual-card-front.pos-left,
+    .visual-card-front.pos-right {
+      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
     }
 
     .projects-accordion { width: 100%; }
+    .accordion-header { gap: 0.9rem; padding: 0.7rem 0; }
     .accordion-content { padding-left: 1.5rem; }
     /* No hover on touch — the flowing strip has no purpose */
     .flow-marquee { display: none; }
@@ -449,5 +624,16 @@ const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
     }
 
     .section-header { margin-bottom: 3rem; }
+
+    /* Swap the visualizer + accordion for fully expanded cards */
+    .projects-featured-desktop { display: none; }
+    .projects-featured-mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 3.5rem;
+    }
+
+    .projects-more { margin-top: 3rem; }
+    .projects-more__link { width: 100%; justify-content: center; }
   }
 </style>
