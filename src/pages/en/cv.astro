@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { supabase } from '../../lib/supabase';
-import type { Profile, Project, TimelineEntry, Technology, Education, Language } from '../../types/database';
+import type { Profile, Project, Technology, Education, Language } from '../../types/database';
 
 export const prerender = false;
 
@@ -9,14 +9,12 @@ export const prerender = false;
 const [
   { data: profileData },
   { data: projectsData },
-  { data: timelineData },
   { data: techData },
   { data: educationData },
   { data: languagesData },
 ] = await Promise.all([
   supabase.from('profile').select('*').single(),
   supabase.from('projects').select('id, title_en, description_en, tech, sort_order').order('sort_order', { ascending: true }),
-  supabase.from('timeline').select('id, role_en, company, year, description_en, sort_order').order('sort_order', { ascending: true }),
   supabase.from('technologies').select('*').order('sort_order', { ascending: true }),
   supabase.from('education').select('*').order('sort_order', { ascending: true }),
   supabase.from('languages').select('*').order('sort_order', { ascending: true }),
@@ -24,7 +22,6 @@ const [
 
 const profile = profileData as Profile | null;
 const projects = (projectsData ?? []) as Pick<Project, 'id' | 'title_en' | 'description_en' | 'tech' | 'sort_order'>[];
-const timeline = (timelineData ?? []) as Pick<TimelineEntry, 'id' | 'role_en' | 'company' | 'year' | 'description_en' | 'sort_order'>[];
 const technologies: Technology[] = techData ?? [];
 const education: Education[] = educationData ?? [];
 const languages: Language[] = languagesData ?? [];
@@ -95,29 +92,6 @@ function displayUrl(url: string): string {
         <section class="cv-section">
           <h2 class="cv-section__title">About</h2>
           <p class="cv-about__text">{profile.about_en}</p>
-        </section>
-      )}
-
-      <!-- Experience -->
-      {timeline.length > 0 && (
-        <section class="cv-section">
-          <h2 class="cv-section__title">Experience</h2>
-          <ul class="cv-timeline">
-            {timeline.map((entry) => (
-              <li class="cv-timeline__item">
-                <div class="cv-timeline__meta">
-                  <span class="cv-timeline__period">{entry.year}</span>
-                  <span class="cv-timeline__company">{entry.company}</span>
-                </div>
-                <div class="cv-timeline__body">
-                  <h3 class="cv-timeline__role">{entry.role_en}</h3>
-                  {entry.description_en && (
-                    <p class="cv-timeline__desc">{entry.description_en}</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
         </section>
       )}
 
