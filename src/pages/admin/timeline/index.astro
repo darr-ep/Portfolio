@@ -3,7 +3,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
 
 const { data: entries } = await supabase
-  .from('timeline_entries')
+  .from('timeline')
   .select('id, sort_order, year, company, role_es')
   .order('sort_order');
 ---

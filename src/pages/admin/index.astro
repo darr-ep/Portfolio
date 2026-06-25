@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 
 const [{ count: projectsCount }, { count: timelineCount }, { count: techCount }] = await Promise.all([
   supabase.from('projects').select('*', { count: 'exact', head: true }),
-  supabase.from('timeline_entries').select('*', { count: 'exact', head: true }),
+  supabase.from('timeline').select('*', { count: 'exact', head: true }),
   supabase.from('technologies').select('*', { count: 'exact', head: true }),
 ]);
 ---

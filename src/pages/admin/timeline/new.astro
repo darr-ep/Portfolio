@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase';
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
-  await supabase.from('timeline_entries').insert({
+  await supabase.from('timeline').insert({
     sort_order: Number(form.get('sort_order')),
     year: form.get('year'),
     company: form.get('company'),
