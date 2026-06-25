@@ -85,9 +85,19 @@ const t = {
             </svg>
           </button>
 
+          <!-- Honeypot: visually hidden from humans; bots fill it, humans never see it -->
+          <input
+            type="text"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+            class="hp-field"
+          />
+
           <!-- Feedback messages -->
-          <p id="form-success" class="form-feedback success" hidden>{t.successMsg}</p>
-          <p id="form-error" class="form-feedback error" hidden>{t.errorMsg}</p>
+          <p id="form-success" class="form-feedback success" aria-live="polite" hidden>{t.successMsg}</p>
+          <p id="form-error" class="form-feedback error" aria-live="assertive" hidden>{t.errorMsg}</p>
         </form>
       </div>
     </div>
@@ -146,12 +156,13 @@ const t = {
     const name    = (form.querySelector('[name="name"]') as HTMLInputElement)?.value ?? '';
     const email   = (form.querySelector('[name="email"]') as HTMLInputElement)?.value ?? '';
     const message = (form.querySelector('[name="message"]') as HTMLTextAreaElement)?.value ?? '';
+    const website = (form.querySelector('[name="website"]') as HTMLInputElement)?.value ?? '';
 
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message, website }),
       });
       if (res.ok) {
         showSuccess();
@@ -413,6 +424,16 @@ const t = {
   .submit-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  /* Honeypot field — positioned off-screen so humans never see it */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
   }
 
   /* Feedback messages */
