@@ -463,11 +463,10 @@ const {
       .pt-blind {
         flex: 1;
         height: 100%;
-        background: var(--bg-primary);
-        /* Same-colour 1px bleed on every side. It scales with the blind (transform applies to the
-           shadow too), so when the blinds are closed it overlaps neighbours and seals the sub-pixel
-           seams that would otherwise flash the page behind; at rest (scaleX 0) it collapses to nothing. */
-        box-shadow: 0 0 0 1px var(--bg-primary);
+        background: #0d0d0d;
+        /* Fixed dark colour so the blinds are always visible regardless of theme.
+           Same-colour 1px bleed seals sub-pixel seams between columns. */
+        box-shadow: 0 0 0 1px #0d0d0d;
         transform: scaleX(0);
         transform-origin: left center;
         will-change: transform;
