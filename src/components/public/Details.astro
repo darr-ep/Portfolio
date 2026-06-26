@@ -46,10 +46,14 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
           <span class="text-glow">&gt; CODE</span>
         </h3>
         <p class="philosophy-text">
-          Creo que una línea de código no vale nada sin una base conceptual sólida y un entendimiento del diseño interactivo. Mi enfoque está en cerrar la brecha entre el diseño visual de primer nivel y la ingeniería robusta.
+          {lang === 'en'
+            ? 'I believe a line of code is worthless without a solid conceptual foundation and an understanding of interactive design. My focus is on closing the gap between top-tier visual design and robust engineering.'
+            : 'Creo que una línea de código no vale nada sin una base conceptual sólida y un entendimiento del diseño interactivo. Mi enfoque está en cerrar la brecha entre el diseño visual de primer nivel y la ingeniería robusta.'}
         </p>
         <p class="philosophy-sub">
-          No programo para cumplir requisitos; programo para crear experiencias memorables y fluidas.
+          {lang === 'en'
+            ? "I don't code to meet requirements; I code to create memorable, fluid experiences."
+            : 'No programo para cumplir requisitos; programo para crear experiencias memorables y fluidas.'}
         </p>
         <a href={cvHref} class="cv-link" data-transition-label="CV" aria-label={cvLabel}>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
