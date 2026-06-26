@@ -12,7 +12,7 @@ FROM node:22-alpine AS runner
 RUN npm install -g pnpm@latest
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
 RUN pnpm install --prod --no-frozen-lockfile
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
