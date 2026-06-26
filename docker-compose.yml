@@ -1,0 +1,9 @@
+services:
+  portfolio:
+    image: ghcr.io/darr-ep/portfolio:latest
+    container_name: portfolio
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    env_file:
+      - .env
