@@ -1,0 +1,168 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const lang = Astro.currentLocale ?? 'es';
+const isEn = lang === 'en';
+
+const t = {
+  label:   isEn ? 'NOT FOUND'     : 'NO ENCONTRADO',
+  heading: isEn ? 'Lost in space' : 'Perdido en el espacio',
+  body:    isEn
+    ? "The page you're looking for doesn't exist or has been moved."
+    : 'La página que buscás no existe o fue movida.',
+  back:    isEn ? 'Back to home'  : 'Volver al inicio',
+  backHref: isEn ? '/en/' : '/',
+};
+---
+
+<BaseLayout
+  title={isEn ? '404 — Page Not Found · Edson Pedraza' : '404 — Página No Encontrada · Edson Pedraza'}
+  lang={lang}
+>
+  <main class="not-found">
+    <div class="content">
+      <span class="tag">{t.label}</span>
+
+      <div class="number-wrap" aria-hidden="true">
+        <span class="number-solid">4</span>
+        <span class="number-outline">0</span>
+        <span class="number-solid">4</span>
+      </div>
+
+      <h1 class="heading">{t.heading}</h1>
+      <p class="body-text">{t.body}</p>
+
+      <a href={t.backHref} class="back-link" data-transition-label={isEn ? 'HOME' : 'INICIO'}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        {t.back}
+      </a>
+    </div>
+
+    <div class="grid-lines" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found {
+    min-height: 100vh;
+    padding-left: calc(80px + 6vw);
+    padding-right: 6vw;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-primary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle vertical grid lines — decorative, matches the overall aesthetic */
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-lines span {
+    width: 1px;
+    height: 100%;
+    background: var(--border-color);
+    opacity: 0.5;
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2rem;
+  }
+
+  /* Big 404 */
+  .number-wrap {
+    display: flex;
+    gap: 0.05em;
+    line-height: 1;
+    margin-bottom: 2.5rem;
+    user-select: none;
+  }
+
+  .number-solid,
+  .number-outline {
+    font-family: var(--font-heading);
+    font-size: clamp(7rem, 18vw, 16rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .number-solid {
+    color: var(--text-primary);
+  }
+
+  .number-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--text-primary);
+    transition: -webkit-text-stroke-color 0.3s ease;
+  }
+
+  html.light .number-outline {
+    -webkit-text-stroke-color: var(--text-primary);
+  }
+
+  .heading {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  .body-text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    max-width: 440px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    padding: 0.55rem 1.25rem;
+    border-radius: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .back-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  @media (max-width: 768px) {
+    .not-found {
+      padding: 6rem 1.5rem 4rem;
+    }
+  }
+</style>
