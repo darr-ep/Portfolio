@@ -7,11 +7,11 @@ const { data: entries } = await supabase
   .select('id, sort_order, institution, period, degree_es')
   .order('sort_order');
 ---
-<AdminLayout title="Education — Admin">
+<AdminLayout title="Educación — Admin">
   <div class="admin-page-header">
-    <h1>Education</h1>
+    <h1>Educación</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/education/new" class="admin-btn admin-btn--primary">+ New entry</a>
+      <a href="/admin/education/new" class="admin-btn admin-btn--primary">+ Nueva formación</a>
     </div>
   </div>
 
@@ -20,11 +20,11 @@ const { data: entries } = await supabase
       <table class="list-table">
         <thead>
           <tr>
-            <th>Sort</th>
-            <th>Institution</th>
-            <th>Period</th>
-            <th>Degree</th>
-            <th>Actions</th>
+            <th>Orden</th>
+            <th>Institución</th>
+            <th>Período</th>
+            <th>Título</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -35,13 +35,13 @@ const { data: entries } = await supabase
               <td class="col-mono col-muted">{e.period}</td>
               <td class="col-muted">{e.degree_es}</td>
               <td class="col-actions">
-                <a href={`/admin/education/${e.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Edit</a>
+                <a href={`/admin/education/${e.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Editar</a>
                 <form action={`/admin/education/${e.id}/delete`} method="POST" class="inline-form">
                   <button
                     type="submit"
                     class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('Delete this entry?')"
-                  >Delete</button>
+                    onclick="return confirm('¿Eliminar esta formación?')"
+                  >Eliminar</button>
                 </form>
               </td>
             </tr>
@@ -49,7 +49,7 @@ const { data: entries } = await supabase
         </tbody>
       </table>
     ) : (
-      <p class="empty-state">No education entries yet. <a href="/admin/education/new" class="empty-link">Create the first one.</a></p>
+      <p class="empty-state">Todavía no hay formación cargada. <a href="/admin/education/new" class="empty-link">Crea la primera.</a></p>
     )}
   </div>
 </AdminLayout>

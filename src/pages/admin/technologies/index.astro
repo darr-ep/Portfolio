@@ -7,11 +7,11 @@ const { data: technologies } = await supabase
   .select('id, sort_order, name, category, level')
   .order('sort_order');
 ---
-<AdminLayout title="Technologies — Admin">
+<AdminLayout title="Tecnologías — Admin">
   <div class="admin-page-header">
-    <h1>Technologies</h1>
+    <h1>Tecnologías</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/technologies/new" class="admin-btn admin-btn--primary">+ New technology</a>
+      <a href="/admin/technologies/new" class="admin-btn admin-btn--primary">+ Nueva tecnología</a>
     </div>
   </div>
 
@@ -20,11 +20,11 @@ const { data: technologies } = await supabase
       <table class="list-table">
         <thead>
           <tr>
-            <th>Sort</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Level</th>
-            <th>Actions</th>
+            <th>Orden</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Nivel</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -41,13 +41,13 @@ const { data: technologies } = await supabase
                 </div>
               </td>
               <td class="col-actions">
-                <a href={`/admin/technologies/${t.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Edit</a>
+                <a href={`/admin/technologies/${t.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Editar</a>
                 <form action={`/admin/technologies/${t.id}/delete`} method="POST" class="inline-form">
                   <button
                     type="submit"
                     class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('Delete this technology?')"
-                  >Delete</button>
+                    onclick="return confirm('¿Eliminar esta tecnología?')"
+                  >Eliminar</button>
                 </form>
               </td>
             </tr>
@@ -55,7 +55,7 @@ const { data: technologies } = await supabase
         </tbody>
       </table>
     ) : (
-      <p class="empty-state">No technologies yet. <a href="/admin/technologies/new" class="empty-link">Create the first one.</a></p>
+      <p class="empty-state">Todavía no hay tecnologías cargadas. <a href="/admin/technologies/new" class="empty-link">Crea la primera.</a></p>
     )}
   </div>
 </AdminLayout>

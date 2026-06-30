@@ -26,40 +26,40 @@ if (!tech) {
   return Astro.redirect('/admin/technologies');
 }
 ---
-<AdminLayout title={`Edit: ${tech.name} — Admin`}>
+<AdminLayout title={`Editar: ${tech.name} — Admin`}>
 
   <div class="admin-page-header">
-    <h1>Edit Technology</h1>
+    <h1>Editar tecnología</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="name">Name *</label>
+            <label class="admin-label" for="name">Nombre *</label>
             <input class="admin-input" type="text" id="name" name="name"
               value={tech.name} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value={tech.sort_order} required />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="category">Category *</label>
+            <label class="admin-label" for="category">Categoría *</label>
             <input class="admin-input" type="text" id="category" name="category"
               value={tech.category} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="icon">Icon</label>
+            <label class="admin-label" for="icon">Icono</label>
             <input class="admin-input" type="text" id="icon" name="icon"
               value={tech.icon ?? ''} />
           </div>
@@ -68,10 +68,10 @@ if (!tech) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Details</span>
+      <span class="admin-section-title">Detalles</span>
       <div class="admin-fields">
         <div class="admin-field">
-          <label class="admin-label" for="level">Level (1-5) *</label>
+          <label class="admin-label" for="level">Nivel (1-5) *</label>
           <input class="admin-input" type="number" id="level" name="level"
             min="1" max="5" value={tech.level} required />
         </div>
@@ -79,22 +79,22 @@ if (!tech) {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
-      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>
 
-  <section class="danger-section" aria-label="Danger zone">
+  <section class="danger-section" aria-label="Zona de peligro">
     <div class="admin-card danger-card">
-      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
-      <p class="danger-msg">Permanently delete this technology. This cannot be undone.</p>
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Zona de peligro</span>
+      <p class="danger-msg">Elimina esta tecnología de forma permanente. No se puede deshacer.</p>
       <form action={`/admin/technologies/${id}/delete`} method="POST">
         <button
           type="submit"
           class="admin-btn admin-btn--danger"
-          onclick="return confirm('Delete this technology? This cannot be undone.')"
-        >Delete technology</button>
+          onclick="return confirm('¿Eliminar esta tecnología? No se puede deshacer.')"
+        >Eliminar tecnología</button>
       </form>
     </div>
   </section>

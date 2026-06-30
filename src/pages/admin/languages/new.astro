@@ -14,31 +14,31 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect('/admin/languages');
 }
 ---
-<AdminLayout title="New Language Entry — Admin">
+<AdminLayout title="Nuevo idioma — Admin">
   <div class="admin-page-header">
-    <h1>New Language Entry</h1>
+    <h1>Nuevo idioma</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="name_es">Name (ES) *</label>
+            <label class="admin-label" for="name_es">Nombre (ES) *</label>
             <input class="admin-input" type="text" id="name_es" name="name_es" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="name_en">Name (EN) *</label>
+            <label class="admin-label" for="name_en">Nombre (EN) *</label>
             <input class="admin-input" type="text" id="name_en" name="name_en" required />
           </div>
         </div>
         <div class="admin-field">
-          <label class="admin-label" for="sort_order">Sort order</label>
+          <label class="admin-label" for="sort_order">Orden</label>
           <input class="admin-input" type="number" id="sort_order" name="sort_order"
             value="0" required />
         </div>
@@ -46,16 +46,16 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Level</span>
+      <span class="admin-section-title">Nivel</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="level_es">Level (ES) *</label>
+            <label class="admin-label" for="level_es">Nivel (ES) *</label>
             <input class="admin-input" type="text" id="level_es" name="level_es"
               placeholder="Nativo" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="level_en">Level (EN) *</label>
+            <label class="admin-label" for="level_en">Nivel (EN) *</label>
             <input class="admin-input" type="text" id="level_en" name="level_en"
               placeholder="Native" required />
           </div>
@@ -64,8 +64,8 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Create entry</button>
-      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Crear idioma</button>
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>

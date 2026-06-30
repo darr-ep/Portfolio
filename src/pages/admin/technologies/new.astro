@@ -14,50 +14,50 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect('/admin/technologies');
 }
 ---
-<AdminLayout title="New Technology — Admin">
+<AdminLayout title="Nueva tecnología — Admin">
   <div class="admin-page-header">
-    <h1>New Technology</h1>
+    <h1>Nueva tecnología</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="name">Name *</label>
+            <label class="admin-label" for="name">Nombre *</label>
             <input class="admin-input" type="text" id="name" name="name" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value="0" required />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="category">Category *</label>
+            <label class="admin-label" for="category">Categoría *</label>
             <input class="admin-input" type="text" id="category" name="category"
               placeholder="Frontend, Backend, DevOps..." required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="icon">Icon</label>
+            <label class="admin-label" for="icon">Icono</label>
             <input class="admin-input" type="text" id="icon" name="icon"
-              placeholder="SVG string or URL" />
+              placeholder="Cadena SVG o URL" />
           </div>
         </div>
       </div>
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Details</span>
+      <span class="admin-section-title">Detalles</span>
       <div class="admin-fields">
         <div class="admin-field">
-          <label class="admin-label" for="level">Level (1-5) *</label>
+          <label class="admin-label" for="level">Nivel (1-5) *</label>
           <input class="admin-input" type="number" id="level" name="level"
             min="1" max="5" value="3" required />
         </div>
@@ -65,8 +65,8 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Create technology</button>
-      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Crear tecnología</button>
+      <a href="/admin/technologies" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>

@@ -7,11 +7,11 @@ const { data: entries } = await supabase
   .select('id, sort_order, name_es, level_es')
   .order('sort_order');
 ---
-<AdminLayout title="Languages — Admin">
+<AdminLayout title="Idiomas — Admin">
   <div class="admin-page-header">
-    <h1>Languages</h1>
+    <h1>Idiomas</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/languages/new" class="admin-btn admin-btn--primary">+ New entry</a>
+      <a href="/admin/languages/new" class="admin-btn admin-btn--primary">+ Nuevo idioma</a>
     </div>
   </div>
 
@@ -20,10 +20,10 @@ const { data: entries } = await supabase
       <table class="list-table">
         <thead>
           <tr>
-            <th>Sort</th>
-            <th>Name</th>
-            <th>Level</th>
-            <th>Actions</th>
+            <th>Orden</th>
+            <th>Nombre</th>
+            <th>Nivel</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -33,13 +33,13 @@ const { data: entries } = await supabase
               <td class="col-name">{e.name_es}</td>
               <td class="col-muted">{e.level_es}</td>
               <td class="col-actions">
-                <a href={`/admin/languages/${e.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Edit</a>
+                <a href={`/admin/languages/${e.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Editar</a>
                 <form action={`/admin/languages/${e.id}/delete`} method="POST" class="inline-form">
                   <button
                     type="submit"
                     class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('Delete this entry?')"
-                  >Delete</button>
+                    onclick="return confirm('¿Eliminar este idioma?')"
+                  >Eliminar</button>
                 </form>
               </td>
             </tr>
@@ -47,7 +47,7 @@ const { data: entries } = await supabase
         </tbody>
       </table>
     ) : (
-      <p class="empty-state">No language entries yet. <a href="/admin/languages/new" class="empty-link">Create the first one.</a></p>
+      <p class="empty-state">Todavía no hay idiomas cargados. <a href="/admin/languages/new" class="empty-link">Crea el primero.</a></p>
     )}
   </div>
 </AdminLayout>

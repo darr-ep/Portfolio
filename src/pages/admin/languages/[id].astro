@@ -26,34 +26,34 @@ if (!entry) {
   return Astro.redirect('/admin/languages');
 }
 ---
-<AdminLayout title={`Edit: ${entry.name_es} — Admin`}>
+<AdminLayout title={`Editar: ${entry.name_es} — Admin`}>
 
   <div class="admin-page-header">
-    <h1>Edit Language Entry</h1>
+    <h1>Editar idioma</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="name_es">Name (ES) *</label>
+            <label class="admin-label" for="name_es">Nombre (ES) *</label>
             <input class="admin-input" type="text" id="name_es" name="name_es"
               value={entry.name_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="name_en">Name (EN) *</label>
+            <label class="admin-label" for="name_en">Nombre (EN) *</label>
             <input class="admin-input" type="text" id="name_en" name="name_en"
               value={entry.name_en} required />
           </div>
         </div>
         <div class="admin-field">
-          <label class="admin-label" for="sort_order">Sort order</label>
+          <label class="admin-label" for="sort_order">Orden</label>
           <input class="admin-input" type="number" id="sort_order" name="sort_order"
             value={entry.sort_order} required />
         </div>
@@ -61,16 +61,16 @@ if (!entry) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Level</span>
+      <span class="admin-section-title">Nivel</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="level_es">Level (ES) *</label>
+            <label class="admin-label" for="level_es">Nivel (ES) *</label>
             <input class="admin-input" type="text" id="level_es" name="level_es"
               value={entry.level_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="level_en">Level (EN) *</label>
+            <label class="admin-label" for="level_en">Nivel (EN) *</label>
             <input class="admin-input" type="text" id="level_en" name="level_en"
               value={entry.level_en} required />
           </div>
@@ -79,22 +79,22 @@ if (!entry) {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
-      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>
 
-  <section class="danger-section" aria-label="Danger zone">
+  <section class="danger-section" aria-label="Zona de peligro">
     <div class="admin-card danger-card">
-      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
-      <p class="danger-msg">Permanently delete this language entry. This cannot be undone.</p>
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Zona de peligro</span>
+      <p class="danger-msg">Elimina este idioma de forma permanente. No se puede deshacer.</p>
       <form action={`/admin/languages/${id}/delete`} method="POST">
         <button
           type="submit"
           class="admin-btn admin-btn--danger"
-          onclick="return confirm('Delete this entry? This cannot be undone.')"
-        >Delete entry</button>
+          onclick="return confirm('¿Eliminar este idioma? No se puede deshacer.')"
+        >Eliminar idioma</button>
       </form>
     </div>
   </section>

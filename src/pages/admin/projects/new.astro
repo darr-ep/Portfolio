@@ -67,18 +67,18 @@ if (Astro.request.method === 'POST') {
   }
 }
 ---
-<AdminLayout title="New Project — Admin">
+<AdminLayout title="Nuevo proyecto — Admin">
   <div class="admin-page-header">
-    <h1>New Project</h1>
+    <h1>Nuevo proyecto</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <!-- Info hint -->
   <div class="info-notice">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-    Save the project first, then add mockup images on the edit screen.
+    Guarda el proyecto primero; después agrega las imágenes en la pantalla de edición.
   </div>
 
   {formError && (
@@ -89,7 +89,7 @@ if (Astro.request.method === 'POST') {
 
     <!-- Section: Basics -->
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
@@ -99,7 +99,7 @@ if (Astro.request.method === 'POST') {
           </div>
           <div class="admin-row--sub">
             <div class="admin-field">
-              <label class="admin-label" for="year">Year</label>
+              <label class="admin-label" for="year">Año</label>
               <input class="admin-input" type="number" id="year" name="year"
                 min="2000" max="2099" placeholder="2025" />
             </div>
@@ -108,36 +108,36 @@ if (Astro.request.method === 'POST') {
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="title_es">Title (ES) *</label>
+            <label class="admin-label" for="title_es">Título (ES) *</label>
             <input class="admin-input" type="text" id="title_es" name="title_es" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="title_en">Title (EN)</label>
+            <label class="admin-label" for="title_en">Título (EN)</label>
             <input class="admin-input" type="text" id="title_en" name="title_en"
-              placeholder="Leave empty to mirror ES" />
+              placeholder="Déjalo vacío para reflejar el ES" />
           </div>
         </div>
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="category_es">Category (ES) *</label>
+            <label class="admin-label" for="category_es">Categoría (ES) *</label>
             <input class="admin-input" type="text" id="category_es" name="category_es" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="category_en">Category (EN)</label>
+            <label class="admin-label" for="category_en">Categoría (EN)</label>
             <input class="admin-input" type="text" id="category_en" name="category_en"
-              placeholder="Leave empty to mirror ES" />
+              placeholder="Déjalo vacío para reflejar el ES" />
           </div>
         </div>
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="tech">Tech stack</label>
+            <label class="admin-label" for="tech">Tecnologías</label>
             <input class="admin-input" type="text" id="tech" name="tech"
               placeholder="React, TypeScript, Supabase" />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="main_image">Main image URL</label>
+            <label class="admin-label" for="main_image">URL de imagen principal</label>
             <input class="admin-input" type="text" id="main_image" name="main_image"
               placeholder="https://…" />
           </div>
@@ -147,7 +147,7 @@ if (Astro.request.method === 'POST') {
 
     <!-- Section: Introduction -->
     <div class="admin-card">
-      <span class="admin-section-title">Introduction</span>
+      <span class="admin-section-title">Introducción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
@@ -162,23 +162,23 @@ if (Astro.request.method === 'POST') {
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="role_es">Role (ES)</label>
+            <label class="admin-label" for="role_es">Rol (ES)</label>
             <input class="admin-input" type="text" id="role_es" name="role_es" />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="role_en">Role (EN)</label>
+            <label class="admin-label" for="role_en">Rol (EN)</label>
             <input class="admin-input" type="text" id="role_en" name="role_en" />
           </div>
         </div>
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="collaborators">Collaborators</label>
+            <label class="admin-label" for="collaborators">Colaboradores</label>
             <input class="admin-input" type="text" id="collaborators" name="collaborators" />
           </div>
           <div class="admin-field url-pair">
             <div class="admin-field">
-              <label class="admin-label" for="live_url">Live URL</label>
+              <label class="admin-label" for="live_url">URL del sitio</label>
               <input class="admin-input" type="url" id="live_url" name="live_url"
                 placeholder="https://example.com" />
             </div>
@@ -186,21 +186,21 @@ if (Astro.request.method === 'POST') {
         </div>
 
         <div class="admin-field">
-          <label class="admin-label" for="github_url">GitHub URL</label>
+          <label class="admin-label" for="github_url">URL de GitHub</label>
           <input class="admin-input" type="url" id="github_url" name="github_url"
             placeholder="https://github.com/…" />
         </div>
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <label class="admin-label" for="description_es">Descripción (ES) *</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4" required></textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN)</label>
+            <label class="admin-label" for="description_en">Descripción (EN)</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
-              rows="4" placeholder="Leave empty to mirror ES"></textarea>
+              rows="4" placeholder="Déjalo vacío para reflejar el ES"></textarea>
           </div>
         </div>
       </div>
@@ -208,26 +208,26 @@ if (Astro.request.method === 'POST') {
 
     <!-- Section: Approach -->
     <div class="admin-card">
-      <span class="admin-section-title">Approach</span>
+      <span class="admin-section-title">Enfoque</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="approach_title_es">Approach title (ES)</label>
+            <label class="admin-label" for="approach_title_es">Título del enfoque (ES)</label>
             <input class="admin-input" type="text" id="approach_title_es" name="approach_title_es" />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="approach_title_en">Approach title (EN)</label>
+            <label class="admin-label" for="approach_title_en">Título del enfoque (EN)</label>
             <input class="admin-input" type="text" id="approach_title_en" name="approach_title_en" />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="approach_body_es">Approach body (ES)</label>
+            <label class="admin-label" for="approach_body_es">Texto del enfoque (ES)</label>
             <textarea class="admin-textarea" id="approach_body_es" name="approach_body_es"
               rows="5"></textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="approach_body_en">Approach body (EN)</label>
+            <label class="admin-label" for="approach_body_en">Texto del enfoque (EN)</label>
             <textarea class="admin-textarea" id="approach_body_en" name="approach_body_en"
               rows="5"></textarea>
           </div>
@@ -237,16 +237,16 @@ if (Astro.request.method === 'POST') {
 
     <!-- Section: Conclusion -->
     <div class="admin-card">
-      <span class="admin-section-title">Conclusion</span>
+      <span class="admin-section-title">Conclusión</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="conclusion_es">Conclusion (ES)</label>
+            <label class="admin-label" for="conclusion_es">Conclusión (ES)</label>
             <textarea class="admin-textarea" id="conclusion_es" name="conclusion_es"
               rows="4"></textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="conclusion_en">Conclusion (EN)</label>
+            <label class="admin-label" for="conclusion_en">Conclusión (EN)</label>
             <textarea class="admin-textarea" id="conclusion_en" name="conclusion_en"
               rows="4"></textarea>
           </div>
@@ -256,8 +256,8 @@ if (Astro.request.method === 'POST') {
 
     <!-- Form actions -->
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Create project</button>
-      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Crear proyecto</button>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>

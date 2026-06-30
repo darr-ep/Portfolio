@@ -28,34 +28,34 @@ if (!entry) {
   return Astro.redirect('/admin/education');
 }
 ---
-<AdminLayout title={`Edit: ${entry.institution} — Admin`}>
+<AdminLayout title={`Editar: ${entry.institution} — Admin`}>
 
   <div class="admin-page-header">
-    <h1>Edit Education Entry</h1>
+    <h1>Editar formación</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/education" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/education" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="institution">Institution *</label>
+            <label class="admin-label" for="institution">Institución *</label>
             <input class="admin-input" type="text" id="institution" name="institution"
               value={entry.institution} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value={entry.sort_order} required />
           </div>
         </div>
         <div class="admin-field">
-          <label class="admin-label" for="period">Period *</label>
+          <label class="admin-label" for="period">Período *</label>
           <input class="admin-input" type="text" id="period" name="period"
             value={entry.period} required />
         </div>
@@ -63,16 +63,16 @@ if (!entry) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Degree</span>
+      <span class="admin-section-title">Título</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="degree_es">Degree (ES) *</label>
+            <label class="admin-label" for="degree_es">Título (ES) *</label>
             <input class="admin-input" type="text" id="degree_es" name="degree_es"
               value={entry.degree_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="degree_en">Degree (EN) *</label>
+            <label class="admin-label" for="degree_en">Título (EN) *</label>
             <input class="admin-input" type="text" id="degree_en" name="degree_en"
               value={entry.degree_en} required />
           </div>
@@ -81,16 +81,16 @@ if (!entry) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Description</span>
+      <span class="admin-section-title">Descripción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES)</label>
+            <label class="admin-label" for="description_es">Descripción (ES)</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4">{entry.description_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN)</label>
+            <label class="admin-label" for="description_en">Descripción (EN)</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
               rows="4">{entry.description_en}</textarea>
           </div>
@@ -99,22 +99,22 @@ if (!entry) {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
-      <a href="/admin/education" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/education" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>
 
-  <section class="danger-section" aria-label="Danger zone">
+  <section class="danger-section" aria-label="Zona de peligro">
     <div class="admin-card danger-card">
-      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
-      <p class="danger-msg">Permanently delete this education entry. This cannot be undone.</p>
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Zona de peligro</span>
+      <p class="danger-msg">Elimina esta formación de forma permanente. No se puede deshacer.</p>
       <form action={`/admin/education/${id}/delete`} method="POST">
         <button
           type="submit"
           class="admin-btn admin-btn--danger"
-          onclick="return confirm('Delete this entry? This cannot be undone.')"
-        >Delete entry</button>
+          onclick="return confirm('¿Eliminar esta formación? No se puede deshacer.')"
+        >Eliminar formación</button>
       </form>
     </div>
   </section>

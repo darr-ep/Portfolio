@@ -18,7 +18,7 @@ function isActive(href: string): boolean {
   return pathname === href || pathname.startsWith(href + '/');
 }
 ---
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -65,18 +65,18 @@ function isActive(href: string): boolean {
     </div>
 
     <!-- Sidebar -->
-    <aside class="admin-sidebar" aria-label="Admin navigation">
+    <aside class="admin-sidebar" aria-label="Navegación del panel">
 
       <!-- Brand -->
       <div class="sidebar-brand">
-        <a href="/admin" class="brand-link" aria-label="Go to dashboard">
+        <a href="/admin" class="brand-link" aria-label="Ir al panel">
           <span class="brand-monogram" aria-hidden="true">EP</span>
         </a>
         <span class="brand-label">Admin</span>
       </div>
 
       <!-- Primary navigation -->
-      <nav class="sidebar-nav" aria-label="Admin sections">
+      <nav class="sidebar-nav" aria-label="Secciones del panel">
 
         <!-- Dashboard (top-level, no group) -->
         <a
@@ -91,12 +91,12 @@ function isActive(href: string): boolean {
             <rect width="7" height="9" x="14" y="12" rx="1"/>
             <rect width="7" height="5" x="3" y="16" rx="1"/>
           </svg>
-          <span>Dashboard</span>
+          <span>Panel</span>
         </a>
 
         <!-- Content group -->
         <div class="nav-group">
-          <span class="nav-group-label">Content</span>
+          <span class="nav-group-label">Contenido</span>
 
           <a
             href="/admin/projects"
@@ -107,7 +107,7 @@ function isActive(href: string): boolean {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
             </svg>
-            <span>Projects</span>
+            <span>Proyectos</span>
           </a>
 
           <a
@@ -121,7 +121,7 @@ function isActive(href: string): boolean {
               <path d="M3 3v5h5"/>
               <path d="M12 7v5l4 2"/>
             </svg>
-            <span>Timeline</span>
+            <span>Trayectoria</span>
           </a>
 
           <a
@@ -134,7 +134,7 @@ function isActive(href: string): boolean {
               <rect x="2" y="3" width="20" height="14" rx="2"/>
               <path d="M8 21h8m-4-4v4"/>
             </svg>
-            <span>Technologies</span>
+            <span>Tecnologías</span>
           </a>
 
           <a
@@ -147,7 +147,7 @@ function isActive(href: string): boolean {
               <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path d="M6 12v5c3 3 9 3 12 0v-5"/>
             </svg>
-            <span>Education</span>
+            <span>Educación</span>
           </a>
 
           <a
@@ -161,13 +161,13 @@ function isActive(href: string): boolean {
               <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
               <path d="M2 12h20"/>
             </svg>
-            <span>Languages</span>
+            <span>Idiomas</span>
           </a>
         </div>
 
         <!-- Account group -->
         <div class="nav-group">
-          <span class="nav-group-label">Account</span>
+          <span class="nav-group-label">Cuenta</span>
 
           <a
             href="/admin/profile"
@@ -179,7 +179,7 @@ function isActive(href: string): boolean {
               <circle cx="12" cy="8" r="5"/>
               <path d="M20 21a8 8 0 1 0-16 0"/>
             </svg>
-            <span>Profile</span>
+            <span>Perfil</span>
           </a>
         </div>
       </nav>
@@ -191,7 +191,7 @@ function isActive(href: string): boolean {
           class="nav-link nav-link-secondary"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Open public site in new tab"
+          aria-label="Abrir el sitio público en una pestaña nueva"
         >
           <!-- Lucide: external-link -->
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -199,7 +199,7 @@ function isActive(href: string): boolean {
             <path d="M10 14 21 3"/>
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
           </svg>
-          <span>View site</span>
+          <span>Ver sitio</span>
         </a>
 
         <form action="/admin/auth/logout" method="POST" class="logout-form">
@@ -210,7 +210,7 @@ function isActive(href: string): boolean {
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" x2="9" y1="12" y2="12"/>
             </svg>
-            <span>Sign out</span>
+            <span>Cerrar sesión</span>
           </button>
         </form>
       </div>

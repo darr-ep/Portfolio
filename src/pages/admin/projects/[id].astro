@@ -108,7 +108,7 @@ const IMAGE_SLOTS = [
 
     <!-- Section: Basics -->
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
@@ -117,7 +117,7 @@ const IMAGE_SLOTS = [
               value={project.slug} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="year">Year</label>
+            <label class="admin-label" for="year">Año</label>
             <input class="admin-input" type="number" id="year" name="year"
               value={project.year ?? ''} min="2000" max="2099" />
           </div>
@@ -125,12 +125,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="title_es">Title (ES) *</label>
+            <label class="admin-label" for="title_es">Título (ES) *</label>
             <input class="admin-input" type="text" id="title_es" name="title_es"
               value={project.title_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="title_en">Title (EN)</label>
+            <label class="admin-label" for="title_en">Título (EN)</label>
             <input class="admin-input" type="text" id="title_en" name="title_en"
               value={project.title_en} />
           </div>
@@ -138,12 +138,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="category_es">Category (ES) *</label>
+            <label class="admin-label" for="category_es">Categoría (ES) *</label>
             <input class="admin-input" type="text" id="category_es" name="category_es"
               value={project.category_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="category_en">Category (EN)</label>
+            <label class="admin-label" for="category_en">Categoría (EN)</label>
             <input class="admin-input" type="text" id="category_en" name="category_en"
               value={project.category_en} />
           </div>
@@ -151,12 +151,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="tech">Tech stack (comma-separated)</label>
+            <label class="admin-label" for="tech">Tecnologías (separadas por comas)</label>
             <input class="admin-input" type="text" id="tech" name="tech"
               value={project.tech?.join(', ') ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="main_image">Main image URL</label>
+            <label class="admin-label" for="main_image">URL de la imagen principal</label>
             <input class="admin-input" type="text" id="main_image" name="main_image"
               value={project.main_image ?? ''} />
           </div>
@@ -166,7 +166,7 @@ const IMAGE_SLOTS = [
 
     <!-- Section: Introduction -->
     <div class="admin-card">
-      <span class="admin-section-title">Introduction</span>
+      <span class="admin-section-title">Introducción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
@@ -183,12 +183,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="role_es">Role (ES)</label>
+            <label class="admin-label" for="role_es">Rol (ES)</label>
             <input class="admin-input" type="text" id="role_es" name="role_es"
               value={project.role_es ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="role_en">Role (EN)</label>
+            <label class="admin-label" for="role_en">Rol (EN)</label>
             <input class="admin-input" type="text" id="role_en" name="role_en"
               value={project.role_en ?? ''} />
           </div>
@@ -196,12 +196,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="collaborators">Collaborators</label>
+            <label class="admin-label" for="collaborators">Colaboradores</label>
             <input class="admin-input" type="text" id="collaborators" name="collaborators"
               value={project.collaborators ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="live_url">Live URL</label>
+            <label class="admin-label" for="live_url">URL del sitio</label>
             <input class="admin-input" type="url" id="live_url" name="live_url"
               value={project.live_url ?? ''} placeholder="https://…" />
           </div>
@@ -215,12 +215,12 @@ const IMAGE_SLOTS = [
 
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <label class="admin-label" for="description_es">Descripción (ES) *</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4" required>{project.description_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN)</label>
+            <label class="admin-label" for="description_en">Descripción (EN)</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
               rows="4">{project.description_en}</textarea>
           </div>
@@ -230,28 +230,28 @@ const IMAGE_SLOTS = [
 
     <!-- Section: Approach -->
     <div class="admin-card">
-      <span class="admin-section-title">Approach</span>
+      <span class="admin-section-title">Enfoque</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="approach_title_es">Approach title (ES)</label>
+            <label class="admin-label" for="approach_title_es">Título del enfoque (ES)</label>
             <input class="admin-input" type="text" id="approach_title_es" name="approach_title_es"
               value={project.approach_title_es ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="approach_title_en">Approach title (EN)</label>
+            <label class="admin-label" for="approach_title_en">Título del enfoque (EN)</label>
             <input class="admin-input" type="text" id="approach_title_en" name="approach_title_en"
               value={project.approach_title_en ?? ''} />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="approach_body_es">Approach body (ES)</label>
+            <label class="admin-label" for="approach_body_es">Texto del enfoque (ES)</label>
             <textarea class="admin-textarea" id="approach_body_es" name="approach_body_es"
               rows="5">{project.approach_body_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="approach_body_en">Approach body (EN)</label>
+            <label class="admin-label" for="approach_body_en">Texto del enfoque (EN)</label>
             <textarea class="admin-textarea" id="approach_body_en" name="approach_body_en"
               rows="5">{project.approach_body_en}</textarea>
           </div>
@@ -261,16 +261,16 @@ const IMAGE_SLOTS = [
 
     <!-- Section: Conclusion -->
     <div class="admin-card">
-      <span class="admin-section-title">Conclusion</span>
+      <span class="admin-section-title">Conclusión</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="conclusion_es">Conclusion (ES)</label>
+            <label class="admin-label" for="conclusion_es">Conclusión (ES)</label>
             <textarea class="admin-textarea" id="conclusion_es" name="conclusion_es"
               rows="4">{project.conclusion_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="conclusion_en">Conclusion (EN)</label>
+            <label class="admin-label" for="conclusion_en">Conclusión (EN)</label>
             <textarea class="admin-textarea" id="conclusion_en" name="conclusion_en"
               rows="4">{project.conclusion_en}</textarea>
           </div>
@@ -280,8 +280,8 @@ const IMAGE_SLOTS = [
 
     <!-- Form actions -->
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
-      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>
@@ -289,7 +289,7 @@ const IMAGE_SLOTS = [
   <!-- Inline image management (separate from the text form) -->
   <section class="images-section" aria-labelledby="images-heading">
     <div class="section-divider admin-page-header" style="margin-top: 36px;">
-      <h2 id="images-heading" style="font-size: 18px; font-weight: 600;">Mockup Images</h2>
+      <h2 id="images-heading" style="font-size: 18px; font-weight: 600;">Mockups / Capturas</h2>
     </div>
 
     <div class="image-grid admin-form-stack" style="max-width: 940px;">
@@ -299,7 +299,7 @@ const IMAGE_SLOTS = [
           <div class="admin-card image-slot">
             <span class="admin-section-title">
               {label}
-              {img && <span class="slot-badge">Uploaded</span>}
+              {img && <span class="slot-badge">Subido</span>}
             </span>
 
             {img ? (
@@ -342,32 +342,32 @@ const IMAGE_SLOTS = [
               </div>
             ) : (
               <div class="slot-empty">
-                <p class="slot-empty-msg">No image uploaded yet.</p>
+                <p class="slot-empty-msg">Aún no se ha subido ninguna imagen.</p>
                 <!-- Upload form handled by JS fetch below -->
                 <form class="upload-form" data-slot={key} data-project={id}>
                   <input type="hidden" name="slot_key" value={key} />
                   <input type="hidden" name="project_id" value={id} />
                   <div class="admin-fields">
                     <div class="admin-field">
-                      <label class="admin-label">Image file *</label>
+                      <label class="admin-label">Archivo de imagen *</label>
                       <input class="admin-input" type="file" name="file"
                         accept="image/*" required />
                     </div>
                     <div class="admin-row">
                       <div class="admin-field">
-                        <label class="admin-label">Alt text (ES)</label>
+                        <label class="admin-label">Texto alternativo (ES)</label>
                         <input class="admin-input" type="text" name="alt_es"
-                          placeholder="Descripcion de la imagen" />
+                          placeholder="Descripción de la imagen" />
                       </div>
                       <div class="admin-field">
-                        <label class="admin-label">Alt text (EN)</label>
+                        <label class="admin-label">Texto alternativo (EN)</label>
                         <input class="admin-input" type="text" name="alt_en"
                           placeholder="Image description" />
                       </div>
                     </div>
                     <div class="upload-actions">
                       <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">
-                        Upload
+                        Subir
                       </button>
                       <span class="upload-status" aria-live="polite"></span>
                     </div>
@@ -382,16 +382,16 @@ const IMAGE_SLOTS = [
   </section>
 
   <!-- Danger zone (delete project -- separate from all other forms) -->
-  <section class="danger-section" aria-label="Danger zone">
+  <section class="danger-section" aria-label="Zona de peligro">
     <div class="admin-card danger-card">
-      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
-      <p class="danger-msg">Permanently delete this project and all its images. This cannot be undone.</p>
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Zona de peligro</span>
+      <p class="danger-msg">Eliminar este proyecto y todas sus imágenes de forma permanente. No se puede deshacer.</p>
       <form action={`/admin/projects/${id}/delete`} method="POST">
         <button
           type="submit"
           class="admin-btn admin-btn--danger"
-          onclick="return confirm('Delete this project? All images will also be removed. This cannot be undone.')"
-        >Delete project</button>
+          onclick="return confirm('¿Eliminar este proyecto? También se eliminarán todas las imágenes. Esta acción no se puede deshacer.')"
+        >Eliminar proyecto</button>
       </form>
     </div>
   </section>
@@ -407,7 +407,7 @@ const IMAGE_SLOTS = [
       const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
       if (submitBtn) submitBtn.disabled = true;
-      if (statusEl) statusEl.textContent = 'Uploading...';
+      if (statusEl) statusEl.textContent = 'Subiendo...';
 
       const data = new FormData(form);
 
@@ -418,11 +418,11 @@ const IMAGE_SLOTS = [
         if (json.success) {
           window.location.reload();
         } else {
-          if (statusEl) statusEl.textContent = `Error: ${json.error ?? 'unknown'}`;
+          if (statusEl) statusEl.textContent = `Error: ${json.error ?? 'desconocido'}`;
           if (submitBtn) submitBtn.disabled = false;
         }
       } catch {
-        if (statusEl) statusEl.textContent = 'Network error. Try again.';
+        if (statusEl) statusEl.textContent = 'Error de red. Inténtalo de nuevo.';
         if (submitBtn) submitBtn.disabled = false;
       }
     });

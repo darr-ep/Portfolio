@@ -7,12 +7,12 @@ const { data: projects } = await supabase
   .select('id, sort_order, title_es, category_es, slug, year')
   .order('sort_order', { ascending: true });
 ---
-<AdminLayout title="Projects — Admin">
+<AdminLayout title="Proyectos — Admin">
   <div class="admin-page-header">
-    <h1>Projects</h1>
+    <h1>Proyectos</h1>
     <div class="admin-page-header-actions">
       <span id="order-toast" class="order-toast" aria-live="polite"></span>
-      <a href="/admin/projects/new" class="admin-btn admin-btn--primary">+ New project</a>
+      <a href="/admin/projects/new" class="admin-btn admin-btn--primary">+ Nuevo proyecto</a>
     </div>
   </div>
 
@@ -21,18 +21,18 @@ const { data: projects } = await supabase
       <table class="project-table">
         <thead>
           <tr>
-            <th class="col-drag" aria-label="Drag to reorder"></th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Year</th>
+            <th class="col-drag" aria-label="Arrastra para reordenar"></th>
+            <th>Título</th>
+            <th>Categoría</th>
+            <th>Año</th>
             <th>Slug</th>
-            <th>Actions</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="project-list">
           {projects.map((p) => (
             <tr data-id={p.id} draggable="true" class="project-row">
-              <td class="col-drag drag-handle" title="Drag to reorder">
+              <td class="col-drag drag-handle" title="Arrastra para reordenar">
                 <!-- drag grip icon (3 horizontal lines) -->
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                   <line x1="3" y1="6" x2="21" y2="6"/>
@@ -45,13 +45,13 @@ const { data: projects } = await supabase
               <td class="col-muted col-year">{p.year ?? '—'}</td>
               <td class="col-mono col-muted">{p.slug}</td>
               <td class="col-actions">
-                <a href={`/admin/projects/${p.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Edit</a>
+                <a href={`/admin/projects/${p.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Editar</a>
                 <form action={`/admin/projects/${p.id}/delete`} method="POST" class="inline-form">
                   <button
                     type="submit"
                     class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('Delete this project? This cannot be undone.')"
-                  >Delete</button>
+                    onclick="return confirm('¿Eliminar este proyecto? No se puede deshacer.')"
+                  >Eliminar</button>
                 </form>
               </td>
             </tr>
@@ -59,7 +59,7 @@ const { data: projects } = await supabase
         </tbody>
       </table>
     ) : (
-      <p class="empty-state">No projects yet. <a href="/admin/projects/new" class="empty-link">Create the first one.</a></p>
+      <p class="empty-state">Todavía no hay proyectos. <a href="/admin/projects/new" class="empty-link">Crea el primero.</a></p>
     )}
   </div>
 </AdminLayout>
@@ -132,7 +132,7 @@ const { data: projects } = await supabase
         .map((r) => r.dataset.id!)
         .filter(Boolean);
 
-      setToast('Saving…', 'saving');
+      setToast('Guardando…', 'saving');
 
       try {
         const res = await fetch('/api/admin/reorder-projects', {
@@ -142,13 +142,13 @@ const { data: projects } = await supabase
         });
         const json = await res.json() as { success: boolean; error?: string };
         if (json.success) {
-          setToast('Order saved', 'success');
+          setToast('Orden guardado', 'success');
           setTimeout(() => setToast('', ''), 2200);
         } else {
           setToast(`Error: ${json.error ?? 'unknown'}`, 'error');
         }
       } catch {
-        setToast('Network error — order not saved', 'error');
+        setToast('Error de red — no se guardó el orden', 'error');
       }
     });
 

@@ -16,32 +16,32 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect('/admin/education');
 }
 ---
-<AdminLayout title="New Education Entry — Admin">
+<AdminLayout title="Nueva formación — Admin">
   <div class="admin-page-header">
-    <h1>New Education Entry</h1>
+    <h1>Nueva formación</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/education" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/education" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="institution">Institution *</label>
+            <label class="admin-label" for="institution">Institución *</label>
             <input class="admin-input" type="text" id="institution" name="institution" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value="0" required />
           </div>
         </div>
         <div class="admin-field">
-          <label class="admin-label" for="period">Period *</label>
+          <label class="admin-label" for="period">Período *</label>
           <input class="admin-input" type="text" id="period" name="period"
             placeholder="2020 - 2024" required />
         </div>
@@ -49,15 +49,15 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Degree</span>
+      <span class="admin-section-title">Título</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="degree_es">Degree (ES) *</label>
+            <label class="admin-label" for="degree_es">Título (ES) *</label>
             <input class="admin-input" type="text" id="degree_es" name="degree_es" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="degree_en">Degree (EN) *</label>
+            <label class="admin-label" for="degree_en">Título (EN) *</label>
             <input class="admin-input" type="text" id="degree_en" name="degree_en" required />
           </div>
         </div>
@@ -65,16 +65,16 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Description</span>
+      <span class="admin-section-title">Descripción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES)</label>
+            <label class="admin-label" for="description_es">Descripción (ES)</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4"></textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN)</label>
+            <label class="admin-label" for="description_en">Descripción (EN)</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
               rows="4"></textarea>
           </div>
@@ -83,8 +83,8 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Create entry</button>
-      <a href="/admin/education" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Crear formación</button>
+      <a href="/admin/education" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>

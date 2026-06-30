@@ -10,43 +10,43 @@ const [{ count: projectsCount }, { count: timelineCount }, { count: techCount },
   supabase.from('languages').select('*', { count: 'exact', head: true }),
 ]);
 ---
-<AdminLayout title="Dashboard — Admin">
+<AdminLayout title="Panel — Admin">
   <div class="page-header">
-    <h1>Dashboard</h1>
+    <h1>Panel</h1>
   </div>
 
   <div class="stats-grid">
     <a href="/admin/projects" class="stat-card">
       <div class="stat-value">{projectsCount ?? 0}</div>
-      <div class="stat-label">Projects</div>
+      <div class="stat-label">Proyectos</div>
     </a>
     <a href="/admin/timeline" class="stat-card">
       <div class="stat-value">{timelineCount ?? 0}</div>
-      <div class="stat-label">Timeline entries</div>
+      <div class="stat-label">Entradas de trayectoria</div>
     </a>
     <a href="/admin/technologies" class="stat-card">
       <div class="stat-value">{techCount ?? 0}</div>
-      <div class="stat-label">Technologies</div>
+      <div class="stat-label">Tecnologías</div>
     </a>
     <a href="/admin/education" class="stat-card">
       <div class="stat-value">{educationCount ?? 0}</div>
-      <div class="stat-label">Education</div>
+      <div class="stat-label">Educación</div>
     </a>
     <a href="/admin/languages" class="stat-card">
       <div class="stat-value">{languagesCount ?? 0}</div>
-      <div class="stat-label">Languages</div>
+      <div class="stat-label">Idiomas</div>
     </a>
   </div>
 
   <div class="quick-links">
-    <h2>Quick access</h2>
+    <h2>Acceso rápido</h2>
     <div class="links-grid">
-      <a href="/admin/projects/new" class="link-card">+ New project</a>
-      <a href="/admin/timeline/new" class="link-card">+ New timeline entry</a>
-      <a href="/admin/technologies/new" class="link-card">+ New technology</a>
-      <a href="/admin/education/new" class="link-card">+ New education</a>
-      <a href="/admin/languages/new" class="link-card">+ New language</a>
-      <a href="/admin/profile" class="link-card">Edit profile</a>
+      <a href="/admin/projects/new" class="link-card">+ Nuevo proyecto</a>
+      <a href="/admin/timeline/new" class="link-card">+ Nueva entrada de trayectoria</a>
+      <a href="/admin/technologies/new" class="link-card">+ Nueva tecnología</a>
+      <a href="/admin/education/new" class="link-card">+ Nueva formación</a>
+      <a href="/admin/languages/new" class="link-card">+ Nuevo idioma</a>
+      <a href="/admin/profile" class="link-card">Editar perfil</a>
     </div>
   </div>
 </AdminLayout>

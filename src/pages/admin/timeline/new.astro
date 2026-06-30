@@ -17,45 +17,45 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect('/admin/timeline');
 }
 ---
-<AdminLayout title="New Timeline Entry — Admin">
+<AdminLayout title="Nueva entrada de trayectoria — Admin">
   <div class="admin-page-header">
-    <h1>New Timeline Entry</h1>
+    <h1>Nueva entrada de trayectoria</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="year">Year *</label>
+            <label class="admin-label" for="year">Año *</label>
             <input class="admin-input" type="text" id="year" name="year"
               placeholder="2024" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value="0" required />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="company">Company / Institution / Project *</label>
+            <label class="admin-label" for="company">Empresa / Institución / Proyecto *</label>
             <input class="admin-input" type="text" id="company" name="company" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="entry_type">Type</label>
+            <label class="admin-label" for="entry_type">Tipo</label>
             <select class="admin-select" id="entry_type" name="entry_type" required>
-              <option value="work">Work</option>
+              <option value="work">Trabajo</option>
               <option value="freelance">Freelance</option>
-              <option value="education">Education</option>
-              <option value="project">Project</option>
-              <option value="certification">Certification</option>
-              <option value="milestone">Milestone</option>
+              <option value="education">Educación</option>
+              <option value="project">Proyecto</option>
+              <option value="certification">Certificación</option>
+              <option value="milestone">Hito</option>
             </select>
           </div>
         </div>
@@ -63,15 +63,15 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Role</span>
+      <span class="admin-section-title">Rol</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="role_es">Role (ES) *</label>
+            <label class="admin-label" for="role_es">Rol (ES) *</label>
             <input class="admin-input" type="text" id="role_es" name="role_es" required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="role_en">Role (EN) *</label>
+            <label class="admin-label" for="role_en">Rol (EN) *</label>
             <input class="admin-input" type="text" id="role_en" name="role_en" required />
           </div>
         </div>
@@ -79,16 +79,16 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Description</span>
+      <span class="admin-section-title">Descripción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <label class="admin-label" for="description_es">Descripción (ES) *</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4" required></textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN) *</label>
+            <label class="admin-label" for="description_en">Descripción (EN) *</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
               rows="4" required></textarea>
           </div>
@@ -97,8 +97,8 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Create entry</button>
-      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Crear entrada</button>
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>

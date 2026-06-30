@@ -25,29 +25,29 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect('/admin/profile');
 }
 ---
-<AdminLayout title="Profile — Admin">
+<AdminLayout title="Perfil — Admin">
   <div class="admin-page-header">
-    <h1>Profile</h1>
+    <h1>Perfil</h1>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Identity</span>
+      <span class="admin-section-title">Identidad</span>
       <div class="admin-fields">
         <div class="admin-field">
-          <label class="admin-label" for="full_name">Full name *</label>
+          <label class="admin-label" for="full_name">Nombre completo *</label>
           <input class="admin-input" type="text" id="full_name" name="full_name"
             value={profile?.full_name ?? ''} required />
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="role_es">Role (ES) *</label>
+            <label class="admin-label" for="role_es">Rol (ES) *</label>
             <input class="admin-input" type="text" id="role_es" name="role_es"
               value={profile?.role_es ?? ''} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="role_en">Role (EN) *</label>
+            <label class="admin-label" for="role_en">Rol (EN) *</label>
             <input class="admin-input" type="text" id="role_en" name="role_en"
               value={profile?.role_en ?? ''} required />
           </div>
@@ -56,16 +56,16 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">About</span>
+      <span class="admin-section-title">Sobre mí</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="about_es">About (ES)</label>
+            <label class="admin-label" for="about_es">Sobre mí (ES)</label>
             <textarea class="admin-textarea" id="about_es" name="about_es"
               rows="5">{profile?.about_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="about_en">About (EN)</label>
+            <label class="admin-label" for="about_en">Sobre mí (EN)</label>
             <textarea class="admin-textarea" id="about_en" name="about_en"
               rows="5">{profile?.about_en}</textarea>
           </div>
@@ -74,28 +74,28 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Contact</span>
+      <span class="admin-section-title">Contacto</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="email">Email</label>
+            <label class="admin-label" for="email">Correo</label>
             <input class="admin-input" type="email" id="email" name="email"
               value={profile?.email ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="phone">Phone</label>
+            <label class="admin-label" for="phone">Teléfono</label>
             <input class="admin-input" type="text" id="phone" name="phone"
               value={profile?.phone ?? ''} />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="location_es">Location (ES)</label>
+            <label class="admin-label" for="location_es">Ubicación (ES)</label>
             <input class="admin-input" type="text" id="location_es" name="location_es"
               value={profile?.location_es ?? ''} />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="location_en">Location (EN)</label>
+            <label class="admin-label" for="location_en">Ubicación (EN)</label>
             <input class="admin-input" type="text" id="location_en" name="location_en"
               value={profile?.location_en ?? ''} />
           </div>
@@ -104,7 +104,7 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Links</span>
+      <span class="admin-section-title">Enlaces</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
@@ -122,7 +122,7 @@ if (Astro.request.method === 'POST') {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
     </div>
 
   </form>

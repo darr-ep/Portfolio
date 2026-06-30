@@ -29,47 +29,47 @@ if (!entry) {
   return Astro.redirect('/admin/timeline');
 }
 ---
-<AdminLayout title={`Edit: ${entry.company} — Admin`}>
+<AdminLayout title={`Editar: ${entry.company} — Admin`}>
 
   <div class="admin-page-header">
-    <h1>Edit Timeline Entry</h1>
+    <h1>Editar entrada de trayectoria</h1>
     <div class="admin-page-header-actions">
-      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Back to list</a>
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
   <form method="POST" class="admin-form-stack">
 
     <div class="admin-card">
-      <span class="admin-section-title">Basics</span>
+      <span class="admin-section-title">Datos básicos</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="year">Year *</label>
+            <label class="admin-label" for="year">Año *</label>
             <input class="admin-input" type="text" id="year" name="year"
               value={entry.year} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="sort_order">Sort order</label>
+            <label class="admin-label" for="sort_order">Orden</label>
             <input class="admin-input" type="number" id="sort_order" name="sort_order"
               value={entry.sort_order} required />
           </div>
         </div>
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="company">Company / Institution / Project *</label>
+            <label class="admin-label" for="company">Empresa / Institución / Proyecto *</label>
             <input class="admin-input" type="text" id="company" name="company"
               value={entry.company} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="entry_type">Type</label>
+            <label class="admin-label" for="entry_type">Tipo</label>
             <select class="admin-select" id="entry_type" name="entry_type" required>
-              <option value="work"          selected={entry.entry_type === 'work'}>Work</option>
+              <option value="work"          selected={entry.entry_type === 'work'}>Trabajo</option>
               <option value="freelance"     selected={entry.entry_type === 'freelance'}>Freelance</option>
-              <option value="education"     selected={entry.entry_type === 'education'}>Education</option>
-              <option value="project"       selected={entry.entry_type === 'project'}>Project</option>
-              <option value="certification" selected={entry.entry_type === 'certification'}>Certification</option>
-              <option value="milestone"     selected={entry.entry_type === 'milestone'}>Milestone</option>
+              <option value="education"     selected={entry.entry_type === 'education'}>Educación</option>
+              <option value="project"       selected={entry.entry_type === 'project'}>Proyecto</option>
+              <option value="certification" selected={entry.entry_type === 'certification'}>Certificación</option>
+              <option value="milestone"     selected={entry.entry_type === 'milestone'}>Hito</option>
             </select>
           </div>
         </div>
@@ -77,16 +77,16 @@ if (!entry) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Role</span>
+      <span class="admin-section-title">Rol</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="role_es">Role (ES) *</label>
+            <label class="admin-label" for="role_es">Rol (ES) *</label>
             <input class="admin-input" type="text" id="role_es" name="role_es"
               value={entry.role_es} required />
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="role_en">Role (EN) *</label>
+            <label class="admin-label" for="role_en">Rol (EN) *</label>
             <input class="admin-input" type="text" id="role_en" name="role_en"
               value={entry.role_en} required />
           </div>
@@ -95,16 +95,16 @@ if (!entry) {
     </div>
 
     <div class="admin-card">
-      <span class="admin-section-title">Description</span>
+      <span class="admin-section-title">Descripción</span>
       <div class="admin-fields">
         <div class="admin-row">
           <div class="admin-field">
-            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <label class="admin-label" for="description_es">Descripción (ES) *</label>
             <textarea class="admin-textarea" id="description_es" name="description_es"
               rows="4" required>{entry.description_es}</textarea>
           </div>
           <div class="admin-field">
-            <label class="admin-label" for="description_en">Description (EN) *</label>
+            <label class="admin-label" for="description_en">Descripción (EN) *</label>
             <textarea class="admin-textarea" id="description_en" name="description_en"
               rows="4" required>{entry.description_en}</textarea>
           </div>
@@ -113,22 +113,22 @@ if (!entry) {
     </div>
 
     <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
-      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Cancel</a>
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Cancelar</a>
     </div>
 
   </form>
 
-  <section class="danger-section" aria-label="Danger zone">
+  <section class="danger-section" aria-label="Zona de peligro">
     <div class="admin-card danger-card">
-      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
-      <p class="danger-msg">Permanently delete this timeline entry. This cannot be undone.</p>
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Zona de peligro</span>
+      <p class="danger-msg">Elimina esta entrada de forma permanente. No se puede deshacer.</p>
       <form action={`/admin/timeline/${id}/delete`} method="POST">
         <button
           type="submit"
           class="admin-btn admin-btn--danger"
-          onclick="return confirm('Delete this entry? This cannot be undone.')"
-        >Delete entry</button>
+          onclick="return confirm('¿Eliminar esta entrada? No se puede deshacer.')"
+        >Eliminar entrada</button>
       </form>
     </div>
   </section>
