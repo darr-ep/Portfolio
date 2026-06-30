@@ -82,20 +82,20 @@ for (const img of rawImages ?? []) {
 }
 
 const IMAGE_SLOTS = [
-  { key: 'hero',             label: 'Hero' },
-  { key: 'mockup_main',      label: 'Main Mockup' },
-  { key: 'mockup_secondary', label: 'Secondary Mockup' },
-  { key: 'detail',           label: 'Detail' },
+  { key: 'hero',             label: 'Hero / Portada' },
+  { key: 'mockup_main',      label: 'Mockup principal' },
+  { key: 'mockup_secondary', label: 'Mockup secundario' },
+  { key: 'detail',           label: 'Detalle' },
 ] as const;
 ---
-<AdminLayout title={`Edit: ${project.title_es} — Admin`}>
+<AdminLayout title={`Editar: ${project.title_es} — Admin`}>
 
   <div class="admin-page-header">
-    <h1>Edit Project</h1>
+    <h1>Editar proyecto</h1>
     <div class="admin-page-header-actions">
       <a href={`/${project.slug}`} target="_blank" rel="noopener noreferrer"
-        class="admin-btn admin-btn--secondary admin-btn--sm">View public</a>
-      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Back to list</a>
+        class="admin-btn admin-btn--secondary admin-btn--sm">Ver público</a>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
   </div>
 
