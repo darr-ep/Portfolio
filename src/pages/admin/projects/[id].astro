@@ -310,18 +310,25 @@ const IMAGE_SLOTS = [
                   class="slot-preview"
                   loading="lazy"
                 />
-                <div class="slot-alts">
+                <!-- Edit alt text in place — no need to delete and re-upload -->
+                <form action="/api/admin/update-image-alt" method="POST" class="slot-alts">
+                  <input type="hidden" name="image_id" value={img.id} />
                   <div class="admin-row">
-                    <div>
-                      <span class="admin-label">Alt ES</span>
-                      <p class="alt-value">{img.alt_es ?? '—'}</p>
+                    <div class="admin-field">
+                      <label class="admin-label">Texto alternativo (ES)</label>
+                      <input class="admin-input" type="text" name="alt_es"
+                        value={img.alt_es ?? ''} placeholder="Descripción de la imagen" />
                     </div>
-                    <div>
-                      <span class="admin-label">Alt EN</span>
-                      <p class="alt-value">{img.alt_en ?? '—'}</p>
+                    <div class="admin-field">
+                      <label class="admin-label">Texto alternativo (EN)</label>
+                      <input class="admin-input" type="text" name="alt_en"
+                        value={img.alt_en ?? ''} placeholder="Image description" />
                     </div>
                   </div>
-                </div>
+                  <div class="upload-actions">
+                    <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Guardar alt</button>
+                  </div>
+                </form>
                 <!-- Delete form: POSTs to the existing API; redirects back via Referer -->
                 <form action="/api/admin/delete-project-image" method="POST" class="delete-img-form">
                   <input type="hidden" name="image_id" value={img.id} />
@@ -329,8 +336,8 @@ const IMAGE_SLOTS = [
                   <button
                     type="submit"
                     class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('Delete this image? This cannot be undone.')"
-                  >Delete image</button>
+                    onclick="return confirm('¿Eliminar esta imagen? No se puede deshacer.')"
+                  >Eliminar imagen</button>
                 </form>
               </div>
             ) : (
