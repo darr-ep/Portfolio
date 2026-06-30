@@ -13,9 +13,36 @@ export interface Project {
   tech: string[];
   main_image: string | null;
   timeline_id: string | null;
+  tagline_es: string | null;
+  tagline_en: string | null;
+  role_es: string | null;
+  role_en: string | null;
+  live_url: string | null;
+  github_url: string | null;
+  collaborators: string | null;
+  year: number | null;
+  approach_title_es: string | null;
+  approach_title_en: string | null;
+  approach_body_es: string | null;
+  approach_body_en: string | null;
+  conclusion_es: string | null;
+  conclusion_en: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export interface ProjectImage {
+  id: string;
+  project_id: string;
+  slot_key: 'hero' | 'mockup_main' | 'mockup_secondary' | 'detail';
+  storage_path: string;
+  url: string;
+  alt_es: string | null;
+  alt_en: string | null;
+  created_at: string;
+}
+
+export type TimelineEntryType = 'work' | 'freelance' | 'education' | 'project' | 'certification' | 'milestone';
 
 export interface TimelineEntry {
   id: string;
@@ -26,6 +53,7 @@ export interface TimelineEntry {
   company: string;
   description_es: string;
   description_en: string;
+  entry_type: TimelineEntryType;
   created_at: string;
   updated_at: string;
 }

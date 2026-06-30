@@ -11,17 +11,23 @@ const isEn = lang === 'en';
 
 const { data: projectsData } = await supabase
   .from('projects')
-  .select('*')
+  .select('*, project_images(slot_key, url)')
   .order('sort_order', { ascending: true });
 
 const FALLBACK_IMAGES = ['/assets/Proyecto 1.webp', '/assets/Proyecto 2.webp', '/assets/Proyecto 3.webp'];
 
-const projects = (projectsData ?? []).map((p: Project, i: number) => ({
+type ProjectWithImages = Project & { project_images?: { slot_key: string; url: string }[] };
+
+const projects = (projectsData ?? []).map((p: ProjectWithImages, i: number) => ({
   title: isEn ? p.title_en : p.title_es,
   category: isEn ? p.category_en : p.category_es,
   description: isEn ? p.description_en : p.description_es,
   tech: p.tech ?? [],
-  image: p.main_image ?? FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+  // Manual main_image wins; otherwise fall back to the uploaded hero slot, then a static asset.
+  image:
+    p.main_image ??
+    p.project_images?.find((img) => img.slot_key === 'hero')?.url ??
+    FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
   href: isEn ? `/en/projects/${p.slug}` : `/proyectos/${p.slug}`,
 }));
 

@@ -1,9 +1,12 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
+import type { ProjectImage } from '../../../types/database';
 
 const { id } = Astro.params;
+let saveError: string | null = null;
 
+// Handle text-field save (separate from image upload)
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const tech = (form.get('tech') as string ?? '')
@@ -11,24 +14,52 @@ if (Astro.request.method === 'POST') {
     .map((t) => t.trim())
     .filter(Boolean);
 
-  await supabase.from('projects').update({
-    slug: form.get('slug'),
-    sort_order: Number(form.get('sort_order')),
-    title_es: form.get('title_es'),
-    title_en: form.get('title_en'),
-    category_es: form.get('category_es'),
-    category_en: form.get('category_en'),
-    description_es: form.get('description_es'),
-    description_en: form.get('description_en'),
-    detailed_content_es: form.get('detailed_content_es') || null,
-    detailed_content_en: form.get('detailed_content_en') || null,
-    tech,
-    main_image: form.get('main_image') || null,
-  }).eq('id', id!);
+  const title_es   = (form.get('title_es')      as string) || '';
+  const title_en   = (form.get('title_en')      as string) || title_es;
+  const cat_es     = (form.get('category_es')   as string) || '';
+  const cat_en     = (form.get('category_en')   as string) || cat_es;
+  const desc_es    = (form.get('description_es') as string) || '';
+  const desc_en    = (form.get('description_en') as string) || desc_es;
 
-  return Astro.redirect('/admin/projects');
+  // sort_order is managed by drag-to-reorder -- never touched here.
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      slug:              form.get('slug'),
+      title_es,
+      title_en,
+      category_es:       cat_es,
+      category_en:       cat_en,
+      description_es:    desc_es,
+      description_en:    desc_en,
+      tagline_es:        form.get('tagline_es')         || null,
+      tagline_en:        form.get('tagline_en')         || null,
+      role_es:           form.get('role_es')            || null,
+      role_en:           form.get('role_en')            || null,
+      collaborators:     form.get('collaborators')      || null,
+      year:              form.get('year') ? Number(form.get('year')) : null,
+      live_url:          form.get('live_url')           || null,
+      github_url:        form.get('github_url')         || null,
+      approach_title_es: form.get('approach_title_es')  || null,
+      approach_title_en: form.get('approach_title_en')  || null,
+      approach_body_es:  form.get('approach_body_es')   || null,
+      approach_body_en:  form.get('approach_body_en')   || null,
+      conclusion_es:     form.get('conclusion_es')      || null,
+      conclusion_en:     form.get('conclusion_en')      || null,
+      tech,
+      main_image:        form.get('main_image')         || null,
+    })
+    .eq('id', id!);
+
+  if (error) {
+    saveError = error.message;
+  } else {
+    // Stay on the edit page so the user can manage images right away.
+    return Astro.redirect(`/admin/projects/${id}`);
+  }
 }
 
+// Fetch project
 const { data: project } = await supabase
   .from('projects')
   .select('*')
@@ -38,151 +69,450 @@ const { data: project } = await supabase
 if (!project) {
   return Astro.redirect('/admin/projects');
 }
+
+// Fetch images for the inline image section
+const { data: rawImages } = await supabase
+  .from('project_images')
+  .select('*')
+  .eq('project_id', id!);
+
+const imagesBySlot: Record<string, ProjectImage | undefined> = {};
+for (const img of rawImages ?? []) {
+  imagesBySlot[img.slot_key] = img as ProjectImage;
+}
+
+const IMAGE_SLOTS = [
+  { key: 'hero',             label: 'Hero' },
+  { key: 'mockup_main',      label: 'Main Mockup' },
+  { key: 'mockup_secondary', label: 'Secondary Mockup' },
+  { key: 'detail',           label: 'Detail' },
+] as const;
 ---
 <AdminLayout title={`Edit: ${project.title_es} — Admin`}>
-  <div class="page-header">
+
+  <div class="admin-page-header">
     <h1>Edit Project</h1>
-    <a href="/admin/projects" class="btn-secondary">← Back</a>
+    <div class="admin-page-header-actions">
+      <a href={`/${project.slug}`} target="_blank" rel="noopener noreferrer"
+        class="admin-btn admin-btn--secondary admin-btn--sm">View public</a>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Back to list</a>
+    </div>
   </div>
 
-  <form method="POST" class="form">
-    <div class="form-row">
-      <div class="field">
-        <label>Slug</label>
-        <input type="text" name="slug" value={project.slug} required />
-      </div>
-      <div class="field field-sm">
-        <label>Sort order</label>
-        <input type="number" name="sort_order" value={project.sort_order} required />
+  {saveError && (
+    <div class="error-notice">{saveError}</div>
+  )}
+
+  <!-- Main text-fields form -->
+  <form method="POST" class="admin-form-stack" id="project-form">
+
+    <!-- Section: Basics -->
+    <div class="admin-card">
+      <span class="admin-section-title">Basics</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="slug">Slug *</label>
+            <input class="admin-input" type="text" id="slug" name="slug"
+              value={project.slug} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="year">Year</label>
+            <input class="admin-input" type="number" id="year" name="year"
+              value={project.year ?? ''} min="2000" max="2099" />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="title_es">Title (ES) *</label>
+            <input class="admin-input" type="text" id="title_es" name="title_es"
+              value={project.title_es} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="title_en">Title (EN)</label>
+            <input class="admin-input" type="text" id="title_en" name="title_en"
+              value={project.title_en} />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="category_es">Category (ES) *</label>
+            <input class="admin-input" type="text" id="category_es" name="category_es"
+              value={project.category_es} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="category_en">Category (EN)</label>
+            <input class="admin-input" type="text" id="category_en" name="category_en"
+              value={project.category_en} />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="tech">Tech stack (comma-separated)</label>
+            <input class="admin-input" type="text" id="tech" name="tech"
+              value={project.tech?.join(', ') ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="main_image">Main image URL</label>
+            <input class="admin-input" type="text" id="main_image" name="main_image"
+              value={project.main_image ?? ''} />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Title (ES)</label>
-        <input type="text" name="title_es" value={project.title_es} required />
+
+    <!-- Section: Introduction -->
+    <div class="admin-card">
+      <span class="admin-section-title">Introduction</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="tagline_es">Tagline (ES)</label>
+            <input class="admin-input" type="text" id="tagline_es" name="tagline_es"
+              value={project.tagline_es ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="tagline_en">Tagline (EN)</label>
+            <input class="admin-input" type="text" id="tagline_en" name="tagline_en"
+              value={project.tagline_en ?? ''} />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="role_es">Role (ES)</label>
+            <input class="admin-input" type="text" id="role_es" name="role_es"
+              value={project.role_es ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="role_en">Role (EN)</label>
+            <input class="admin-input" type="text" id="role_en" name="role_en"
+              value={project.role_en ?? ''} />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="collaborators">Collaborators</label>
+            <input class="admin-input" type="text" id="collaborators" name="collaborators"
+              value={project.collaborators ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="live_url">Live URL</label>
+            <input class="admin-input" type="url" id="live_url" name="live_url"
+              value={project.live_url ?? ''} placeholder="https://…" />
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label class="admin-label" for="github_url">GitHub URL</label>
+          <input class="admin-input" type="url" id="github_url" name="github_url"
+            value={project.github_url ?? ''} placeholder="https://github.com/…" />
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <textarea class="admin-textarea" id="description_es" name="description_es"
+              rows="4" required>{project.description_es}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="description_en">Description (EN)</label>
+            <textarea class="admin-textarea" id="description_en" name="description_en"
+              rows="4">{project.description_en}</textarea>
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>Title (EN)</label>
-        <input type="text" name="title_en" value={project.title_en} required />
+    </div>
+
+    <!-- Section: Approach -->
+    <div class="admin-card">
+      <span class="admin-section-title">Approach</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="approach_title_es">Approach title (ES)</label>
+            <input class="admin-input" type="text" id="approach_title_es" name="approach_title_es"
+              value={project.approach_title_es ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="approach_title_en">Approach title (EN)</label>
+            <input class="admin-input" type="text" id="approach_title_en" name="approach_title_en"
+              value={project.approach_title_en ?? ''} />
+          </div>
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="approach_body_es">Approach body (ES)</label>
+            <textarea class="admin-textarea" id="approach_body_es" name="approach_body_es"
+              rows="5">{project.approach_body_es}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="approach_body_en">Approach body (EN)</label>
+            <textarea class="admin-textarea" id="approach_body_en" name="approach_body_en"
+              rows="5">{project.approach_body_en}</textarea>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Category (ES)</label>
-        <input type="text" name="category_es" value={project.category_es} required />
-      </div>
-      <div class="field">
-        <label>Category (EN)</label>
-        <input type="text" name="category_en" value={project.category_en} required />
-      </div>
-    </div>
-    <div class="field">
-      <label>Description (ES)</label>
-      <textarea name="description_es" rows="3" required>{project.description_es}</textarea>
-    </div>
-    <div class="field">
-      <label>Description (EN)</label>
-      <textarea name="description_en" rows="3" required>{project.description_en}</textarea>
-    </div>
-    <div class="field">
-      <label>Detailed content (ES)</label>
-      <textarea name="detailed_content_es" rows="6">{project.detailed_content_es}</textarea>
-    </div>
-    <div class="field">
-      <label>Detailed content (EN)</label>
-      <textarea name="detailed_content_en" rows="6">{project.detailed_content_en}</textarea>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Tech (comma-separated)</label>
-        <input type="text" name="tech" value={project.tech?.join(', ')} />
-      </div>
-      <div class="field">
-        <label>Main image URL</label>
-        <input type="text" name="main_image" value={project.main_image ?? ''} />
+
+    <!-- Section: Conclusion -->
+    <div class="admin-card">
+      <span class="admin-section-title">Conclusion</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="conclusion_es">Conclusion (ES)</label>
+            <textarea class="admin-textarea" id="conclusion_es" name="conclusion_es"
+              rows="4">{project.conclusion_es}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="conclusion_en">Conclusion (EN)</label>
+            <textarea class="admin-textarea" id="conclusion_en" name="conclusion_en"
+              rows="4">{project.conclusion_en}</textarea>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Save changes</button>
-      <a href="/admin/projects" class="btn-secondary">Cancel</a>
-      <form action={`/admin/projects/${id}/delete`} method="POST" style="margin-left:auto">
-        <button type="submit" class="btn-danger" onclick="return confirm('Delete this project?')">Delete</button>
+
+    <!-- Form actions -->
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancel</a>
+    </div>
+
+  </form>
+
+  <!-- Inline image management (separate from the text form) -->
+  <section class="images-section" aria-labelledby="images-heading">
+    <div class="section-divider admin-page-header" style="margin-top: 36px;">
+      <h2 id="images-heading" style="font-size: 18px; font-weight: 600;">Mockup Images</h2>
+    </div>
+
+    <div class="image-grid admin-form-stack" style="max-width: 940px;">
+      {IMAGE_SLOTS.map(({ key, label }) => {
+        const img = imagesBySlot[key];
+        return (
+          <div class="admin-card image-slot">
+            <span class="admin-section-title">
+              {label}
+              {img && <span class="slot-badge">Uploaded</span>}
+            </span>
+
+            {img ? (
+              <div class="slot-filled">
+                <img
+                  src={img.url}
+                  alt={img.alt_es ?? label}
+                  class="slot-preview"
+                  loading="lazy"
+                />
+                <div class="slot-alts">
+                  <div class="admin-row">
+                    <div>
+                      <span class="admin-label">Alt ES</span>
+                      <p class="alt-value">{img.alt_es ?? '—'}</p>
+                    </div>
+                    <div>
+                      <span class="admin-label">Alt EN</span>
+                      <p class="alt-value">{img.alt_en ?? '—'}</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- Delete form: POSTs to the existing API; redirects back via Referer -->
+                <form action="/api/admin/delete-project-image" method="POST" class="delete-img-form">
+                  <input type="hidden" name="image_id" value={img.id} />
+                  <input type="hidden" name="storage_path" value={img.storage_path} />
+                  <button
+                    type="submit"
+                    class="admin-btn admin-btn--danger admin-btn--sm"
+                    onclick="return confirm('Delete this image? This cannot be undone.')"
+                  >Delete image</button>
+                </form>
+              </div>
+            ) : (
+              <div class="slot-empty">
+                <p class="slot-empty-msg">No image uploaded yet.</p>
+                <!-- Upload form handled by JS fetch below -->
+                <form class="upload-form" data-slot={key} data-project={id}>
+                  <input type="hidden" name="slot_key" value={key} />
+                  <input type="hidden" name="project_id" value={id} />
+                  <div class="admin-fields">
+                    <div class="admin-field">
+                      <label class="admin-label">Image file *</label>
+                      <input class="admin-input" type="file" name="file"
+                        accept="image/*" required />
+                    </div>
+                    <div class="admin-row">
+                      <div class="admin-field">
+                        <label class="admin-label">Alt text (ES)</label>
+                        <input class="admin-input" type="text" name="alt_es"
+                          placeholder="Descripcion de la imagen" />
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label">Alt text (EN)</label>
+                        <input class="admin-input" type="text" name="alt_en"
+                          placeholder="Image description" />
+                      </div>
+                    </div>
+                    <div class="upload-actions">
+                      <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">
+                        Upload
+                      </button>
+                      <span class="upload-status" aria-live="polite"></span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- Danger zone (delete project -- separate from all other forms) -->
+  <section class="danger-section" aria-label="Danger zone">
+    <div class="admin-card danger-card">
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
+      <p class="danger-msg">Permanently delete this project and all its images. This cannot be undone.</p>
+      <form action={`/admin/projects/${id}/delete`} method="POST">
+        <button
+          type="submit"
+          class="admin-btn admin-btn--danger"
+          onclick="return confirm('Delete this project? All images will also be removed. This cannot be undone.')"
+        >Delete project</button>
       </form>
     </div>
-  </form>
+  </section>
+
 </AdminLayout>
 
+<!-- Image upload via fetch (the one allowed client JS exception in admin pages) -->
+<script>
+  document.querySelectorAll<HTMLFormElement>('.upload-form').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl  = form.querySelector<HTMLElement>('.upload-status');
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (statusEl) statusEl.textContent = 'Uploading...';
+
+      const data = new FormData(form);
+
+      try {
+        const res  = await fetch('/api/admin/upload-image', { method: 'POST', body: data });
+        const json = await res.json() as { success: boolean; error?: string };
+
+        if (json.success) {
+          window.location.reload();
+        } else {
+          if (statusEl) statusEl.textContent = `Error: ${json.error ?? 'unknown'}`;
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      } catch {
+        if (statusEl) statusEl.textContent = 'Network error. Try again.';
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  });
+</script>
+
 <style>
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
+  .error-notice {
+    font-size: 13px;
+    color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    max-width: 940px;
   }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .form {
-    background: var(--admin-surface);
-    border: 1px solid var(--admin-border);
-    border-radius: 10px;
-    padding: 28px;
-    max-width: 800px;
+
+  /* Images section */
+  .images-section {
+    margin-top: 8px;
+  }
+
+  .image-grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
   }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-sm { max-width: 160px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea {
-    background: var(--admin-bg);
-    border: 1px solid var(--admin-border);
-    border-radius: 6px;
-    color: var(--admin-text);
-    padding: 9px 12px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.15s;
+
+  .image-slot { display: flex; flex-direction: column; }
+
+  .slot-badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--success, #22c55e);
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    vertical-align: middle;
+  }
+
+  .slot-preview {
     width: 100%;
-  }
-  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
-  textarea { resize: vertical; }
-  .form-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
-  .btn-primary {
-    padding: 10px 20px;
-    background: var(--admin-accent);
-    color: #000;
-    border: none;
-    border-radius: 7px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-secondary {
-    padding: 10px 20px;
-    background: transparent;
-    color: var(--admin-text);
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 6px;
     border: 1px solid var(--admin-border);
-    border-radius: 7px;
-    font-size: 14px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-    display: inline-flex;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .slot-alts {
+    margin-bottom: 14px;
+  }
+
+  .alt-value {
+    font-size: 13px;
+    color: var(--admin-text);
+    margin-top: 4px;
+  }
+
+  .delete-img-form { margin-top: 4px; }
+
+  .slot-empty-msg {
+    font-size: 13px;
+    color: var(--admin-muted);
+    margin-bottom: 16px;
+  }
+
+  .upload-actions {
+    display: flex;
     align-items: center;
+    gap: 12px;
   }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
-  .btn-danger {
-    padding: 10px 20px;
-    background: #ef4444;
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: opacity 0.15s;
+
+  .upload-status {
+    font-size: 13px;
+    color: var(--admin-muted);
   }
-  .btn-danger:hover { opacity: 0.85; }
+
+  /* Danger zone */
+  .danger-section {
+    margin-top: 36px;
+    max-width: 940px;
+  }
+
+  .danger-card {
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .danger-msg {
+    font-size: 13px;
+    color: var(--admin-muted);
+    margin-bottom: 16px;
+  }
 </style>

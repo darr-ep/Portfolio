@@ -2,164 +2,295 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
 
+let formError: string | null = null;
+
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
+
   const tech = (form.get('tech') as string ?? '')
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean);
 
-  await supabase.from('projects').insert({
-    slug: form.get('slug'),
-    sort_order: Number(form.get('sort_order')),
-    title_es: form.get('title_es'),
-    title_en: form.get('title_en'),
-    category_es: form.get('category_es'),
-    category_en: form.get('category_en'),
-    description_es: form.get('description_es'),
-    description_en: form.get('description_en'),
-    detailed_content_es: form.get('detailed_content_es') || null,
-    detailed_content_en: form.get('detailed_content_en') || null,
-    tech,
-    main_image: form.get('main_image') || null,
-  });
+  // Required bilingual fields -- EN falls back to ES if left empty.
+  const title_es   = (form.get('title_es')   as string) || '';
+  const title_en   = (form.get('title_en')   as string) || title_es;
+  const cat_es     = (form.get('category_es') as string) || '';
+  const cat_en     = (form.get('category_en') as string) || cat_es;
+  const desc_es    = (form.get('description_es') as string) || '';
+  const desc_en    = (form.get('description_en') as string) || desc_es;
 
-  return Astro.redirect('/admin/projects');
+  // Compute sort_order as max existing + 1 so new projects land last.
+  const { data: maxRow } = await supabase
+    .from('projects')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextSortOrder = (maxRow?.sort_order ?? -1) + 1;
+
+  const { data: newProject, error } = await supabase
+    .from('projects')
+    .insert({
+      slug:              form.get('slug'),
+      sort_order:        nextSortOrder,
+      title_es,
+      title_en,
+      category_es:       cat_es,
+      category_en:       cat_en,
+      description_es:    desc_es,
+      description_en:    desc_en,
+      tagline_es:        form.get('tagline_es')         || null,
+      tagline_en:        form.get('tagline_en')         || null,
+      role_es:           form.get('role_es')            || null,
+      role_en:           form.get('role_en')            || null,
+      collaborators:     form.get('collaborators')      || null,
+      year:              form.get('year') ? Number(form.get('year')) : null,
+      live_url:          form.get('live_url')           || null,
+      github_url:        form.get('github_url')         || null,
+      approach_title_es: form.get('approach_title_es')  || null,
+      approach_title_en: form.get('approach_title_en')  || null,
+      approach_body_es:  form.get('approach_body_es')   || null,
+      approach_body_en:  form.get('approach_body_en')   || null,
+      conclusion_es:     form.get('conclusion_es')      || null,
+      conclusion_en:     form.get('conclusion_en')      || null,
+      tech,
+      main_image:        form.get('main_image')         || null,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    formError = error.message;
+  } else if (newProject) {
+    return Astro.redirect(`/admin/projects/${newProject.id}`);
+  }
 }
 ---
 <AdminLayout title="New Project — Admin">
-  <div class="page-header">
+  <div class="admin-page-header">
     <h1>New Project</h1>
-    <a href="/admin/projects" class="btn-secondary">← Back</a>
+    <div class="admin-page-header-actions">
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Back to list</a>
+    </div>
   </div>
 
-  <form method="POST" class="form">
-    <div class="form-row">
-      <div class="field">
-        <label>Slug</label>
-        <input type="text" name="slug" required />
+  <!-- Info hint -->
+  <div class="info-notice">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+    Save the project first, then add mockup images on the edit screen.
+  </div>
+
+  {formError && (
+    <div class="error-notice">{formError}</div>
+  )}
+
+  <form method="POST" class="admin-form-stack">
+
+    <!-- Section: Basics -->
+    <div class="admin-card">
+      <span class="admin-section-title">Basics</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="slug">Slug *</label>
+            <input class="admin-input" type="text" id="slug" name="slug" required
+              placeholder="my-project-name" />
+          </div>
+          <div class="admin-row--sub">
+            <div class="admin-field">
+              <label class="admin-label" for="year">Year</label>
+              <input class="admin-input" type="number" id="year" name="year"
+                min="2000" max="2099" placeholder="2025" />
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="title_es">Title (ES) *</label>
+            <input class="admin-input" type="text" id="title_es" name="title_es" required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="title_en">Title (EN)</label>
+            <input class="admin-input" type="text" id="title_en" name="title_en"
+              placeholder="Leave empty to mirror ES" />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="category_es">Category (ES) *</label>
+            <input class="admin-input" type="text" id="category_es" name="category_es" required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="category_en">Category (EN)</label>
+            <input class="admin-input" type="text" id="category_en" name="category_en"
+              placeholder="Leave empty to mirror ES" />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="tech">Tech stack</label>
+            <input class="admin-input" type="text" id="tech" name="tech"
+              placeholder="React, TypeScript, Supabase" />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="main_image">Main image URL</label>
+            <input class="admin-input" type="text" id="main_image" name="main_image"
+              placeholder="https://…" />
+          </div>
+        </div>
       </div>
-      <div class="field field-sm">
-        <label>Sort order</label>
-        <input type="number" name="sort_order" value="0" required />
+    </div>
+
+    <!-- Section: Introduction -->
+    <div class="admin-card">
+      <span class="admin-section-title">Introduction</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="tagline_es">Tagline (ES)</label>
+            <input class="admin-input" type="text" id="tagline_es" name="tagline_es" />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="tagline_en">Tagline (EN)</label>
+            <input class="admin-input" type="text" id="tagline_en" name="tagline_en" />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="role_es">Role (ES)</label>
+            <input class="admin-input" type="text" id="role_es" name="role_es" />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="role_en">Role (EN)</label>
+            <input class="admin-input" type="text" id="role_en" name="role_en" />
+          </div>
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="collaborators">Collaborators</label>
+            <input class="admin-input" type="text" id="collaborators" name="collaborators" />
+          </div>
+          <div class="admin-field url-pair">
+            <div class="admin-field">
+              <label class="admin-label" for="live_url">Live URL</label>
+              <input class="admin-input" type="url" id="live_url" name="live_url"
+                placeholder="https://example.com" />
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label class="admin-label" for="github_url">GitHub URL</label>
+          <input class="admin-input" type="url" id="github_url" name="github_url"
+            placeholder="https://github.com/…" />
+        </div>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <textarea class="admin-textarea" id="description_es" name="description_es"
+              rows="4" required></textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="description_en">Description (EN)</label>
+            <textarea class="admin-textarea" id="description_en" name="description_en"
+              rows="4" placeholder="Leave empty to mirror ES"></textarea>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Title (ES)</label>
-        <input type="text" name="title_es" required />
-      </div>
-      <div class="field">
-        <label>Title (EN)</label>
-        <input type="text" name="title_en" required />
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Category (ES)</label>
-        <input type="text" name="category_es" required />
-      </div>
-      <div class="field">
-        <label>Category (EN)</label>
-        <input type="text" name="category_en" required />
-      </div>
-    </div>
-    <div class="field">
-      <label>Description (ES)</label>
-      <textarea name="description_es" rows="3" required></textarea>
-    </div>
-    <div class="field">
-      <label>Description (EN)</label>
-      <textarea name="description_en" rows="3" required></textarea>
-    </div>
-    <div class="field">
-      <label>Detailed content (ES)</label>
-      <textarea name="detailed_content_es" rows="6"></textarea>
-    </div>
-    <div class="field">
-      <label>Detailed content (EN)</label>
-      <textarea name="detailed_content_en" rows="6"></textarea>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Tech (comma-separated)</label>
-        <input type="text" name="tech" placeholder="React, TypeScript, Tailwind" />
-      </div>
-      <div class="field">
-        <label>Main image URL</label>
-        <input type="text" name="main_image" />
+
+    <!-- Section: Approach -->
+    <div class="admin-card">
+      <span class="admin-section-title">Approach</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="approach_title_es">Approach title (ES)</label>
+            <input class="admin-input" type="text" id="approach_title_es" name="approach_title_es" />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="approach_title_en">Approach title (EN)</label>
+            <input class="admin-input" type="text" id="approach_title_en" name="approach_title_en" />
+          </div>
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="approach_body_es">Approach body (ES)</label>
+            <textarea class="admin-textarea" id="approach_body_es" name="approach_body_es"
+              rows="5"></textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="approach_body_en">Approach body (EN)</label>
+            <textarea class="admin-textarea" id="approach_body_en" name="approach_body_en"
+              rows="5"></textarea>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Create project</button>
-      <a href="/admin/projects" class="btn-secondary">Cancel</a>
+
+    <!-- Section: Conclusion -->
+    <div class="admin-card">
+      <span class="admin-section-title">Conclusion</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="conclusion_es">Conclusion (ES)</label>
+            <textarea class="admin-textarea" id="conclusion_es" name="conclusion_es"
+              rows="4"></textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="conclusion_en">Conclusion (EN)</label>
+            <textarea class="admin-textarea" id="conclusion_en" name="conclusion_en"
+              rows="4"></textarea>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Form actions -->
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Create project</button>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancel</a>
+    </div>
+
   </form>
 </AdminLayout>
 
 <style>
-  .page-header {
+  .info-notice {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--admin-muted);
+    background: rgba(227, 168, 87, 0.07);
+    border: 1px solid rgba(227, 168, 87, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    max-width: 940px;
   }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .form {
-    background: var(--admin-surface);
-    border: 1px solid var(--admin-border);
-    border-radius: 10px;
-    padding: 28px;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+
+  .info-notice svg {
+    flex-shrink: 0;
+    color: var(--admin-accent);
   }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-sm { max-width: 160px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea {
-    background: var(--admin-bg);
-    border: 1px solid var(--admin-border);
-    border-radius: 6px;
-    color: var(--admin-text);
-    padding: 9px 12px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.15s;
-    width: 100%;
+
+  .error-notice {
+    font-size: 13px;
+    color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    max-width: 940px;
   }
-  input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--admin-accent);
-  }
-  textarea { resize: vertical; }
-  .form-actions { display: flex; gap: 12px; margin-top: 8px; }
-  .btn-primary {
-    padding: 10px 20px;
-    background: var(--admin-accent);
-    color: #000;
-    border: none;
-    border-radius: 7px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-secondary {
-    padding: 10px 20px;
-    background: transparent;
-    color: var(--admin-text);
-    border: 1px solid var(--admin-border);
-    border-radius: 7px;
-    font-size: 14px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-    display: inline-flex;
-    align-items: center;
-  }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
 </style>

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { supabase } from '../../lib/supabase';
-import type { Project } from '../../types/database';
+import type { Project, ProjectImage } from '../../types/database';
 
 export const prerender = false;
 
@@ -9,7 +9,7 @@ const { slug } = Astro.params;
 
 const { data, error } = await supabase
   .from('projects')
-  .select('*')
+  .select('*, project_images(*)')
   .eq('slug', slug)
   .single();
 
@@ -17,15 +17,27 @@ if (!data || error) {
   return new Response(null, { status: 404, statusText: 'Not Found' });
 }
 
-const project = data as Project;
-const title = project.title_es;
-const category = project.category_es;
-const description = project.description_es;
-const content = project.detailed_content_es ?? '';
+const project = data as Project & { project_images: ProjectImage[] };
+const images = project.project_images ?? [];
+const imgBySlot = Object.fromEntries(images.map((i) => [i.slot_key, i])) as Record<string, ProjectImage | undefined>;
+
+const title       = project.title_es       ?? project.title_en;
+const category    = project.category_es    ?? project.category_en;
+const description = project.description_es ?? project.description_en;
+const tagline     = project.tagline_es     ?? project.tagline_en     ?? null;
+const role        = project.role_es        ?? project.role_en        ?? null;
+const approachTitle = project.approach_title_es ?? project.approach_title_en ?? null;
+const approachBody  = project.approach_body_es  ?? project.approach_body_en  ?? null;
+const conclusion    = project.conclusion_es     ?? project.conclusion_en     ?? null;
+
+const heroImg = imgBySlot['hero'];
+const ogImage = heroImg?.url ?? project.main_image ?? undefined;
 ---
 
-<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={project.main_image ?? undefined} lang="es" includeWebPageSchema={true}>
+<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={ogImage} lang="es" includeWebPageSchema={true}>
   <div class="project-detail">
+
+    <!-- Nav header -->
     <div class="project-detail__header">
       <a href="/proyectos" class="back-link" data-transition-label="PROYECTOS">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -38,24 +50,99 @@ const content = project.detailed_content_es ?? '';
       <span class="project-detail__cat">{category}</span>
     </div>
 
-    {project.main_image && (
+    <!-- SECTION 1 — Hero -->
+    {heroImg && (
       <div class="project-detail__hero">
-        <img src={project.main_image} alt={title} class="project-detail__img" />
+        <img src={heroImg.url} alt={heroImg.alt_es ?? title} class="project-detail__img hero-img" />
       </div>
     )}
 
     <h1 class="project-detail__title">{title}</h1>
+
+    {tagline && <p class="project-detail__tagline">{tagline}</p>}
+
+    <!-- SECTION 2 — Meta -->
+    <div class="project-detail__meta">
+      {role && <span class="meta-item">{role}</span>}
+      {role && project.collaborators && <span class="meta-sep">|</span>}
+      {project.collaborators && <span class="meta-item">{project.collaborators}</span>}
+      {(role || project.collaborators) && project.year && <span class="meta-sep">|</span>}
+      {project.year && <span class="meta-item">{project.year}</span>}
+    </div>
+
+    {(project.live_url || project.github_url) && (
+      <div class="project-detail__links">
+        {project.live_url && (
+          <a href={project.live_url} class="link-btn link-btn--primary" target="_blank" rel="noopener noreferrer">
+            Ver proyecto
+          </a>
+        )}
+        {project.github_url && (
+          <a href={project.github_url} class="link-btn link-btn--secondary" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        )}
+      </div>
+    )}
+
+    <!-- SECTION 3 — Description -->
     <p class="project-detail__desc">{description}</p>
 
+    <!-- Mockup main -->
+    {imgBySlot['mockup_main'] && (
+      <div class="project-detail__mockup">
+        <img
+          src={imgBySlot['mockup_main']!.url}
+          alt={imgBySlot['mockup_main']!.alt_es ?? `${title} mockup`}
+          class="mockup-img"
+        />
+      </div>
+    )}
+
+    <!-- SECTION 4 — Approach -->
+    {(approachTitle || approachBody) && (
+      <div class="project-detail__approach">
+        {approachTitle && <h2 class="approach-title">{approachTitle}</h2>}
+        {approachBody && <p class="approach-body">{approachBody}</p>}
+      </div>
+    )}
+
+    <!-- Mockup secondary -->
+    {imgBySlot['mockup_secondary'] && (
+      <div class="project-detail__mockup">
+        <img
+          src={imgBySlot['mockup_secondary']!.url}
+          alt={imgBySlot['mockup_secondary']!.alt_es ?? `${title} mockup secundario`}
+          class="mockup-img"
+        />
+      </div>
+    )}
+
+    <!-- SECTION 5 — Tech stack -->
     {project.tech && project.tech.length > 0 && (
       <div class="project-detail__tech">
         {project.tech.map((t: string) => <span class="tech-tag">{t}</span>)}
       </div>
     )}
 
-    {content && (
-      <div class="project-detail__content" set:html={content.replace(/\n/g, '<br>')} />
+    <!-- SECTION 6 — Conclusion -->
+    {conclusion && (
+      <div class="project-detail__conclusion">
+        <p>{conclusion}</p>
+      </div>
     )}
+
+    <!-- Detail image -->
+    {imgBySlot['detail'] && (
+      <div class="project-detail__detail-img">
+        <img
+          src={imgBySlot['detail']!.url}
+          alt={imgBySlot['detail']!.alt_es ?? `${title} detalle`}
+          class="mockup-img"
+        />
+      </div>
+    )}
+
   </div>
 </BaseLayout>
 
@@ -85,7 +172,6 @@ const content = project.detailed_content_es ?? '';
     text-decoration: none;
     transition: color 0.3s ease;
   }
-
   .back-link:hover { color: var(--accent); }
 
   .project-detail__cat {
@@ -99,6 +185,7 @@ const content = project.detailed_content_es ?? '';
     border-radius: 2px;
   }
 
+  /* Hero image */
   .project-detail__hero {
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -107,39 +194,126 @@ const content = project.detailed_content_es ?? '';
     margin-bottom: 3rem;
     border: 1px solid var(--border-color);
   }
-
   .project-detail__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
+  /* Title & tagline */
   .project-detail__title {
     font-family: var(--font-heading);
     font-size: clamp(2.5rem, 6vw, 6rem);
     font-weight: 200;
     letter-spacing: -0.03em;
     color: var(--text-primary);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     line-height: 1;
   }
+  .project-detail__tagline {
+    font-family: var(--font-heading);
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    line-height: 1.2;
+  }
 
+  /* Meta row */
+  .project-detail__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
+  }
+  .meta-sep { opacity: 0.4; }
+
+  /* Links */
+  .project-detail__links {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+  .link-btn:hover { opacity: 0.75; }
+  .link-btn--primary {
+    background: var(--accent);
+    color: var(--bg-primary);
+  }
+  .link-btn--secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+  }
+
+  /* Description */
   .project-detail__desc {
     font-family: var(--font-body);
     font-size: 1.1rem;
     color: var(--text-secondary);
     max-width: 640px;
     line-height: 1.7;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
   }
 
+  /* Mockup images */
+  .project-detail__mockup,
+  .project-detail__detail-img {
+    width: 100%;
+    max-width: 56rem;
+    margin: 3rem 0;
+  }
+  .mockup-img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    display: block;
+  }
+
+  /* Approach */
+  .project-detail__approach {
+    margin: 3rem 0;
+  }
+  .approach-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 3.5vw, 3rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  .approach-body {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    line-height: 1.8;
+  }
+
+  /* Tech stack */
   .project-detail__tech {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 4rem;
+    margin: 3rem 0;
   }
-
   .tech-tag {
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -149,19 +323,21 @@ const content = project.detailed_content_es ?? '';
     border-radius: 2px;
     transition: color 0.2s ease, border-color 0.2s ease;
   }
-
   .tech-tag:hover {
     color: var(--accent);
     border-color: var(--accent);
   }
 
-  .project-detail__content {
+  /* Conclusion */
+  .project-detail__conclusion {
     font-family: var(--font-body);
     font-size: 1rem;
     color: var(--text-secondary);
     line-height: 1.8;
     border-top: 1px solid var(--border-color);
     padding-top: 3rem;
+    margin-top: 3rem;
+    max-width: 640px;
   }
 
   @media (max-width: 768px) {
