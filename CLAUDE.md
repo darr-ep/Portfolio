@@ -103,37 +103,6 @@ Runs BEFORE Astro ClientRouter's bubbling listener. `preventDefault()` fires fir
 - **`transition:persist` and fresh nodes**: Even with `transition:persist`, the node is NOT always reused (theme mismatch, DOM order change). Always re-assert state in `after-swap` using `ptSet` (not `gsap.set`) to handle both cases (reuse = no-op; fresh = instant re-assert without triggering the CSS fade).
 - **`try/finally` in `astro:page-load`**: `_nav.ready()` MUST be called even if `initPageAnimations()` throws. Wrap the whole page-load body in `try { ... } finally { _nav?.ready(); }` — otherwise the page stays covered forever.
 
-## Pending work — page transitions
-
-Status as of 2026-06-22 (verify in browser on a new machine before touching code):
-
-### ✅ Confirmed fixed
-1. **Exit transition cut short on fast loads** — `Promise.all([pageReady, minTime])` gate holds reveal for ≥1s.
-2. **Double enter animation** — same gate decouples reveal from Astro swap timing.
-3. **Destination visible through closing blinds** — capture-phase click listener prevents double navigation.
-4. **Label stuck on screen** — dual-timeline owning `_nav` state prevents orphaned state.
-5. **Label flicker at transition start** — `ptSet` re-asserts state in `after-swap` without triggering the CSS fade.
-
-### ⚠️ Re-fixed twice 2026-06-22 — was wrongly marked "confirmed fixed"
-- **Label/logo fade-OUT skipped on reveal (snaps to opacity 0) + ~230ms dead-black gap + rushed entrance.** The old note claimed the CSS `transition` fade was "compositor-driven, immune to jank". **False.** A CSS opacity transition still needs a main-thread style recalc to START; if the thread stalls >200ms after `remove('pt-show')`, the 0.2s clock elapses before the first repaint, so the label jumps straight to `opacity: 0`. Confirmed from a screen recording: label visible → next frame all black (no fade) → ~230ms of dead black → blinds finally open. The fade-IN (EXIT) always worked because the main thread is free there; only the REVEAL was affected.
-  - **Root cause (two converging stalls):** the reveal fired synchronously in `astro:page-load`, right after the heavy SYNCHRONOUS `initPageAnimations()` + `ScrollTrigger.refresh()`, AND `enterAnimation()` immediately tweens the hero `<img>`s (`.img-bg`/`.img-fg` = real `<img>` PNGs, class `.hero-img`) which decode on the main thread on first tick if not ready. Either stall eats the label fade + blinds' first frame.
-  - **Fix 1 — gate the reveal on decode:** in the page-load `finally`, wait for `document.querySelectorAll('.hero-img')` `img.decode()` to resolve, then two `requestAnimationFrame`s, THEN resolve `pageReady`. So the reveal runs on a decoded + painted page.
-  - **Fix 2 — sequence the reveal:** done, then superseded by Fix 3.
-  - **Fix 3 (2026-06-23) — cue fade is now GSAP, not CSS.** Fixes 1+2 fixed the blinds/cover (user confirmed "cortina corrected completely") but the cue STILL snapped because it was still on the CSS path. Moved label/logo opacity to GSAP entirely (EXIT `gsap.to opacity 1`, REVEAL `gsap.to opacity 0` then blinds+enter at +0.25s, `ptSet` = `gsap.set opacity`). Removed the CSS `transition` + `.pt-show` rules. See "Page transitions — current design".
-  - `img.decode()` waits download too (cover hides it; 8s safety remains). If detail/project pages still rush, they use a different big image — extend the `.hero-img` selector to cover their hero `<img>`.
-
-### ✅ Fixed 2026-06-25
-- **Popstate (browser back/forward) transition.** Back/forward now plays the SAME covered transition with the destination's cue, instead of a plain swap. Implementation in `BaseLayout.astro`:
-  - The click EXIT/REVEAL was refactored into reusable helpers — `playExitCover(label, useLogo)` (closes the blinds, resolves a Promise, does NOT navigate), `scheduleReveal(pageReady, minTime, safetyId)`, and `beginCoveredTransition(label, useLogo)` (sets `_nav` + lagSmoothing + safety + schedules reveal). Tween values are unchanged, so click behaves identically.
-  - `_pathLabels: Map<normalizedPathname, {label, useLogo}>` is populated on every `runNavTransition` (skipping hash links — they share the home pathname and would clobber the home cue). Browser back/forward to a recorded path replays its cue; home paths (`/`, `/en`) default to the logo; unknown paths cover with blinds only.
-  - `astro:before-preparation` listener: only acts on `navigationType === 'traverse'` and bails if `_isTransitioning` (so our own click `navigate()` — which fires `'push'` — is never double-handled). It wraps `event.loader` (the ONLY pre-swap hook on popstate) so the blinds close BEFORE the swap, then loads under cover. The existing `if (!_nav) return` in `after-swap` now sees `_nav` set and re-asserts the covered state.
-  - Known minor edge: on `traverse` ClientRouter restores the destination's prior scroll; `enterAnimation()` still runs (matches click behavior). Acceptable for now.
-- **Section nav from another URL (`/cv`, `/proyectos`) landing on the hero instead of the target section.** Root cause: `createLenis()` runs in `after-swap`, then the `page-load` hash-scroll ran before any `raf` tick — Lenis's internal `limit` was still 0, so `scrollTo(Y)` clamped to 0 (top/hero). Fix: in the page-load hash block, call `l.start()` + `l.resize()` (measure the document) BEFORE `l.scrollTo(y, { immediate: true, force: true })`, computing `y` the same robust way as the same-page handler (`pin.start` for pinned sections, `rect.top + scrollY` otherwise). This also closed the older "exit via sidebar from a project" item — the sidebar already carried `data-transition-label`, the only real bug was the clamp.
-
-### ↩︎ No longer reproducible (closed without code change)
-- **"Back to projects"** — the back-link now targets the dedicated `/proyectos` index page (created after this note was written), with its own transition + "PROYECTOS" cue. The original "lands on the hero" symptom no longer applies.
-- **Lang toggle inside a project/CV (double-enter)** — verified 2026-06-25 to no longer reproduce.
-
 ## Key files
 
 - `src/layouts/BaseLayout.astro` — transition orchestrator (all logic: listeners, state, `runNavTransition`, `ptSet`).
