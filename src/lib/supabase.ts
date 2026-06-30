@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 import type { AstroCookies } from 'astro';
 
-const supabaseUrl = process.env.SUPABASE_URL as string;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY as string;
+const supabaseUrl = (import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL) as string;
+const supabaseServiceKey = (import.meta.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY) as string;
+const supabaseAnonKey = (import.meta.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY) as string;
 
 // Server-side client — uses service role key, bypasses RLS, NEVER exposed to browser
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);

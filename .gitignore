@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# codegraph local index
+.codegraph/
+
+# lighthouse audit output
+lighthouse.json
