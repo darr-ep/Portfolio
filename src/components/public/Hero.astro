@@ -71,17 +71,19 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
         class="hero-img img-bg"
       />
 
-      <!-- Layer 2: PixelBlast canvas — pointer events enabled so mouse interaction works -->
-      <PixelBlast
-        client:only="react"
-        color="#e3a857"
-        transparent={true}
-        enableRipples={true}
-        variant="circle"
-        edgeFade={0.3}
-        pixelSize={3}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2 }}
-      />
+      <!-- Layer 2: PixelBlast canvas — desktop only (disabled on mobile for performance) -->
+      <div class="pixelblast-wrap">
+        <PixelBlast
+          client:only="react"
+          color="#e3a857"
+          transparent={true}
+          enableRipples={true}
+          variant="circle"
+          edgeFade={0.3}
+          pixelSize={3}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2 }}
+        />
+      </div>
 
       <!-- Layer 3: Foreground image -->
       <img
@@ -276,6 +278,10 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
     display: inline-block;
   }
 
+  .title-line:last-child {
+    padding-bottom: 0.2em;
+  }
+
   .title-inner {
     display: inline-block;
   }
@@ -356,12 +362,25 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
   .img-bg {
     z-index: 1;
     filter: brightness(0.85) contrast(1.1);
+    object-position: bottom;
   }
 
   .img-fg {
     z-index: 3;
     pointer-events: none;
     object-position: bottom;
+  }
+
+  .pixelblast-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  @media (max-width: 768px) {
+    .pixelblast-wrap {
+      display: none;
+    }
   }
 
   /* Responsive — full-bleed image background with overlaid text */

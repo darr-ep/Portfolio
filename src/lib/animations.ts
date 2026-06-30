@@ -91,7 +91,7 @@ export function heroEnterFromSplash() {
     { x: 0, scale: 1, opacity: 1, duration: 1.6, ease: 'power2.out' }, 0.2);
   tl.fromTo('.title-inner',
     { y: '100%' },
-    { y: '0%', stagger: 0.18, duration: 1, ease: 'power3.out' }, 0.4);
+    { y: '0%', stagger: 0.18, duration: 1, ease: 'power3.out' }, 0);
   tl.fromTo('.spotify-slot',
     { opacity: 0, scale: 0.95 },
     { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)' }, 0.6);
@@ -254,7 +254,7 @@ export function initProjects() {
 }
 
 export function initTimeline() {
-  if (!document.querySelector('.timeline')) return;
+  if (!document.querySelector('.timeline-line-fill')) return;
 
   gsap.set('.timeline-line-fill', { scaleY: 0 });
   gsap.to('.timeline-line-fill', {
@@ -311,10 +311,26 @@ export function initContact() {
   });
 }
 
+function initPixelBlastFade() {
+  const wrap = document.querySelector<HTMLElement>('.pixelblast-wrap');
+  if (!wrap) return;
+  gsap.to(wrap, {
+    opacity: 0,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.hero',
+      start: 'top top',
+      end: '40% top',
+      scrub: true,
+    },
+  });
+}
+
 export function initPageAnimations() {
   initMarquee();
   initProjects();
   initTimeline();
   initDetails();
   initContact();
+  initPixelBlastFade();
 }
