@@ -49,7 +49,7 @@ export const es = {
     submit: 'Enviar',
     sending: 'Enviando...',
     success: 'Mensaje enviado. ¡Gracias!',
-    error: 'Algo salió mal. Intentá de nuevo.',
+    error: 'Algo salió mal. Inténtalo de nuevo.',
   },
   cv: {
     download: 'Descargar CV',
