@@ -26,78 +26,104 @@ if (Astro.request.method === 'POST') {
 }
 ---
 <AdminLayout title="Profile — Admin">
-  <div class="page-header">
+  <div class="admin-page-header">
     <h1>Profile</h1>
   </div>
 
-  <form method="POST" class="form">
-    <div class="field">
-      <label>Full name</label>
-      <input type="text" name="full_name" value={profile?.full_name ?? ''} required />
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Role (ES)</label>
-        <input type="text" name="role_es" value={profile?.role_es ?? ''} required />
-      </div>
-      <div class="field">
-        <label>Role (EN)</label>
-        <input type="text" name="role_en" value={profile?.role_en ?? ''} required />
-      </div>
-    </div>
-    <div class="field">
-      <label>About (ES)</label>
-      <textarea name="about_es" rows="5">{profile?.about_es}</textarea>
-    </div>
-    <div class="field">
-      <label>About (EN)</label>
-      <textarea name="about_en" rows="5">{profile?.about_en}</textarea>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Email</label>
-        <input type="email" name="email" value={profile?.email ?? ''} />
-      </div>
-      <div class="field">
-        <label>Phone</label>
-        <input type="text" name="phone" value={profile?.phone ?? ''} />
+  <form method="POST" class="admin-form-stack">
+
+    <div class="admin-card">
+      <span class="admin-section-title">Identity</span>
+      <div class="admin-fields">
+        <div class="admin-field">
+          <label class="admin-label" for="full_name">Full name *</label>
+          <input class="admin-input" type="text" id="full_name" name="full_name"
+            value={profile?.full_name ?? ''} required />
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="role_es">Role (ES) *</label>
+            <input class="admin-input" type="text" id="role_es" name="role_es"
+              value={profile?.role_es ?? ''} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="role_en">Role (EN) *</label>
+            <input class="admin-input" type="text" id="role_en" name="role_en"
+              value={profile?.role_en ?? ''} required />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Location (ES)</label>
-        <input type="text" name="location_es" value={profile?.location_es ?? ''} />
+
+    <div class="admin-card">
+      <span class="admin-section-title">About</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="about_es">About (ES)</label>
+            <textarea class="admin-textarea" id="about_es" name="about_es"
+              rows="5">{profile?.about_es}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="about_en">About (EN)</label>
+            <textarea class="admin-textarea" id="about_en" name="about_en"
+              rows="5">{profile?.about_en}</textarea>
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>Location (EN)</label>
-        <input type="text" name="location_en" value={profile?.location_en ?? ''} />
+    </div>
+
+    <div class="admin-card">
+      <span class="admin-section-title">Contact</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="email">Email</label>
+            <input class="admin-input" type="email" id="email" name="email"
+              value={profile?.email ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="phone">Phone</label>
+            <input class="admin-input" type="text" id="phone" name="phone"
+              value={profile?.phone ?? ''} />
+          </div>
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="location_es">Location (ES)</label>
+            <input class="admin-input" type="text" id="location_es" name="location_es"
+              value={profile?.location_es ?? ''} />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="location_en">Location (EN)</label>
+            <input class="admin-input" type="text" id="location_en" name="location_en"
+              value={profile?.location_en ?? ''} />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="field">
-      <label>GitHub URL</label>
-      <input type="url" name="github_url" value={profile?.github_url ?? ''} />
+
+    <div class="admin-card">
+      <span class="admin-section-title">Links</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="github_url">GitHub URL</label>
+            <input class="admin-input" type="url" id="github_url" name="github_url"
+              value={profile?.github_url ?? ''} placeholder="https://github.com/..." />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="linkedin_url">LinkedIn URL</label>
+            <input class="admin-input" type="url" id="linkedin_url" name="linkedin_url"
+              value={profile?.linkedin_url ?? ''} placeholder="https://linkedin.com/in/..." />
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="field">
-      <label>LinkedIn URL</label>
-      <input type="url" name="linkedin_url" value={profile?.linkedin_url ?? ''} />
+
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
     </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Save changes</button>
-    </div>
+
   </form>
 </AdminLayout>
-
-<style>
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .form { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 28px; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); padding: 9px 12px; font-size: 14px; font-family: inherit; transition: border-color 0.15s; width: 100%; }
-  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
-  textarea { resize: vertical; }
-  .form-actions { display: flex; gap: 12px; margin-top: 8px; }
-  .btn-primary { padding: 10px 20px; background: var(--admin-accent); color: #000; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:hover { opacity: 0.85; }
-</style>

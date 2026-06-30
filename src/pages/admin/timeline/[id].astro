@@ -14,6 +14,7 @@ if (Astro.request.method === 'POST') {
     role_en: form.get('role_en'),
     description_es: form.get('description_es'),
     description_en: form.get('description_en'),
+    entry_type: form.get('entry_type') ?? 'work',
   }).eq('id', id!);
   return Astro.redirect('/admin/timeline');
 }
@@ -29,70 +30,113 @@ if (!entry) {
 }
 ---
 <AdminLayout title={`Edit: ${entry.company} — Admin`}>
-  <div class="page-header">
+
+  <div class="admin-page-header">
     <h1>Edit Timeline Entry</h1>
-    <a href="/admin/timeline" class="btn-secondary">← Back</a>
+    <div class="admin-page-header-actions">
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Back to list</a>
+    </div>
   </div>
 
-  <form method="POST" class="form">
-    <div class="form-row">
-      <div class="field">
-        <label>Year</label>
-        <input type="text" name="year" value={entry.year} required />
+  <form method="POST" class="admin-form-stack">
+
+    <div class="admin-card">
+      <span class="admin-section-title">Basics</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="year">Year *</label>
+            <input class="admin-input" type="text" id="year" name="year"
+              value={entry.year} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="sort_order">Sort order</label>
+            <input class="admin-input" type="number" id="sort_order" name="sort_order"
+              value={entry.sort_order} required />
+          </div>
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="company">Company / Institution / Project *</label>
+            <input class="admin-input" type="text" id="company" name="company"
+              value={entry.company} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="entry_type">Type</label>
+            <select class="admin-select" id="entry_type" name="entry_type" required>
+              <option value="work"          selected={entry.entry_type === 'work'}>Work</option>
+              <option value="freelance"     selected={entry.entry_type === 'freelance'}>Freelance</option>
+              <option value="education"     selected={entry.entry_type === 'education'}>Education</option>
+              <option value="project"       selected={entry.entry_type === 'project'}>Project</option>
+              <option value="certification" selected={entry.entry_type === 'certification'}>Certification</option>
+              <option value="milestone"     selected={entry.entry_type === 'milestone'}>Milestone</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="field field-sm">
-        <label>Sort order</label>
-        <input type="number" name="sort_order" value={entry.sort_order} required />
+    </div>
+
+    <div class="admin-card">
+      <span class="admin-section-title">Role</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="role_es">Role (ES) *</label>
+            <input class="admin-input" type="text" id="role_es" name="role_es"
+              value={entry.role_es} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="role_en">Role (EN) *</label>
+            <input class="admin-input" type="text" id="role_en" name="role_en"
+              value={entry.role_en} required />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="field">
-      <label>Company</label>
-      <input type="text" name="company" value={entry.company} required />
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Role (ES)</label>
-        <input type="text" name="role_es" value={entry.role_es} required />
+
+    <div class="admin-card">
+      <span class="admin-section-title">Description</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="description_es">Description (ES) *</label>
+            <textarea class="admin-textarea" id="description_es" name="description_es"
+              rows="4" required>{entry.description_es}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="description_en">Description (EN) *</label>
+            <textarea class="admin-textarea" id="description_en" name="description_en"
+              rows="4" required>{entry.description_en}</textarea>
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>Role (EN)</label>
-        <input type="text" name="role_en" value={entry.role_en} required />
-      </div>
     </div>
-    <div class="field">
-      <label>Description (ES)</label>
-      <textarea name="description_es" rows="4" required>{entry.description_es}</textarea>
+
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
+      <a href="/admin/timeline" class="admin-btn admin-btn--secondary">Cancel</a>
     </div>
-    <div class="field">
-      <label>Description (EN)</label>
-      <textarea name="description_en" rows="4" required>{entry.description_en}</textarea>
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Save changes</button>
-      <a href="/admin/timeline" class="btn-secondary">Cancel</a>
-      <form action={`/admin/timeline/${id}/delete`} method="POST" style="margin-left:auto">
-        <button type="submit" class="btn-danger" onclick="return confirm('Delete this entry?')">Delete</button>
+
+  </form>
+
+  <section class="danger-section" aria-label="Danger zone">
+    <div class="admin-card danger-card">
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
+      <p class="danger-msg">Permanently delete this timeline entry. This cannot be undone.</p>
+      <form action={`/admin/timeline/${id}/delete`} method="POST">
+        <button
+          type="submit"
+          class="admin-btn admin-btn--danger"
+          onclick="return confirm('Delete this entry? This cannot be undone.')"
+        >Delete entry</button>
       </form>
     </div>
-  </form>
+  </section>
+
 </AdminLayout>
 
 <style>
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .form { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 28px; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-sm { max-width: 160px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); padding: 9px 12px; font-size: 14px; font-family: inherit; transition: border-color 0.15s; width: 100%; }
-  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
-  textarea { resize: vertical; }
-  .form-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
-  .btn-primary { padding: 10px 20px; background: var(--admin-accent); color: #000; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-secondary { padding: 10px 20px; background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); border-radius: 7px; font-size: 14px; text-decoration: none; cursor: pointer; transition: border-color 0.15s; display: inline-flex; align-items: center; }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
-  .btn-danger { padding: 10px 20px; background: #ef4444; color: #fff; border: none; border-radius: 7px; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
-  .btn-danger:hover { opacity: 0.85; }
+  .danger-section { margin-top: 36px; max-width: 940px; }
+  .danger-card { border-color: rgba(239, 68, 68, 0.25); }
+  .danger-msg { font-size: 13px; color: var(--admin-muted); margin-bottom: 16px; }
 </style>

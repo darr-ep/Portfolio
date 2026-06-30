@@ -27,62 +27,82 @@ if (!entry) {
 }
 ---
 <AdminLayout title={`Edit: ${entry.name_es} — Admin`}>
-  <div class="page-header">
+
+  <div class="admin-page-header">
     <h1>Edit Language Entry</h1>
-    <a href="/admin/languages" class="btn-secondary">← Back</a>
+    <div class="admin-page-header-actions">
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Back to list</a>
+    </div>
   </div>
 
-  <form method="POST" class="form">
-    <div class="form-row">
-      <div class="field">
-        <label>Name (ES)</label>
-        <input type="text" name="name_es" value={entry.name_es} required />
-      </div>
-      <div class="field field-sm">
-        <label>Sort order</label>
-        <input type="number" name="sort_order" value={entry.sort_order} required />
+  <form method="POST" class="admin-form-stack">
+
+    <div class="admin-card">
+      <span class="admin-section-title">Basics</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="name_es">Name (ES) *</label>
+            <input class="admin-input" type="text" id="name_es" name="name_es"
+              value={entry.name_es} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="name_en">Name (EN) *</label>
+            <input class="admin-input" type="text" id="name_en" name="name_en"
+              value={entry.name_en} required />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label class="admin-label" for="sort_order">Sort order</label>
+          <input class="admin-input" type="number" id="sort_order" name="sort_order"
+            value={entry.sort_order} required />
+        </div>
       </div>
     </div>
-    <div class="field">
-      <label>Name (EN)</label>
-      <input type="text" name="name_en" value={entry.name_en} required />
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>Level (ES)</label>
-        <input type="text" name="level_es" value={entry.level_es} required />
+
+    <div class="admin-card">
+      <span class="admin-section-title">Level</span>
+      <div class="admin-fields">
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="level_es">Level (ES) *</label>
+            <input class="admin-input" type="text" id="level_es" name="level_es"
+              value={entry.level_es} required />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="level_en">Level (EN) *</label>
+            <input class="admin-input" type="text" id="level_en" name="level_en"
+              value={entry.level_en} required />
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>Level (EN)</label>
-        <input type="text" name="level_en" value={entry.level_en} required />
-      </div>
     </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Save changes</button>
-      <a href="/admin/languages" class="btn-secondary">Cancel</a>
-      <form action={`/admin/languages/${id}/delete`} method="POST" style="margin-left:auto">
-        <button type="submit" class="btn-danger" onclick="return confirm('Delete this entry?')">Delete</button>
+
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Save changes</button>
+      <a href="/admin/languages" class="admin-btn admin-btn--secondary">Cancel</a>
+    </div>
+
+  </form>
+
+  <section class="danger-section" aria-label="Danger zone">
+    <div class="admin-card danger-card">
+      <span class="admin-section-title" style="color: var(--danger, #ef4444);">Danger Zone</span>
+      <p class="danger-msg">Permanently delete this language entry. This cannot be undone.</p>
+      <form action={`/admin/languages/${id}/delete`} method="POST">
+        <button
+          type="submit"
+          class="admin-btn admin-btn--danger"
+          onclick="return confirm('Delete this entry? This cannot be undone.')"
+        >Delete entry</button>
       </form>
     </div>
-  </form>
+  </section>
+
 </AdminLayout>
 
 <style>
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .form { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 28px; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-sm { max-width: 160px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 12px; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); padding: 9px 12px; font-size: 14px; font-family: inherit; transition: border-color 0.15s; width: 100%; }
-  input:focus, textarea:focus { outline: none; border-color: var(--admin-accent); }
-  textarea { resize: vertical; }
-  .form-actions { display: flex; gap: 12px; margin-top: 8px; align-items: center; }
-  .btn-primary { padding: 10px 20px; background: var(--admin-accent); color: #000; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-secondary { padding: 10px 20px; background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); border-radius: 7px; font-size: 14px; text-decoration: none; cursor: pointer; transition: border-color 0.15s; display: inline-flex; align-items: center; }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
-  .btn-danger { padding: 10px 20px; background: #ef4444; color: #fff; border: none; border-radius: 7px; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
-  .btn-danger:hover { opacity: 0.85; }
+  .danger-section { margin-top: 36px; max-width: 940px; }
+  .danger-card { border-color: rgba(239, 68, 68, 0.25); }
+  .danger-msg { font-size: 13px; color: var(--admin-muted); margin-bottom: 16px; }
 </style>

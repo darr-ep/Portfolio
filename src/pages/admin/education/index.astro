@@ -8,64 +8,100 @@ const { data: entries } = await supabase
   .order('sort_order');
 ---
 <AdminLayout title="Education — Admin">
-  <div class="page-header">
+  <div class="admin-page-header">
     <h1>Education</h1>
-    <a href="/admin/education/new" class="btn-primary">+ New entry</a>
+    <div class="admin-page-header-actions">
+      <a href="/admin/education/new" class="admin-btn admin-btn--primary">+ New entry</a>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Sort</th>
-          <th>Institution</th>
-          <th>Period</th>
-          <th>Degree</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {entries?.map((e) => (
+  <div class="admin-card table-card">
+    {entries?.length ? (
+      <table class="list-table">
+        <thead>
           <tr>
-            <td class="muted">{e.sort_order}</td>
-            <td>{e.institution}</td>
-            <td class="mono">{e.period}</td>
-            <td class="muted">{e.degree_es}</td>
-            <td class="actions">
-              <a href={`/admin/education/${e.id}`} class="btn-secondary">Edit</a>
-              <form action={`/admin/education/${e.id}/delete`} method="POST" style="display:inline">
-                <button type="submit" class="btn-danger" onclick="return confirm('Delete this entry?')">Delete</button>
-              </form>
-            </td>
+            <th>Sort</th>
+            <th>Institution</th>
+            <th>Period</th>
+            <th>Degree</th>
+            <th>Actions</th>
           </tr>
-        ))}
-        {!entries?.length && (
-          <tr>
-            <td colspan="5" class="empty">No education entries yet.</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr>
+              <td class="col-muted">{e.sort_order}</td>
+              <td class="col-name">{e.institution}</td>
+              <td class="col-mono col-muted">{e.period}</td>
+              <td class="col-muted">{e.degree_es}</td>
+              <td class="col-actions">
+                <a href={`/admin/education/${e.id}`} class="admin-btn admin-btn--secondary admin-btn--sm">Edit</a>
+                <form action={`/admin/education/${e.id}/delete`} method="POST" class="inline-form">
+                  <button
+                    type="submit"
+                    class="admin-btn admin-btn--danger admin-btn--sm"
+                    onclick="return confirm('Delete this entry?')"
+                  >Delete</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p class="empty-state">No education entries yet. <a href="/admin/education/new" class="empty-link">Create the first one.</a></p>
+    )}
   </div>
 </AdminLayout>
 
 <style>
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .page-header h1 { font-size: 24px; font-weight: 600; }
-  .btn-primary { padding: 9px 18px; background: var(--admin-accent); color: #000; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:hover { opacity: 0.85; }
-  .table-wrap { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--admin-muted); border-bottom: 1px solid var(--admin-border); }
-  td { padding: 13px 16px; font-size: 14px; border-bottom: 1px solid var(--admin-border); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,0.03); }
-  .muted { color: var(--admin-muted); }
-  .mono { font-family: monospace; font-size: 13px; }
-  .actions { display: flex; gap: 8px; }
-  .btn-secondary { padding: 6px 12px; background: transparent; color: var(--admin-text); border: 1px solid var(--admin-border); border-radius: 6px; font-size: 13px; text-decoration: none; cursor: pointer; transition: border-color 0.15s; }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
-  .btn-danger { padding: 6px 12px; background: #ef4444; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: opacity 0.15s; }
-  .btn-danger:hover { opacity: 0.85; }
-  .empty { text-align: center; color: var(--admin-muted); padding: 40px; }
+  .table-card { padding: 0; overflow: hidden; }
+
+  .list-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+  thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-muted);
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--admin-border);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255, 255, 255, 0.025); }
+  html.light tbody tr:hover td { background: rgba(0, 0, 0, 0.025); }
+
+  .col-muted { color: var(--admin-muted); }
+  .col-name { font-weight: 500; }
+  .col-mono { font-family: var(--font-mono, monospace); font-size: 12px; }
+
+  .col-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .inline-form { display: contents; }
+
+  .empty-state {
+    padding: 48px 28px;
+    text-align: center;
+    color: var(--admin-muted);
+    font-size: 14px;
+  }
+
+  .empty-link {
+    color: var(--admin-accent);
+    text-decoration: underline;
+  }
 </style>

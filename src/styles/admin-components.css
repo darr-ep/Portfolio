@@ -1,0 +1,258 @@
+/* ==========================================================================
+   Admin shared component classes
+   Built on --admin-* design tokens defined in AdminLayout.astro.
+   Import once in AdminLayout so every admin page gets these for free.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Card / surfaced panel
+   -------------------------------------------------------------------------- */
+.admin-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 24px 28px;
+}
+
+/* --------------------------------------------------------------------------
+   Section heading (inside cards)
+   -------------------------------------------------------------------------- */
+.admin-section-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--admin-accent);
+  margin-bottom: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   Field wrapper: label stacked above control
+   -------------------------------------------------------------------------- */
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Label: uppercase mono, muted
+   -------------------------------------------------------------------------- */
+.admin-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--admin-muted);
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   Form controls: input, textarea, select
+   -------------------------------------------------------------------------- */
+.admin-input,
+.admin-textarea,
+.admin-select {
+  width: 100%;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  color: var(--admin-text);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.admin-input:focus,
+.admin-textarea:focus,
+.admin-select:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+}
+
+.admin-input::placeholder,
+.admin-textarea::placeholder {
+  color: var(--admin-muted);
+  opacity: 0.6;
+}
+
+.admin-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.admin-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+/* File input */
+.admin-input[type="file"] {
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Two-column responsive row (ES / EN pairs)
+   -------------------------------------------------------------------------- */
+.admin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 680px) {
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  line-height: 1;
+  transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  /* Reset button defaults */
+  background: none;
+}
+
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary: accent fill, dark text */
+.admin-btn--primary {
+  background: var(--admin-accent);
+  color: #000;
+  border-color: transparent;
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Secondary: outlined, text-colored */
+.admin-btn--secondary {
+  background: transparent;
+  color: var(--admin-text);
+  border-color: var(--admin-border);
+}
+
+.admin-btn--secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+html.light .admin-btn--secondary:hover:not(:disabled) {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Danger: red fill */
+.admin-btn--danger {
+  background: var(--danger, #ef4444);
+  color: #fff;
+  border-color: transparent;
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Small variant */
+.admin-btn--sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Page header: title + action row
+   -------------------------------------------------------------------------- */
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.admin-page-header h1,
+.admin-page-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--admin-text);
+  line-height: 1.2;
+}
+
+.admin-page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Utility: stack of form sections
+   -------------------------------------------------------------------------- */
+.admin-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 940px;
+}
+
+/* Inner field grid inside a card */
+.admin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Three-column row variant */
+.admin-row--3 {
+  grid-template-columns: 1fr 1fr 160px;
+}
+
+@media (max-width: 680px) {
+  .admin-row--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form action bar (buttons at the bottom of a form) */
+.admin-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.admin-form-actions--end {
+  margin-left: auto;
+}
