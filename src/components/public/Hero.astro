@@ -5,6 +5,7 @@ import SpotifyWidget from '../islands/SpotifyWidget.tsx';
 const lang = Astro.currentLocale ?? 'es';
 const scrollLabel = lang === 'en' ? 'SCROLL TO EXPLORE' : 'DESLIZA PARA EXPLORAR';
 const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
+const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
 ---
 
 <section class="hero">
@@ -33,6 +34,8 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
           <span class="ticker-text">STATUS: AVAILABLE FOR WORK</span>
           <span class="ticker-divider" aria-hidden="true">/</span>
           <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
+          <span class="ticker-divider" aria-hidden="true">/</span>
+          <span class="ticker-wip">{wipLabel}</span>
         </div>
       </div>
 
@@ -208,12 +211,19 @@ const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
   .status-ticker {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
     font-family: var(--font-mono, 'Courier New', monospace);
     font-size: 0.65rem;
     color: var(--text-muted);
     letter-spacing: 0.05em;
     transition: color 0.3s ease;
+  }
+
+  .ticker-wip {
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.08em;
   }
 
   .ticker-dot {
