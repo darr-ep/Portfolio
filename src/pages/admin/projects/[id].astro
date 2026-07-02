@@ -40,8 +40,6 @@ if (Astro.request.method === 'POST') {
       year:              form.get('year') ? Number(form.get('year')) : null,
       live_url:          form.get('live_url')           || null,
       github_url:        form.get('github_url')         || null,
-      approach_title_es: form.get('approach_title_es')  || null,
-      approach_title_en: form.get('approach_title_en')  || null,
       approach_body_es:  form.get('approach_body_es')   || null,
       approach_body_en:  form.get('approach_body_en')   || null,
       conclusion_es:     form.get('conclusion_es')      || null,
@@ -232,18 +230,6 @@ const IMAGE_SLOTS = [
     <div class="admin-card">
       <span class="admin-section-title">Enfoque</span>
       <div class="admin-fields">
-        <div class="admin-row">
-          <div class="admin-field">
-            <label class="admin-label" for="approach_title_es">Título del enfoque (ES)</label>
-            <input class="admin-input" type="text" id="approach_title_es" name="approach_title_es"
-              value={project.approach_title_es ?? ''} />
-          </div>
-          <div class="admin-field">
-            <label class="admin-label" for="approach_title_en">Título del enfoque (EN)</label>
-            <input class="admin-input" type="text" id="approach_title_en" name="approach_title_en"
-              value={project.approach_title_en ?? ''} />
-          </div>
-        </div>
         <div class="admin-row">
           <div class="admin-field">
             <label class="admin-label" for="approach_body_es">Texto del enfoque (ES)</label>
