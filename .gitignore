@@ -28,3 +28,6 @@ pnpm-debug.log*
 
 # lighthouse audit output
 lighthouse.json
+
+# Claude Code local settings (contiene secretos)
+.claude/settings.local.json
