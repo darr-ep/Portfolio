@@ -32,7 +32,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 3312
           script: |
-            cd ~/servicios/portfolio
+            set -e
+            cd ~/docker/portfolio
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
