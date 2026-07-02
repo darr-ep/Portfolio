@@ -1,6 +1,7 @@
 ---
 import { supabase } from '../../lib/supabase';
 import type { Project } from '../../types/database';
+import { isProjectReady, resolveCardImage } from '../../lib/projects';
 
 interface Props {
   lang?: string;
@@ -14,8 +15,6 @@ const { data: projectsData } = await supabase
   .select('*, project_images(slot_key, url)')
   .order('sort_order', { ascending: true });
 
-const FALLBACK_IMAGES = ['/assets/Proyecto 1.webp', '/assets/Proyecto 2.webp', '/assets/Proyecto 3.webp'];
-
 type ProjectWithImages = Project & { project_images?: { slot_key: string; url: string }[] };
 
 const projects = (projectsData ?? []).map((p: ProjectWithImages, i: number) => ({
@@ -23,11 +22,8 @@ const projects = (projectsData ?? []).map((p: ProjectWithImages, i: number) => (
   category: isEn ? p.category_en : p.category_es,
   description: isEn ? p.description_en : p.description_es,
   tech: p.tech ?? [],
-  // Manual main_image wins; otherwise fall back to the uploaded hero slot, then a static asset.
-  image:
-    p.main_image ??
-    p.project_images?.find((img) => img.slot_key === 'hero')?.url ??
-    FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+  image: resolveCardImage(p, i),
+  ready: isProjectReady(p),
   href: isEn ? `/en/projects/${p.slug}` : `/proyectos/${p.slug}`,
 }));
 
@@ -36,6 +32,7 @@ const t = {
   title: isEn ? 'WORK' : 'PROYECTOS',
   subtitle: isEn ? 'Selected projects and case studies.' : 'Proyectos y casos seleccionados.',
   view: isEn ? 'View project →' : 'Ver proyecto →',
+  soon: isEn ? 'Coming soon' : 'Próximamente',
   homeHref: isEn ? '/en/' : '/',
   countLabel: isEn ? 'projects' : 'proyectos',
 };
@@ -63,23 +60,28 @@ const t = {
 
     <!-- Grid -->
     <div class="work-grid">
-      {projects.map((p, i) => (
-        <a href={p.href} class="work-card" data-transition-label={p.title.toUpperCase()}>
-          <div class="work-card__media">
-            <img src={p.image} alt={p.title} class="work-card__img" loading="lazy" />
-            <span class="work-card__num">{String(i + 1).padStart(2, '0')}</span>
-          </div>
-          <div class="work-card__body">
-            <span class="work-card__cat">{p.category.toUpperCase()}</span>
-            <h2 class="work-card__title">{p.title.toUpperCase()}</h2>
-            <p class="work-card__desc">{p.description}</p>
-            <div class="work-card__tech">
-              {p.tech.slice(0, 4).map((tech) => <span>{tech}</span>)}
+      {projects.map((p, i) => {
+        const Tag = p.ready ? 'a' : 'div';
+        const linkAttrs = p.ready ? { href: p.href, 'data-transition-label': p.title.toUpperCase() } : {};
+        return (
+          <Tag class={`work-card ${p.ready ? '' : 'is-soon'}`} {...linkAttrs}>
+            <div class="work-card__media">
+              <img src={p.image} alt={p.title} class="work-card__img" loading="lazy" />
+              <span class="work-card__num">{String(i + 1).padStart(2, '0')}</span>
+              {!p.ready && <span class="work-card__soon">{t.soon}</span>}
             </div>
-            <span class="work-card__link">{t.view}</span>
-          </div>
-        </a>
-      ))}
+            <div class="work-card__body">
+              <span class="work-card__cat">{p.category.toUpperCase()}</span>
+              <h2 class="work-card__title">{p.title.toUpperCase()}</h2>
+              {p.description && <p class="work-card__desc">{p.description}</p>}
+              <div class="work-card__tech">
+                {p.tech.slice(0, 4).map((tech) => <span>{tech}</span>)}
+              </div>
+              <span class={`work-card__link ${p.ready ? '' : 'work-card__link--soon'}`}>{p.ready ? t.view : t.soon}</span>
+            </div>
+          </Tag>
+        );
+      })}
     </div>
   </div>
 </section>
@@ -271,6 +273,32 @@ const t = {
   }
 
   .work-card:hover .work-card__link { opacity: 0.7; }
+
+  /* Coming-soon (pending) cards — not clickable, muted */
+  .work-card.is-soon { cursor: default; }
+  .work-card.is-soon:hover .work-card__img { transform: none; }
+  .work-card.is-soon:hover .work-card__media { border-color: var(--border-color); }
+  .work-card.is-soon .work-card__title,
+  .work-card.is-soon:hover .work-card__title { color: var(--text-muted); }
+
+  .work-card__soon {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    z-index: 2;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .work-card__link--soon { color: var(--text-muted); }
 
   /* Tablet */
   @media (max-width: 992px) {

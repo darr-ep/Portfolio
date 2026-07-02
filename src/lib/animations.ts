@@ -170,7 +170,8 @@ export function initProjects() {
   const onVisualsClick = () => {
     const header = headers[activeIdx];
     const run = (window as any).__runNavTransition;
-    if (header && run) run(header.href, header.getAttribute('data-transition-label') ?? undefined);
+    // Pending ("coming soon") projects have no href — never navigate to them.
+    if (header && run && header.getAttribute('href')) run(header.href, header.getAttribute('data-transition-label') ?? undefined);
   };
   visuals?.addEventListener('click', onVisualsClick);
 

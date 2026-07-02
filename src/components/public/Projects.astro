@@ -1,13 +1,13 @@
 ---
 import { supabase } from '../../lib/supabase';
 import type { Project } from '../../types/database';
+import { isProjectReady, resolveCardImage } from '../../lib/projects';
 
 const { data: projectsData } = await supabase
   .from('projects')
   .select('*, project_images(slot_key, url)')
   .order('sort_order', { ascending: true });
 
-const FALLBACK_IMAGES = ['/assets/Proyecto 1.webp', '/assets/Proyecto 2.webp', '/assets/Proyecto 3.webp'];
 const lang = Astro.currentLocale ?? 'es';
 
 type ProjectWithImages = Project & { project_images?: { slot_key: string; url: string }[] };
@@ -18,17 +18,15 @@ const projects = (projectsData ?? []).map((p: ProjectWithImages, i: number) => (
   category: lang === 'en' ? p.category_en : p.category_es,
   description: lang === 'en' ? p.description_en : p.description_es,
   tech: p.tech ?? [],
-  // Manual main_image wins; otherwise fall back to the uploaded hero slot, then a static asset.
-  image:
-    p.main_image ??
-    p.project_images?.find((img) => img.slot_key === 'hero')?.url ??
-    FALLBACK_IMAGES[i % FALLBACK_IMAGES.length],
+  image: resolveCardImage(p, i),
+  ready: isProjectReady(p),
   slug: p.slug,
   href: lang === 'en' ? `/en/projects/${p.slug}` : `/proyectos/${p.slug}`,
 }));
 
 const sectionTitle = lang === 'en' ? 'PROJECTS' : 'PROYECTOS';
 const seeMoreLabel = lang === 'en' ? 'See more →' : 'Ver más →';
+const soonLabel = lang === 'en' ? 'Coming soon' : 'Próximamente';
 const moreLabel = lang === 'en' ? 'More projects' : 'Más proyectos';
 const allProjectsHref = lang === 'en' ? '/en/projects' : '/proyectos';
 const allProjectsLabel = lang === 'en' ? 'PROJECTS' : 'PROYECTOS';
@@ -76,31 +74,42 @@ const featuredMobile = projects.slice(0, 2);
       <!-- Right: Interactive project list with flowing-menu hover -->
       <div class="projects-accordion">
         {featuredDesktop.map((p, i) => (
-          <div class={`accordion-item ${i === 0 ? 'active' : ''}`} data-index={i}>
-            <a href={p.href} class="accordion-header" data-index={i} data-transition-label={p.title.toUpperCase()}>
+          <div class={`accordion-item ${i === 0 ? 'active' : ''} ${p.ready ? '' : 'is-soon'}`} data-index={i}>
+            <a
+              class="accordion-header"
+              data-index={i}
+              data-transition-label={p.title.toUpperCase()}
+              {...(p.ready ? { href: p.href } : {})}
+            >
               <span class="acc-num">0{i + 1}/</span>
               <h3 class="acc-title">{p.title.toUpperCase()}</h3>
-              <span class="flow-marquee" aria-hidden="true">
-                <span class="flow-marquee__inner">
-                  {Array.from({ length: 8 }).map(() => (
-                    <span class="flow-unit">
-                      <span class="flow-text">{p.title.toUpperCase()}</span>
-                      <span class="flow-img" style={`background-image:url('${p.image}')`}></span>
-                    </span>
-                  ))}
+              {p.ready ? (
+                <span class="flow-marquee" aria-hidden="true">
+                  <span class="flow-marquee__inner">
+                    {Array.from({ length: 8 }).map(() => (
+                      <span class="flow-unit">
+                        <span class="flow-text">{p.title.toUpperCase()}</span>
+                        <span class="flow-img" style={`background-image:url('${p.image}')`}></span>
+                      </span>
+                    ))}
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span class="soon-chip">{soonLabel}</span>
+              )}
             </a>
             <div class="accordion-body">
               <div class="accordion-content">
                 <div class="project-meta">
                   <span class="project-category">{p.category.toUpperCase()}</span>
                 </div>
-                <p class="project-desc">{p.description}</p>
+                {p.description && <p class="project-desc">{p.description}</p>}
                 <div class="project-tech">
                   {p.tech.map((t) => <span>{t}</span>)}
                 </div>
-                <a href={p.href} class="project-link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
+                {p.ready
+                  ? <a href={p.href} class="project-link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
+                  : <span class="project-link project-link--soon">{soonLabel}</span>}
               </div>
             </div>
           </div>
@@ -111,19 +120,29 @@ const featuredMobile = projects.slice(0, 2);
     <!-- Mobile: the first projects fully expanded (no tabs), each with its own image -->
     <div class="projects-featured-mobile">
       {featuredMobile.map((p, i) => (
-        <article class="m-project">
-          <a href={p.href} class="m-project__media" data-transition-label={p.title.toUpperCase()}>
-            <img src={p.image} alt={p.title} class="m-project__img" loading="lazy" />
-            <span class="m-project__num">0{i + 1}</span>
-          </a>
+        <article class={`m-project ${p.ready ? '' : 'is-soon'}`}>
+          {p.ready ? (
+            <a href={p.href} class="m-project__media" data-transition-label={p.title.toUpperCase()}>
+              <img src={p.image} alt={p.title} class="m-project__img" loading="lazy" />
+              <span class="m-project__num">0{i + 1}</span>
+            </a>
+          ) : (
+            <div class="m-project__media">
+              <img src={p.image} alt={p.title} class="m-project__img" loading="lazy" />
+              <span class="m-project__num">0{i + 1}</span>
+              <span class="soon-chip soon-chip--overlay">{soonLabel}</span>
+            </div>
+          )}
           <div class="m-project__body">
             <span class="m-project__cat">{p.category.toUpperCase()}</span>
             <h3 class="m-project__title">{p.title.toUpperCase()}</h3>
-            <p class="m-project__desc">{p.description}</p>
+            {p.description && <p class="m-project__desc">{p.description}</p>}
             <div class="m-project__tech">
               {p.tech.slice(0, 4).map((t) => <span>{t}</span>)}
             </div>
-            <a href={p.href} class="m-project__link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
+            {p.ready
+              ? <a href={p.href} class="m-project__link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
+              : <span class="m-project__link m-project__link--soon">{soonLabel}</span>}
           </div>
         </article>
       ))}
@@ -474,6 +493,40 @@ const featuredMobile = projects.slice(0, 2);
   }
 
   .project-link:hover { opacity: 0.7; }
+
+  /* Coming-soon (pending) states */
+  .accordion-item.is-soon .accordion-header { cursor: default; }
+  .accordion-item.is-soon .acc-title { color: var(--text-muted); }
+  .accordion-item.is-soon.active .acc-title { color: var(--text-secondary); }
+
+  .soon-chip {
+    margin-left: auto;
+    align-self: center;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .project-link--soon,
+  .m-project__link--soon { color: var(--text-muted); cursor: default; }
+
+  .soon-chip--overlay {
+    position: absolute;
+    top: 0.9rem;
+    right: 1.1rem;
+    z-index: 2;
+    margin: 0;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+  }
 
   /* Gateway link to the full projects page */
   .projects-more {
