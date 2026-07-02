@@ -6,6 +6,9 @@ import type { ProjectImage } from '../../../types/database';
 const { id } = Astro.params;
 let saveError: string | null = null;
 
+// Approach is authored as up to 4 "beats" (big statement + support paragraph).
+const BEAT_SLOTS = 4;
+
 // Handle text-field save (separate from image upload)
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
@@ -20,6 +23,18 @@ if (Astro.request.method === 'POST') {
   const cat_en     = (form.get('category_en')   as string) || cat_es;
   const desc_es    = (form.get('description_es') as string) || '';
   const desc_en    = (form.get('description_en') as string) || desc_es;
+
+  // Collect the beat slots into { lead, body }[] per language, skipping empties.
+  const beats_es: { lead: string; body: string }[] = [];
+  const beats_en: { lead: string; body: string }[] = [];
+  for (let i = 0; i < BEAT_SLOTS; i++) {
+    const leadEs = ((form.get(`beat_${i}_lead_es`) as string) || '').trim();
+    const bodyEs = ((form.get(`beat_${i}_body_es`) as string) || '').trim();
+    const leadEn = ((form.get(`beat_${i}_lead_en`) as string) || '').trim();
+    const bodyEn = ((form.get(`beat_${i}_body_en`) as string) || '').trim();
+    if (leadEs || bodyEs) beats_es.push({ lead: leadEs, body: bodyEs });
+    if (leadEn || bodyEn) beats_en.push({ lead: leadEn, body: bodyEn });
+  }
 
   // sort_order is managed by drag-to-reorder -- never touched here.
   const { error } = await supabase
@@ -40,8 +55,8 @@ if (Astro.request.method === 'POST') {
       year:              form.get('year') ? Number(form.get('year')) : null,
       live_url:          form.get('live_url')           || null,
       github_url:        form.get('github_url')         || null,
-      approach_body_es:  form.get('approach_body_es')   || null,
-      approach_body_en:  form.get('approach_body_en')   || null,
+      beats_es:          beats_es.length ? beats_es : null,
+      beats_en:          beats_en.length ? beats_en : null,
       conclusion_es:     form.get('conclusion_es')      || null,
       conclusion_en:     form.get('conclusion_en')      || null,
       tech,
@@ -78,6 +93,10 @@ const imagesBySlot: Record<string, ProjectImage | undefined> = {};
 for (const img of rawImages ?? []) {
   imagesBySlot[img.slot_key] = img as ProjectImage;
 }
+
+// Pre-fill the beat slots from the stored arrays (may be shorter than BEAT_SLOTS).
+const beatsEs = (project.beats_es ?? []) as { lead: string; body: string }[];
+const beatsEn = (project.beats_en ?? []) as { lead: string; body: string }[];
 
 const IMAGE_SLOTS = [
   { key: 'hero',             label: 'Hero / Portada' },
@@ -226,22 +245,36 @@ const IMAGE_SLOTS = [
       </div>
     </div>
 
-    <!-- Section: Approach -->
+    <!-- Section: Approach (beats) -->
     <div class="admin-card">
-      <span class="admin-section-title">Enfoque</span>
+      <span class="admin-section-title">Enfoque — bloques</span>
+      <p class="beats-hint">Cada bloque es una frase grande + un texto de apoyo; se alternan de lado en la página. Deja un bloque vacío para omitirlo. El cierre grande final es la Conclusión.</p>
       <div class="admin-fields">
-        <div class="admin-row">
-          <div class="admin-field">
-            <label class="admin-label" for="approach_body_es">Texto del enfoque (ES)</label>
-            <textarea class="admin-textarea" id="approach_body_es" name="approach_body_es"
-              rows="5">{project.approach_body_es}</textarea>
+        {Array.from({ length: BEAT_SLOTS }).map((_, i) => (
+          <div class="beat-slot">
+            <span class="beat-slot__label">Bloque {i + 1}{i === 0 ? ' · con mockup principal' : i === 1 ? ' · con mockup secundario' : ''}</span>
+            <div class="admin-row">
+              <div class="admin-field">
+                <label class="admin-label">Frase grande (ES)</label>
+                <input class="admin-input" type="text" name={`beat_${i}_lead_es`} value={beatsEs[i]?.lead ?? ''} />
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Frase grande (EN)</label>
+                <input class="admin-input" type="text" name={`beat_${i}_lead_en`} value={beatsEn[i]?.lead ?? ''} />
+              </div>
+            </div>
+            <div class="admin-row">
+              <div class="admin-field">
+                <label class="admin-label">Texto de apoyo (ES)</label>
+                <textarea class="admin-textarea" name={`beat_${i}_body_es`} rows="3">{beatsEs[i]?.body ?? ''}</textarea>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Texto de apoyo (EN)</label>
+                <textarea class="admin-textarea" name={`beat_${i}_body_en`} rows="3">{beatsEn[i]?.body ?? ''}</textarea>
+              </div>
+            </div>
           </div>
-          <div class="admin-field">
-            <label class="admin-label" for="approach_body_en">Texto del enfoque (EN)</label>
-            <textarea class="admin-textarea" id="approach_body_en" name="approach_body_en"
-              rows="5">{project.approach_body_en}</textarea>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
 
@@ -425,6 +458,30 @@ const IMAGE_SLOTS = [
     padding: 10px 14px;
     margin-bottom: 20px;
     max-width: 940px;
+  }
+
+  /* Beats editor */
+  .beats-hint {
+    font-size: 12px;
+    color: var(--admin-muted);
+    margin: -4px 0 6px;
+    max-width: 940px;
+  }
+  .beat-slot {
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .beat-slot + .beat-slot { margin-top: 6px; }
+  .beat-slot__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--admin-accent);
   }
 
   /* Images section */

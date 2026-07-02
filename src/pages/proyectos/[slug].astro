@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { supabase } from '../../lib/supabase';
-import type { Project, ProjectImage } from '../../types/database';
+import type { Project, ProjectImage, ProjectBeat } from '../../types/database';
 import { getReadyNeighbors, getRelatedProjects } from '../../lib/projects';
 
 export const prerender = false;
@@ -28,6 +28,7 @@ const tagline     = project.tagline_es      ?? project.tagline_en      ?? null;
 const role        = project.role_es         ?? project.role_en         ?? null;
 const approachBody  = project.approach_body_es  ?? project.approach_body_en  ?? null;
 const conclusion    = project.conclusion_es     ?? project.conclusion_en     ?? null;
+const beats = (project.beats_es ?? project.beats_en ?? []) as ProjectBeat[];
 
 const heroImg         = imgBySlot['hero'];
 const mockupMain      = imgBySlot['mockup_main'];
@@ -100,15 +101,30 @@ const related = getRelatedProjects(allProjects, project.slug, 'es', 2);
     )}
     </div>
 
-    <!-- Lead description -->
-    {description && (
-      <section class="pd-block">
-        <p class="pd-lead">{description}</p>
-      </section>
+    <!-- APPROACH — alternating beats: big statement (Albert 300) + small support -->
+    {beats.length > 0 && (
+      <div class="pd-beats">
+        {beats.map((beat, i) => {
+          const media = [mockupMain, mockupSecondary][i];
+          return (
+            <section class:list={['pd-beat', { 'pd-beat--reverse': i % 2 === 1, 'pd-beat--solo': !media }]}>
+              <div class="pd-beat__text">
+                {beat.lead && <p class="pd-beat__lead">{beat.lead}</p>}
+                {beat.body && <p class="pd-beat__body">{beat.body}</p>}
+              </div>
+              {media && (
+                <div class="pd-beat__media">
+                  <img src={media.url} alt={media.alt_es ?? `${title} mockup`} class="pd-figure" />
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </div>
     )}
 
-    <!-- INTERLEAVED — approach + main mockup -->
-    {(approachBody || mockupMain) && (
+    <!-- LEGACY approach (projects without beats, e.g. before migration) -->
+    {beats.length === 0 && (approachBody || mockupMain) && (
       <section class="pd-row">
         {approachBody && (
           <div class="pd-row__text">
@@ -123,8 +139,15 @@ const related = getRelatedProjects(allProjects, project.slug, 'es', 2);
       </section>
     )}
 
-    <!-- INTERLEAVED (reversed) — secondary mockup + conclusion -->
-    {(conclusion || mockupSecondary) && (
+    <!-- CLOSING — final big statement, alone (beats projects) -->
+    {beats.length > 0 && conclusion && (
+      <section class="pd-closing">
+        <p class="pd-closing__text">{conclusion}</p>
+      </section>
+    )}
+
+    <!-- LEGACY conclusion interleaved (projects without beats) -->
+    {beats.length === 0 && (conclusion || mockupSecondary) && (
       <section class="pd-row pd-row--reverse">
         {conclusion && (
           <div class="pd-row__text">
@@ -389,21 +412,7 @@ const related = getRelatedProjects(allProjects, project.slug, 'es', 2);
   }
   .pd-tag:hover { color: var(--accent); border-color: var(--accent); }
 
-  /* Blocks / rows — each carries a full-width top divider */
-  .pd-block { padding: 4rem var(--pad-x); border-top: 1px solid var(--border-color); }
-  /* Intro keeps its top divider but flows into the content below (no isolating bottom line) */
-  .pd-block + .pd-row { border-top: 0; padding-top: 0; }
-  .pd-lead {
-    font-family: var(--font-heading);
-    font-weight: 300;
-    font-size: clamp(1.4rem, 2.6vw, 2.25rem);
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    max-width: 60ch;
-    margin: 0;
-  }
-
+  /* Rows — each carries a full-width top divider */
   .pd-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -433,6 +442,58 @@ const related = getRelatedProjects(allProjects, project.slug, 'es', 2);
     line-height: 1.8;
     color: var(--text-secondary);
     margin: 0;
+  }
+
+  /* BEATS — alternating big statement + small support, sides intercalate */
+  .pd-beat {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 3.5rem;
+    padding: 4rem var(--pad-x);
+    border-top: 1px solid var(--border-color);
+  }
+  .pd-beat--reverse .pd-beat__text { order: 2; }
+  .pd-beat--reverse .pd-beat__media { order: 1; }
+  .pd-beat--solo { grid-template-columns: 1fr; }
+  .pd-beat--solo .pd-beat__text { max-width: 60ch; }
+  .pd-beat--solo.pd-beat--reverse .pd-beat__text { margin-left: auto; text-align: right; }
+  .pd-beat__lead {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: clamp(1.5rem, 2.8vw, 2.4rem);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    max-width: 22ch;
+    margin: 0 0 1rem;
+  }
+  .pd-beat--solo.pd-beat--reverse .pd-beat__lead { margin-left: auto; }
+  .pd-beat__body {
+    font-family: var(--font-body);
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 46ch;
+    margin: 0;
+  }
+  .pd-beat--solo.pd-beat--reverse .pd-beat__body { margin-left: auto; }
+
+  /* CLOSING — final big statement, alone */
+  .pd-closing {
+    padding: 5.5rem var(--pad-x);
+    border-top: 1px solid var(--border-color);
+  }
+  .pd-closing__text {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: clamp(1.8rem, 4vw, 3.2rem);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    max-width: 40ch;
+    margin: 0 auto;
+    text-align: center;
   }
 
   .pd-figure {
@@ -548,12 +609,17 @@ const related = getRelatedProjects(allProjects, project.slug, 'es', 2);
 
   /* RESPONSIVE */
   @media (max-width: 992px) {
-    .pd-row, .pd-row--reverse {
+    .pd-row, .pd-row--reverse, .pd-beat, .pd-beat--reverse {
       grid-template-columns: 1fr;
       gap: 1.75rem;
     }
     .pd-row--reverse .pd-row__text,
-    .pd-row--reverse .pd-row__media { order: initial; }
+    .pd-row--reverse .pd-row__media,
+    .pd-beat--reverse .pd-beat__text,
+    .pd-beat--reverse .pd-beat__media { order: initial; }
+    .pd-beat--solo.pd-beat--reverse .pd-beat__text { margin-left: 0; text-align: left; }
+    .pd-beat--solo.pd-beat--reverse .pd-beat__lead,
+    .pd-beat--solo.pd-beat--reverse .pd-beat__body { margin-left: 0; }
   }
 
   @media (max-width: 768px) {

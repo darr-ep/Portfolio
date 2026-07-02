@@ -1,3 +1,8 @@
+export interface ProjectBeat {
+  lead: string;
+  body: string;
+}
+
 export interface Project {
   id: string;
   sort_order: number;
@@ -27,6 +32,8 @@ export interface Project {
   approach_body_en: string | null;
   conclusion_es: string | null;
   conclusion_en: string | null;
+  beats_es: ProjectBeat[] | null;
+  beats_en: ProjectBeat[] | null;
   created_at: string;
   updated_at: string;
 }
