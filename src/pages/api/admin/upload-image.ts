@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import sharp from 'sharp';
 import { supabase } from '../../../lib/supabase';
 
 const VALID_SLOT_KEYS = ['hero', 'mockup_main', 'mockup_secondary', 'detail'] as const;
@@ -27,14 +28,24 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const ext = file.name.split('.').pop() ?? 'jpg';
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Convert every upload to WebP server-side — project photos were coming in as multi-MB
+    // PNGs, which is wasted bandwidth/decode time for a photographic image. SVGs (rare, but
+    // valid for these slots) pass through untouched since they aren't raster images.
+    const isSvg = file.type === 'image/svg+xml';
+    const outputBuffer = isSvg
+      ? Buffer.from(arrayBuffer)
+      : await sharp(Buffer.from(arrayBuffer)).webp({ quality: 82 }).toBuffer();
+    const ext = isSvg ? 'svg' : 'webp';
+    const contentType = isSvg ? file.type : 'image/webp';
+
     const storagePath = `${project_id}/${slot_key}/${Date.now()}.${ext}`;
 
-    const arrayBuffer = await file.arrayBuffer();
     const { error: uploadError } = await supabase.storage
       .from('project-images')
-      .upload(storagePath, arrayBuffer, {
-        contentType: file.type,
+      .upload(storagePath, outputBuffer, {
+        contentType,
         upsert: true,
       });
 

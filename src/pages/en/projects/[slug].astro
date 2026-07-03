@@ -3,6 +3,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { supabase } from '../../../lib/supabase';
 import type { Project, ProjectImage, ProjectBeat } from '../../../types/database';
 import { getReadyNeighbors, getRelatedProjects } from '../../../lib/projects';
+import { getTechIcon } from '../../../lib/tech-icons';
 
 export const prerender = false;
 
@@ -37,10 +38,10 @@ const detailImg       = imgBySlot['detail'];
 const ogImage = heroImg?.url ?? project.main_image ?? undefined;
 
 const specs = [
-  role && { label: 'Role', value: role },
+  role && { label: 'Role', value: role, wide: true },
   project.collaborators && { label: 'Collaboration', value: project.collaborators },
   project.year && { label: 'Year', value: String(project.year) },
-].filter(Boolean) as { label: string; value: string }[];
+].filter(Boolean) as { label: string; value: string; wide?: boolean }[];
 
 const allProjects = (list.data ?? []) as (Project & { project_images?: { slot_key: string; url: string }[] })[];
 const { prev, next } = getReadyNeighbors(allProjects, project.slug, 'en');
@@ -53,8 +54,6 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     <!-- First screen: hero fills the space above the spec sheet; both fit one viewport -->
     <div class="pd-top">
     <header class="pd-hero">
-      {heroImg && <img src={heroImg.url} alt={heroImg.alt_en ?? title} class="pd-hero__img" crossorigin="anonymous" />}
-      <div class="pd-hero__scrim"></div>
       <a href="/en/projects" class="pd-hero__back" data-transition-label="PROJECTS">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -63,18 +62,25 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
         </svg>
         Back to projects
       </a>
-      <div class="pd-hero__content">
-        <span class="pd-badge">{category}</span>
-        <h1 class="pd-title">{title}</h1>
-        {tagline && <p class="pd-tagline">{tagline}</p>}
-        {(project.live_url || project.github_url) && (
-          <div class="pd-actions">
-            {project.live_url && (
-              <a href={project.live_url} class="pd-btn pd-btn--primary" target="_blank" rel="noopener noreferrer">View project</a>
-            )}
-            {project.github_url && (
-              <a href={project.github_url} class="pd-btn pd-btn--ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
-            )}
+      <div class="pd-hero__grid">
+        <div class="pd-hero__content">
+          <span class="pd-badge">{category}</span>
+          <h1 class="pd-title">{title}</h1>
+          {tagline && <p class="pd-tagline">{tagline}</p>}
+          {(project.live_url || project.github_url) && (
+            <div class="pd-actions">
+              {project.live_url && (
+                <a href={project.live_url} class="pd-btn pd-btn--primary" target="_blank" rel="noopener noreferrer">View project</a>
+              )}
+              {project.github_url && (
+                <a href={project.github_url} class="pd-btn pd-btn--ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
+              )}
+            </div>
+          )}
+        </div>
+        {heroImg && (
+          <div class="pd-hero__media">
+            <img src={heroImg.url} alt={heroImg.alt_en ?? title} class="pd-figure" />
           </div>
         )}
       </div>
@@ -84,7 +90,7 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     {(specs.length > 0 || (project.tech && project.tech.length > 0)) && (
       <section class="pd-specs">
         {specs.map((s) => (
-          <div class="pd-spec">
+          <div class:list={['pd-spec', { 'pd-spec--wide': s.wide }]}>
             <span class="pd-spec__label">{s.label}</span>
             <span class="pd-spec__value">{s.value}</span>
           </div>
@@ -93,7 +99,15 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
           <div class="pd-spec pd-spec--stack">
             <span class="pd-spec__label">Stack</span>
             <div class="pd-tags">
-              {project.tech.map((t: string) => <span class="pd-tag">{t}</span>)}
+              {project.tech.map((t: string) => {
+                const icon = getTechIcon(t);
+                return (
+                  <span class="pd-tag">
+                    {icon && <span class="pd-tag__icon" set:html={icon.svg} />}
+                    {t}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -219,35 +233,6 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     )}
 
   </article>
-
-  <script>
-    // Sample the hero image's average color and feed it to the gradient (--hero-tint).
-    // Pure client-side (canvas) — no server deps. Falls back to the CSS default on any failure.
-    function applyHeroTint() {
-      const img = document.querySelector('.pd-hero__img');
-      if (!(img instanceof HTMLImageElement)) return;
-      const host = img.closest('.pd') as HTMLElement | null;
-      if (!host) return;
-      const sample = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1;
-          canvas.height = 1;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          ctx.drawImage(img, 0, 0, 1, 1);
-          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-          host.style.setProperty('--hero-tint', `rgb(${r}, ${g}, ${b})`);
-        } catch {
-          /* tainted canvas or decode error — keep the CSS fallback tint */
-        }
-      };
-      if (img.complete && img.naturalWidth) sample();
-      else img.addEventListener('load', sample, { once: true });
-    }
-    applyHeroTint();
-    document.addEventListener('astro:page-load', applyHeroTint);
-  </script>
 </BaseLayout>
 
 <style>
@@ -260,38 +245,21 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     transition: background-color 0.3s ease;
   }
 
-  /* First screen: hero (flex-grow) + spec sheet (pinned bottom) fill one viewport */
+  /* HERO — split layout: text on plain page background (guaranteed theme contrast, no scrim
+     needed at all) + the project image as a normal framed card via .pd-figure, same treatment
+     as every other image on this page. Replaces the earlier full-bleed photo + gradient/blend
+     approach, which kept fighting theme contrast and looked muddy with mix-blend-mode over a
+     colorful mockup screenshot. Also drops .pd-top's forced 100vh — that existed to make the
+     cinematic hero fill exactly one screen; a plain editorial layout doesn't need it. */
   .pd-top {
-    min-height: 100vh;
-    min-height: 100dvh;
     display: flex;
     flex-direction: column;
   }
   .pd-hero {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 340px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-    background: var(--bg-secondary, #111);
-  }
-  .pd-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-
-  .pd-hero__scrim {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(to top, color-mix(in srgb, var(--hero-tint, #0b0c12) 55%, transparent) 0%, transparent 55%),
-      linear-gradient(to top, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 42%);
+    padding: 5rem var(--pad-x) 3rem;
   }
 
   .pd-hero__back {
-    position: absolute;
-    top: 1.6rem;
-    left: var(--pad-x);
-    z-index: 3;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -299,21 +267,22 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.3s ease;
+    margin-bottom: 2.5rem;
   }
-  .pd-hero__back:hover { color: #fff; }
+  .pd-hero__back:hover { color: var(--accent); }
 
-  .pd-hero__content {
-    position: relative;
-    z-index: 2;
-    padding: 0 var(--pad-x) 3rem;
-    max-width: 60rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  .pd-hero__grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+    gap: 3.5rem;
   }
+  .pd-hero__grid:not(:has(.pd-hero__media)) { grid-template-columns: 1fr; }
+
+  .pd-hero__content { display: flex; flex-direction: column; align-items: flex-start; }
 
   .pd-badge {
     display: inline-flex;
@@ -323,7 +292,7 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     font-size: 0.82rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--accent);
     margin-bottom: 1.6rem;
   }
   .pd-badge::before {
@@ -337,10 +306,10 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
   .pd-title {
     font-family: var(--font-heading);
     font-weight: 900;
-    font-size: clamp(2.8rem, 7vw, 6.5rem);
+    font-size: clamp(2.6rem, 5.2vw, 5.2rem);
     letter-spacing: -0.03em;
     line-height: 0.95;
-    color: #fff;
+    color: var(--text-primary);
     margin: 0 0 1.1rem;
   }
 
@@ -348,7 +317,7 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     font-family: var(--font-body);
     font-size: clamp(1rem, 1.6vw, 1.4rem);
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-secondary);
     max-width: 46ch;
     margin: 0 0 1.75rem;
   }
@@ -368,19 +337,28 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
   }
   .pd-btn--primary { background: var(--accent); color: var(--bg-primary); }
   .pd-btn--primary:hover { opacity: 0.85; }
-  .pd-btn--ghost { color: #fff; border: 1px solid rgba(255, 255, 255, 0.35); }
-  .pd-btn--ghost:hover { border-color: #fff; background: rgba(255, 255, 255, 0.08); }
+  .pd-btn--ghost { color: var(--text-primary); border: 1px solid var(--border-color); }
+  .pd-btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
 
+  @media (max-width: 992px) {
+    .pd-hero__grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+
+  /* SPEC SHEET */
   .pd-specs {
-    flex: 0 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem 3rem;
     padding: 2rem var(--pad-x) 2.25rem;
     border-top: 1px solid var(--border-color);
   }
   .pd-spec { display: flex; flex-direction: column; gap: 0.7rem; }
   .pd-spec--stack { grid-column: 1 / -1; }
+  /* Role text runs longer than a job title — give it double the column width so it
+     doesn't wrap into a cramped 200px track like the short Collaboration/Year specs. */
+  @media (min-width: 480px) {
+    .pd-spec--wide { grid-column: span 2; }
+  }
   .pd-spec__label {
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -398,6 +376,9 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
   }
   .pd-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; }
   .pd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     font-family: var(--font-mono);
     font-size: 0.72rem;
     letter-spacing: 0.05em;
@@ -408,6 +389,9 @@ const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
     transition: color 0.2s ease, border-color 0.2s ease;
   }
   .pd-tag:hover { color: var(--accent); border-color: var(--accent); }
+  /* :global() — the SVG comes from set:html (raw markup), so it never carries Astro's
+     scoped-style attribute; without :global() this rule silently never matches. */
+  .pd-tag__icon :global(svg) { display: block; width: 13px; height: 13px; fill: currentColor; }
 
   .pd-row {
     display: grid;

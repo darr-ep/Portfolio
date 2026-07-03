@@ -10,6 +10,18 @@ export default defineConfig({
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   integrations: [react(), sitemap()],
+  // Behind the VPS nginx proxy, the app only sees a plain-HTTP connection, so Astro's
+  // security.checkOrigin (CSRF guard on POST/PUT/PATCH/DELETE) derives its own request URL as
+  // http://edsonpedraza.com while the browser's real Origin header is https://edsonpedraza.com —
+  // a scheme mismatch that 403s every state-changing form (e.g. admin logout). Without this,
+  // Astro also ignores X-Forwarded-Host/Proto entirely (untrusted by default), even though nginx
+  // already forwards them correctly.
+  security: {
+    allowedDomains: [
+      { hostname: 'edsonpedraza.com', protocol: 'https' },
+      { hostname: 'www.edsonpedraza.com', protocol: 'https' },
+    ],
+  },
   // Self-hosted + preloaded fonts via Astro's native Fonts API. Replaces the CSS @import of
   // Google Fonts, which loaded late and caused FOUT: until 'Albert Sans' (used at weight 200,
   // which the system fallback can't render) arrived, headings showed the heavier system sans and
