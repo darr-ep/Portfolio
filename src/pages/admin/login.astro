@@ -9,9 +9,14 @@ if (user) {
   return Astro.redirect('/admin');
 }
 
+// Pin the OAuth return to the canonical origin (astro.config `site`), not the
+// www/proxy-derived request host. If it were www and not in Supabase's Redirect
+// URLs allowlist, Supabase silently falls back to its Site URL. This URL must
+// match an entry in Supabase Auth -> Redirect URLs.
+const callbackUrl = new URL('/admin/auth/callback', Astro.site ?? Astro.url.origin).href;
 const { data } = await supabase.auth.signInWithOAuth({
   provider: 'google',
-  options: { redirectTo: `${Astro.url.origin}/admin/auth/callback` },
+  options: { redirectTo: callbackUrl },
 });
 const oauthUrl = data?.url ?? '#';
 ---
