@@ -1,34 +1,13 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import StaggeredMenu from '../islands/StaggeredMenu.tsx';
+import { getLocaleAlternates } from '../../i18n/routes';
 
 const isEs = Astro.currentLocale !== 'en';
 const logoHref = getRelativeLocaleUrl(Astro.currentLocale ?? 'es', '/');
 
-const currentPath = Astro.url.pathname;
-
-// Compute the equivalent URL in each locale for the current page
-let esHref: string;
-let enHref: string;
-
-if (currentPath.startsWith('/en/projects/')) {
-  const slug = currentPath.replace('/en/projects/', '');
-  esHref = `/proyectos/${slug}`;
-  enHref = `/en/projects/${slug}`;
-} else if (currentPath.startsWith('/proyectos/')) {
-  const slug = currentPath.replace('/proyectos/', '');
-  esHref = `/proyectos/${slug}`;
-  enHref = `/en/projects/${slug}`;
-} else if (currentPath === '/cv' || currentPath === '/en/cv') {
-  esHref = '/cv';
-  enHref = '/en/cv';
-} else if (currentPath === '/proyectos' || currentPath === '/en/projects') {
-  esHref = '/proyectos';
-  enHref = '/en/projects';
-} else {
-  esHref = '/';
-  enHref = '/en/';
-}
+// Equivalent URL in each locale for the current page (shared with SEO.astro).
+const { es: esHref, en: enHref } = getLocaleAlternates(Astro.url.pathname);
 
 const navLinks = isEs
   ? [
@@ -303,6 +282,10 @@ const langHref = isEs ? enHref : esHref;
     align-items: center;
     justify-content: center;
     text-decoration: none;
+    /* WCAG 2.5.5 Target Size: keep the tap/click target at least 44x44px
+       even though the icon glyph itself is 18px. */
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .social-icon:hover {

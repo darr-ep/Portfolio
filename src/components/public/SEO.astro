@@ -1,4 +1,6 @@
 ---
+import { getLocaleAlternates } from '../../i18n/routes';
+
 interface Props {
   title?: string;
   description?: string;
@@ -22,11 +24,16 @@ const {
 } = Astro.props;
 
 const siteUrl = 'https://edsonpedraza.com';
-const canonicalUrl = url ? `${siteUrl}${url}` : siteUrl;
+const path = url ?? '/';
+const canonicalUrl = `${siteUrl}${path}`;
 const ogImage = image?.startsWith('http') ? image : `${siteUrl}${image}`;
 
-const altLocale = lang === 'es' ? 'en' : 'es';
-const altUrl = lang === 'es' ? `${siteUrl}/en/` : siteUrl;
+// Per-page hreflang: map the current path to its equivalent in each locale so
+// alternates point to the real sibling page (not always the home). x-default
+// resolves to the ES version, the default locale.
+const { es: esPath, en: enPath } = getLocaleAlternates(path);
+const esUrl = `${siteUrl}${esPath}`;
+const enUrl = `${siteUrl}${enPath}`;
 
 const personSchema = {
   '@context': 'https://schema.org',
@@ -53,9 +60,9 @@ const webPageSchema = {
 <link rel="canonical" href={canonicalUrl} />
 
 <!-- hreflang alternates -->
-<link rel="alternate" hreflang={lang} href={canonicalUrl} />
-<link rel="alternate" hreflang={altLocale} href={altUrl} />
-<link rel="alternate" hreflang="x-default" href={siteUrl} />
+<link rel="alternate" hreflang="es" href={esUrl} />
+<link rel="alternate" hreflang="en" href={enUrl} />
+<link rel="alternate" hreflang="x-default" href={esUrl} />
 
 <!-- Open Graph -->
 <meta property="og:title" content={title} />

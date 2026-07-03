@@ -9,7 +9,7 @@ const { data: timelineData } = await supabase
   .order('sort_order', { ascending: true });
 
 const lang = Astro.currentLocale ?? 'es';
-const sectionTitle = lang === 'en' ? 'JOURNEY' : 'HISTORIA';
+const sectionTitle = lang === 'en' ? 'EXPERIENCE' : 'TRAYECTORIA';
 
 const entries = (timelineData ?? []).map((t: TimelineEntry) => ({
   period: t.year,
