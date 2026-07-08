@@ -1,6 +1,7 @@
 ---
 import { supabase } from '../../lib/supabase';
 import type { Technology } from '../../types/database';
+import { getTechIcon } from '../../lib/tech-icons';
 
 const { data: techData } = await supabase
   .from('technologies')
@@ -24,8 +25,8 @@ const skillGroups = Array.from(categoryMap.entries()).map(([category, skills]) =
 
 const lang = Astro.currentLocale ?? 'es';
 const sectionTitle = lang === 'en' ? 'DETAILS' : 'DETALLES';
-const cvHref = lang === 'en' ? '/en/cv' : '/cv';
-const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
+const cvHref = lang === 'en' ? '/cv.pdf?lang=en' : '/cv.pdf';
+const cvLabel = lang === 'en' ? 'Download CV' : 'Descargar CV';
 ---
 
 <section id="detalles" class="details-section">
@@ -55,14 +56,12 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
             ? "I don't code to meet requirements; I code to create memorable, fluid experiences."
             : 'No programo para cumplir requisitos; programo para crear experiencias memorables y fluidas.'}
         </p>
-        <a href={cvHref} class="cv-link" data-transition-label="CV" aria-label={cvLabel}>
+        <a href={cvHref} class="cv-link" download aria-label={cvLabel}>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
           {cvLabel}
         </a>
@@ -75,9 +74,17 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
             <div class="skill-box">
               <span class="skill-bar" aria-hidden="true"></span>
               <span class="skill-category">{group.category.toUpperCase()}</span>
-              <ul class="skill-list">
-                {group.skills.map((skill) => <li>{skill}</li>)}
-              </ul>
+              <div class="skill-chips">
+                {group.skills.map((skill) => {
+                  const icon = getTechIcon(skill);
+                  return (
+                    <span class="skill-chip" style={icon ? `--brand: #${icon.hex}` : undefined}>
+                      {icon && <span class="skill-chip__icon" set:html={icon.svg} />}
+                      <span>{skill}</span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
@@ -90,7 +97,6 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
 <style>
   .details-section {
     width: 100%;
-    min-height: 100vh;
     padding: 8rem 6vw;
     padding-left: calc(80px + 6vw);
     background-color: var(--bg-primary);
@@ -109,7 +115,7 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
     display: flex;
     align-items: baseline;
     gap: 1.5rem;
-    margin-bottom: 6rem;
+    margin-bottom: 4rem;
   }
 
   .section-num {
@@ -201,7 +207,7 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
   .skill-box {
     border: 1px solid var(--border-color);
     background-color: rgba(128, 128, 128, 0.02);
-    padding: 2.5rem 2rem;
+    padding: 1.75rem 1.5rem;
     border-radius: 4px;
     position: relative;
     overflow: hidden;
@@ -230,7 +236,7 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
 
   .skill-box:hover .skill-category { color: var(--accent); }
 
-  .skill-box:hover .skill-list li { color: var(--text-primary); }
+  .skill-box:hover .skill-chip { color: var(--text-primary); }
 
   .skill-category {
     font-family: var(--font-mono, 'Courier New', monospace);
@@ -239,21 +245,45 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
     letter-spacing: 0.2em;
     color: var(--text-muted);
     display: block;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.1rem;
     transition: color 0.3s ease;
   }
 
-  .skill-list {
-    list-style: none;
+  .skill-chips {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
-  .skill-list li {
-    font-size: 0.9rem;
+  .skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
     color: var(--text-secondary);
-    transition: color 0.3s ease;
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .skill-chip:hover { border-color: var(--accent); }
+
+  /* Brand tint mixed toward the theme's text color so near-black logos
+     (Next.js, Three.js) stay visible on the dark background. */
+  .skill-chip__icon {
+    color: color-mix(in srgb, var(--brand, currentColor) 72%, var(--text-primary));
+  }
+
+  /* :global() — the SVG comes from set:html (raw markup), so it never carries Astro's
+     scoped-style attribute; without :global() this rule silently never matches. */
+  .skill-chip__icon :global(svg) {
+    display: block;
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
   }
 
   .cv-link {
@@ -298,6 +328,6 @@ const cvLabel = lang === 'en' ? 'View CV' : 'Ver CV';
       gap: 1.5rem;
     }
 
-    .skill-box { padding: 2rem 1.5rem; }
+    .skill-box { padding: 1.5rem 1.25rem; }
   }
 </style>

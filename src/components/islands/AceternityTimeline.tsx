@@ -169,7 +169,7 @@ export function AceternityTimeline({
                 fontSize: "0.9rem",
                 lineHeight: 1.75,
                 color: "var(--text-secondary)",
-                maxWidth: "560px",
+                maxWidth: "680px",
               }}>
                 {entry.description}
               </p>

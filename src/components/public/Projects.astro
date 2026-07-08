@@ -166,15 +166,12 @@ const featuredMobile = projects.slice(0, 2);
 <style>
   .projects-section {
     width: 100%;
-    min-height: 100vh;
     padding: 8rem 6vw;
     padding-left: calc(80px + 6vw);
     background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
     border-top: 1px solid var(--border-color);
     position: relative;
-    display: flex;
-    align-items: center;
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
@@ -339,7 +336,7 @@ const featuredMobile = projects.slice(0, 2);
     display: flex;
     align-items: baseline;
     gap: 1.25rem;
-    padding: 0.8rem 0;
+    padding: 1.6rem 0;
     cursor: pointer;
     user-select: none;
     outline: none;
@@ -420,9 +417,9 @@ const featuredMobile = projects.slice(0, 2);
 
   .acc-title {
     font-family: var(--font-heading);
-    font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
     font-weight: 900;
-    line-height: 1;
+    line-height: 1.1;
     color: var(--text-muted);
     letter-spacing: -0.02em;
     transition: color 0.4s ease, transform 0.4s ease;
@@ -675,7 +672,7 @@ const featuredMobile = projects.slice(0, 2);
     }
 
     .projects-accordion { width: 100%; }
-    .accordion-header { gap: 0.9rem; padding: 0.7rem 0; }
+    .accordion-header { gap: 0.9rem; padding: 1.1rem 0; }
     .accordion-content { padding-left: 1.5rem; }
     /* No hover on touch — the flowing strip has no purpose */
     .flow-marquee { display: none; }
