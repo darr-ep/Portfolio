@@ -19,9 +19,6 @@ export function getLocaleAlternates(pathname: string): LocaleAlternates {
     const slug = pathname.replace('/proyectos/', '');
     return { es: `/proyectos/${slug}`, en: `/en/projects/${slug}` };
   }
-  if (pathname === '/cv' || pathname === '/en/cv') {
-    return { es: '/cv', en: '/en/cv' };
-  }
   if (pathname === '/proyectos' || pathname === '/en/projects') {
     return { es: '/proyectos', en: '/en/projects' };
   }
