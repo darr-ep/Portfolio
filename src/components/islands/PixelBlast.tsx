@@ -1,4 +1,4 @@
-import { Effect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
+import type { Effect, EffectComposer } from 'postprocessing';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 type PixelBlastVariant = 'square' | 'circle' | 'triangle' | 'diamond';
@@ -138,7 +138,11 @@ const createTouchTexture = (): TouchTexture => {
   };
 };
 
-const createLiquidEffect = (texture: THREE.Texture, opts?: { strength?: number; freq?: number }) => {
+const createLiquidEffect = (
+  EffectCtor: typeof Effect,
+  texture: THREE.Texture,
+  opts?: { strength?: number; freq?: number }
+) => {
   const fragment = `
     uniform sampler2D uTexture;
     uniform float uStrength;
@@ -158,7 +162,7 @@ const createLiquidEffect = (texture: THREE.Texture, opts?: { strength?: number; 
       uv += vec2(vx, vy) * amt;
     }
     `;
-  return new Effect('LiquidEffect', fragment, {
+  return new EffectCtor('LiquidEffect', fragment, {
     uniforms: new Map<string, THREE.Uniform>([
       ['uTexture', new THREE.Uniform(texture)],
       ['uStrength', new THREE.Uniform(opts?.strength ?? 0.025)],
@@ -448,7 +452,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       });
       renderer.domElement.style.width = '100%';
       renderer.domElement.style.height = '100%';
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
       if (transparent) renderer.setClearAlpha(0);
       else renderer.setClearColor(0x000000, 1);
@@ -511,46 +515,67 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       let composer: EffectComposer | undefined;
       let touch: ReturnType<typeof createTouchTexture> | undefined;
       let liquidEffect: Effect | undefined;
-      if (liquid) {
-        touch = createTouchTexture();
-        touch.radiusScale = liquidRadius;
-        composer = new EffectComposer(renderer);
-        const renderPass = new RenderPass(scene, camera);
-        liquidEffect = createLiquidEffect(touch.texture, {
-          strength: liquidStrength,
-          freq: liquidWobbleSpeed
-        });
-        const effectPass = new EffectPass(camera, liquidEffect);
-        effectPass.renderToScreen = true;
-        composer.addPass(renderPass);
-        composer.addPass(effectPass);
-      }
-      if (noiseAmount > 0) {
-        if (!composer) {
-          composer = new EffectComposer(renderer);
-          composer.addPass(new RenderPass(scene, camera));
-        }
-        const noiseEffect = new Effect(
-          'NoiseEffect',
-          `uniform float uTime; uniform float uAmount; float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453);} void mainUv(inout vec2 uv){} void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){ float n=hash(floor(uv*vec2(1920.0,1080.0))+floor(uTime*60.0)); float g=(n-0.5)*uAmount; outputColor=inputColor+vec4(vec3(g),0.0);} `,
-          {
-            uniforms: new Map<string, THREE.Uniform>([
-              ['uTime', new THREE.Uniform(0)],
-              ['uAmount', new THREE.Uniform(noiseAmount)]
-            ])
+      // `postprocessing` is only needed for the liquid distortion or the film-grain
+      // noise pass. Neither is used by the default (Hero) config, so load it lazily —
+      // this keeps the whole postprocessing library out of the island's initial chunk
+      // and off the network unless a caller actually opts into one of those effects.
+      if (liquid || noiseAmount > 0) {
+        void import('postprocessing').then(
+          ({ Effect: EffectCls, EffectComposer: EffectComposerCls, EffectPass, RenderPass }) => {
+            // Bail if the effect was torn down (or reinitialized) while the import was
+            // in flight — `threeRef.current` is set synchronously below, so a mismatch
+            // means this init is stale and its renderer is already disposed.
+            if (threeRef.current?.renderer !== renderer) return;
+            if (liquid) {
+              touch = createTouchTexture();
+              touch.radiusScale = liquidRadius;
+              composer = new EffectComposerCls(renderer);
+              const renderPass = new RenderPass(scene, camera);
+              liquidEffect = createLiquidEffect(EffectCls, touch.texture, {
+                strength: liquidStrength,
+                freq: liquidWobbleSpeed
+              });
+              const effectPass = new EffectPass(camera, liquidEffect);
+              effectPass.renderToScreen = true;
+              composer.addPass(renderPass);
+              composer.addPass(effectPass);
+            }
+            if (noiseAmount > 0) {
+              if (!composer) {
+                composer = new EffectComposerCls(renderer);
+                composer.addPass(new RenderPass(scene, camera));
+              }
+              const noiseEffect = new EffectCls(
+                'NoiseEffect',
+                `uniform float uTime; uniform float uAmount; float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453);} void mainUv(inout vec2 uv){} void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){ float n=hash(floor(uv*vec2(1920.0,1080.0))+floor(uTime*60.0)); float g=(n-0.5)*uAmount; outputColor=inputColor+vec4(vec3(g),0.0);} `,
+                {
+                  uniforms: new Map<string, THREE.Uniform>([
+                    ['uTime', new THREE.Uniform(0)],
+                    ['uAmount', new THREE.Uniform(noiseAmount)]
+                  ])
+                }
+              );
+              const noisePass = new EffectPass(camera, noiseEffect);
+              noisePass.renderToScreen = true;
+              if (composer && composer.passes.length > 0) {
+                composer.passes.forEach(p => {
+                  const pass = p as { renderToScreen?: boolean };
+                  pass.renderToScreen = false;
+                });
+              }
+              composer.addPass(noisePass);
+            }
+            if (composer) composer.setSize(renderer.domElement.width, renderer.domElement.height);
+            // Publish to threeRef so cleanup/resize/reinit observe the composer that the
+            // animate loop is already reading from the captured `composer` closure var.
+            if (threeRef.current) {
+              threeRef.current.composer = composer;
+              threeRef.current.touch = touch;
+              threeRef.current.liquidEffect = liquidEffect;
+            }
           }
         );
-        const noisePass = new EffectPass(camera, noiseEffect);
-        noisePass.renderToScreen = true;
-        if (composer && composer.passes.length > 0) {
-          composer.passes.forEach(p => {
-            const pass = p as { renderToScreen?: boolean };
-            pass.renderToScreen = false;
-          });
-        }
-        composer.addPass(noisePass);
       }
-      if (composer) composer.setSize(renderer.domElement.width, renderer.domElement.height);
       const mapToPixels = (e: PointerEvent) => {
         const rect = renderer.domElement.getBoundingClientRect();
         const scaleX = renderer.domElement.width / rect.width;
