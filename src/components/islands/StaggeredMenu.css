@@ -269,6 +269,7 @@ html.light .sm-logo-light { display: block; }
 .sm-control-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
   font-family: var(--font-heading);
   font-size: 0.75rem;
@@ -280,6 +281,8 @@ html.light .sm-logo-light { display: block; }
   border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 0.55rem 0.9rem;
+  /* 44px minimum touch target (WCAG 2.5.5). The text-only content was ~32px tall. */
+  min-height: 44px;
   cursor: pointer;
   text-decoration: none;
   transition: color 0.25s ease, border-color 0.25s ease;
@@ -334,8 +337,12 @@ html.light .sm-logo-light { display: block; }
   font-weight: 500;
   color: var(--text-primary);
   text-decoration: none;
-  padding: 2px 0;
-  display: inline-block;
+  /* 44px minimum touch target (WCAG 2.5.5). Was ~21px tall with no horizontal
+     padding — the smallest, hardest-to-tap target in the menu. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
   transition: color 0.3s ease;
 }
 
