@@ -9,11 +9,17 @@ if (user) {
   return Astro.redirect('/admin');
 }
 
-// Pin the OAuth return to the canonical origin (astro.config `site`), not the
-// www/proxy-derived request host. If it were www and not in Supabase's Redirect
-// URLs allowlist, Supabase silently falls back to its Site URL. This URL must
-// match an entry in Supabase Auth -> Redirect URLs.
-const callbackUrl = new URL('/admin/auth/callback', Astro.site ?? Astro.url.origin).href;
+// OAuth return origin. In prod, pin to the canonical origin (astro.config `site`), NOT the
+// www/proxy-derived request host: if it were www and not in Supabase's Redirect URLs allowlist,
+// Supabase silently falls back to its Site URL. But in local dev the request runs on localhost
+// while Astro.site is the prod origin — pinning there would send Google's callback to prod, where
+// the localhost code_verifier cookie doesn't exist, so the PKCE exchange fails and login "silently"
+// bounces. So use the real request origin on localhost, the canonical pin everywhere else.
+// NOTE: the localhost callback (http://localhost:4321/admin/auth/callback) must also be listed in
+// Supabase Auth -> Redirect URLs, or Supabase rejects it.
+const origin = Astro.url.origin;
+const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+const callbackUrl = new URL('/admin/auth/callback', isLocalhost ? origin : (Astro.site ?? origin)).href;
 const { data } = await supabase.auth.signInWithOAuth({
   provider: 'google',
   options: { redirectTo: callbackUrl },
