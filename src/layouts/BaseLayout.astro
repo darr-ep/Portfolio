@@ -10,8 +10,7 @@ interface Props {
   description?: string;
   image?: string;
   lang?: string;
-  includePersonSchema?: boolean;
-  includeWebPageSchema?: boolean;
+  schemas?: Record<string, unknown>[];
 }
 
 const {
@@ -19,8 +18,7 @@ const {
   description = 'Portfolio personal de Edson Pedraza. Frontend Developer especializado en crear experiencias web interactivas y memorables.',
   image,
   lang = 'es',
-  includePersonSchema = false,
-  includeWebPageSchema = false,
+  schemas = [],
 } = Astro.props;
 ---
 <html lang={Astro.currentLocale ?? lang ?? 'es'}>
@@ -40,7 +38,7 @@ const {
         }
       })();
     </script>
-    <SEO title={title} description={description} image={image} lang={lang} url={Astro.url.pathname} includePersonSchema={includePersonSchema} includeWebPageSchema={includeWebPageSchema} />
+    <SEO title={title} description={description} image={image} lang={lang} url={Astro.url.pathname} schemas={schemas} />
     <!-- Self-hosted fonts (Astro Fonts API), replacing the Google Fonts @import FOUT. No `preload`:
          each font now ships many weights, and <Font preload> preloads ALL of them — most go unused
          on a given page (console warnings + wasted bytes). @font-face are inline + files are local,

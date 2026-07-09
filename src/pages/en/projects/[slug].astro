@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import type { Project, ProjectImage, ProjectBeat } from '../../../types/database';
 import { getReadyNeighbors, getRelatedProjects } from '../../../lib/projects';
 import { getTechIcon } from '../../../lib/tech-icons';
+import { buildBreadcrumbSchema, buildProjectSchema, absoluteUrl } from '../../../lib/schema';
 
 export const prerender = false;
 
@@ -46,9 +47,19 @@ const specs = [
 const allProjects = (list.data ?? []) as (Project & { project_images?: { slot_key: string; url: string }[] })[];
 const { prev, next } = getReadyNeighbors(allProjects, project.slug, 'en');
 const related = getRelatedProjects(allProjects, project.slug, 'en', 2);
+
+const canonical = absoluteUrl(Astro.url.pathname);
+const schemas = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: absoluteUrl('/en') },
+    { name: 'Projects', url: absoluteUrl('/en/projects') },
+    { name: title, url: canonical },
+  ]),
+  buildProjectSchema(project, { url: canonical, image: ogImage, lang: 'en' }),
+];
 ---
 
-<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={ogImage} includeWebPageSchema={true}>
+<BaseLayout title={`${title} — Edson Pedraza`} description={description} image={ogImage} lang="en" schemas={schemas}>
   <article class="pd">
 
     <!-- First screen: hero fills the space above the spec sheet; both fit one viewport -->

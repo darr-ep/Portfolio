@@ -8,8 +8,8 @@ interface Props {
   lang?: string;
   url?: string;
   type?: 'website' | 'article';
-  includePersonSchema?: boolean;
-  includeWebPageSchema?: boolean;
+  /** JSON-LD graph nodes to emit, built with src/lib/schema.ts. */
+  schemas?: Record<string, unknown>[];
 }
 
 const {
@@ -19,8 +19,7 @@ const {
   lang = 'es',
   url,
   type = 'website',
-  includePersonSchema = false,
-  includeWebPageSchema = false,
+  schemas = [],
 } = Astro.props;
 
 const siteUrl = 'https://edsonpedraza.com';
@@ -34,26 +33,6 @@ const ogImage = image?.startsWith('http') ? image : `${siteUrl}${image}`;
 const { es: esPath, en: enPath } = getLocaleAlternates(path);
 const esUrl = `${siteUrl}${esPath}`;
 const enUrl = `${siteUrl}${enPath}`;
-
-const personSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: 'Edson Pedraza',
-  url: siteUrl,
-  sameAs: [
-    'https://github.com/darr-ep',
-    'https://www.linkedin.com/in/edson-pedraza/',
-  ],
-};
-
-const webPageSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  url: canonicalUrl,
-  name: title,
-  description,
-  image: ogImage,
-};
 ---
 <title>{title}</title>
 <meta name="description" content={description} />
@@ -79,10 +58,6 @@ const webPageSchema = {
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 
-{includePersonSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
-)}
-
-{includeWebPageSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(webPageSchema)} />
-)}
+{schemas.map((schema) => (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+))}

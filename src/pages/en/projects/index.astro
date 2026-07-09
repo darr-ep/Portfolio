@@ -1,15 +1,25 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ProjectsIndex from '../../../components/public/ProjectsIndex.astro';
+import { buildWebPageSchema, absoluteUrl } from '../../../lib/schema';
 
 export const prerender = false;
+
+const schemas = [
+  buildWebPageSchema({
+    type: 'CollectionPage',
+    url: absoluteUrl('/en/projects'),
+    name: 'Work — Edson Pedraza',
+    description: 'Selected projects and case studies by Edson Pedraza.',
+  }),
+];
 ---
 
 <BaseLayout
   title="Work — Edson Pedraza"
   description="Selected projects and case studies by Edson Pedraza."
   lang="en"
-  includeWebPageSchema={true}
+  schemas={schemas}
 >
   <ProjectsIndex lang="en" />
 </BaseLayout>

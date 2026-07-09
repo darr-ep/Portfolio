@@ -7,12 +7,34 @@ import Projects from '../../components/public/Projects.astro';
 import Timeline from '../../components/public/Timeline.astro';
 import Details from '../../components/public/Details.astro';
 import Contact from '../../components/public/Contact.astro';
+import { supabase } from '../../lib/supabase';
+import { buildPersonSchema, buildProfilePageSchema, SITE_URL } from '../../lib/schema';
+
+const [{ data: profile }, { data: technologies }, { data: education }] = await Promise.all([
+  supabase.from('profile').select('*').single(),
+  supabase.from('technologies').select('*').order('sort_order', { ascending: true }),
+  supabase.from('education').select('*').order('sort_order', { ascending: true }),
+]);
+
+const schemas = profile
+  ? [
+      buildProfilePageSchema(
+        buildPersonSchema(profile, technologies ?? [], education ?? [], 'en'),
+        {
+          url: `${SITE_URL}/en`,
+          name: `${profile.full_name} — ${profile.role_en}`,
+          description: profile.about_en,
+          dateModified: profile.updated_at,
+        },
+      ),
+    ]
+  : [];
 ---
 <BaseLayout
   title="Edson Pedraza — Frontend Developer"
   description="Personal portfolio of Edson Pedraza. Frontend Developer specialized in building interactive and memorable web experiences."
-  includePersonSchema={true}
-  includeWebPageSchema={true}
+  lang="en"
+  schemas={schemas}
 >
   <Splash />
   <Hero />

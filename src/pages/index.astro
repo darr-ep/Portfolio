@@ -7,8 +7,32 @@ import Projects from '../components/public/Projects.astro';
 import Timeline from '../components/public/Timeline.astro';
 import Details from '../components/public/Details.astro';
 import Contact from '../components/public/Contact.astro';
+import { supabase } from '../lib/supabase';
+import { buildPersonSchema, buildProfilePageSchema, SITE_URL } from '../lib/schema';
+
+// Profile / tech / education power the ProfilePage + Person JSON-LD. Same three
+// tables the CV PDF pulls, fetched in parallel.
+const [{ data: profile }, { data: technologies }, { data: education }] = await Promise.all([
+  supabase.from('profile').select('*').single(),
+  supabase.from('technologies').select('*').order('sort_order', { ascending: true }),
+  supabase.from('education').select('*').order('sort_order', { ascending: true }),
+]);
+
+const schemas = profile
+  ? [
+      buildProfilePageSchema(
+        buildPersonSchema(profile, technologies ?? [], education ?? [], 'es'),
+        {
+          url: `${SITE_URL}/`,
+          name: `${profile.full_name} — ${profile.role_es}`,
+          description: profile.about_es,
+          dateModified: profile.updated_at,
+        },
+      ),
+    ]
+  : [];
 ---
-<BaseLayout lang="es" includePersonSchema={true} includeWebPageSchema={true}>
+<BaseLayout lang="es" schemas={schemas}>
   <Splash />
   <Hero />
   <Marquee />
