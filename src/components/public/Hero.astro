@@ -74,10 +74,13 @@ const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
         class="hero-img img-bg"
       />
 
-      <!-- Layer 2: PixelBlast canvas — desktop only (disabled on mobile for performance) -->
+      <!-- Layer 2: PixelBlast canvas. client:media gates the whole ~545KB Three.js
+           island: its JS is never downloaded and no WebGL context is created unless
+           the viewport is desktop-width AND the user allows motion. On mobile or with
+           prefers-reduced-motion the island simply never hydrates. -->
       <div class="pixelblast-wrap">
         <PixelBlast
-          client:only="react"
+          client:media="(min-width: 769px) and (prefers-reduced-motion: no-preference)"
           color="#e3a857"
           transparent={true}
           enableRipples={true}

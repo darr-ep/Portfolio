@@ -48,10 +48,12 @@ function isActive(href: string): boolean {
     <!-- Decorative noise texture — same as the public site for visual continuity. -->
     <div class="noise-overlay" aria-hidden="true"></div>
 
-    <!-- PixelBlast animated background (admin-tuned: low density, slow, no ripples). -->
+    <!-- PixelBlast animated background (admin-tuned: low density, slow, no ripples).
+         client:media gates the Three.js island: no JS download / no WebGL unless the
+         viewport is desktop-width and the user allows motion. -->
     <div class="admin-pixel-bg" aria-hidden="true">
       <PixelBlast
-        client:only="react"
+        client:media="(min-width: 769px) and (prefers-reduced-motion: no-preference)"
         color="#e3a857"
         pixelSize={7}
         speed={0.1}
