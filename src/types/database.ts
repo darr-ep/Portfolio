@@ -34,6 +34,13 @@ export interface Project {
   conclusion_en: string | null;
   beats_es: ProjectBeat[] | null;
   beats_en: ProjectBeat[] | null;
+  // Optional: these columns are additive (migration 0001_cv_project_impact.sql)
+  // and may not exist on the DB yet. Code reading them must not assume presence.
+  cv_visible?: boolean;
+  cv_problem_es?: string | null;
+  cv_problem_en?: string | null;
+  cv_impact_es?: ProjectBeat[] | null;
+  cv_impact_en?: ProjectBeat[] | null;
   created_at: string;
   updated_at: string;
 }
