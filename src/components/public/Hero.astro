@@ -74,7 +74,7 @@ const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
         class="hero-img img-bg"
       />
 
-      <!-- Layer 2: PixelBlast canvas. client:media gates the whole ~545KB Three.js
+      <!-- Layer 2: PixelBlast canvas. client:media gates the ~57KB OGL WebGL
            island: its JS is never downloaded and no WebGL context is created unless
            the viewport is desktop-width AND the user allows motion. On mobile or with
            prefers-reduced-motion the island simply never hydrates. -->
@@ -86,7 +86,7 @@ const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
           enableRipples={true}
           variant="circle"
           edgeFade={0.3}
-          pixelSize={3}
+          pixelSize={5}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2 }}
         />
       </div>
