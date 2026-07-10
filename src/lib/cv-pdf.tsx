@@ -13,7 +13,8 @@ import {
   StyleSheet,
   renderToBuffer,
 } from '@react-pdf/renderer';
-import type { Profile, Project, Technology, Education, Language, TimelineEntry } from '../types/database';
+import type { Profile, Technology, Education, Language, TimelineEntry } from '../types/database';
+import type { CvProjectView } from './cv-projection';
 // Inlined as data URIs so the standalone server bundle has no filesystem/network
 // dependency for fonts.
 import albertExtraLight from '../assets/cv-fonts/AlbertSans-ExtraLight.ttf?inline';
@@ -153,6 +154,21 @@ const styles = StyleSheet.create({
     lineHeight: 1.55,
     marginTop: 4,
   },
+  problemText: {
+    fontSize: 8,
+    lineHeight: 1.55,
+    marginTop: 4,
+    color: MUTED,
+  },
+  impactBullet: {
+    fontSize: 8,
+    lineHeight: 1.55,
+    marginTop: 3,
+  },
+  impactLead: {
+    fontWeight: 600,
+    color: INK,
+  },
   techRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -195,7 +211,7 @@ const styles = StyleSheet.create({
 export interface CvData {
   profile: Profile | null;
   timeline: TimelineEntry[];
-  projects: Pick<Project, 'title_es' | 'title_en' | 'description_es' | 'description_en' | 'tech'>[];
+  projects: CvProjectView[];
   technologies: Technology[];
   education: Education[];
   languages: Language[];
@@ -323,10 +339,20 @@ function CvDocument({ data, lang }: { data: CvData; lang: Lang }) {
                 <SectionTitle>{t.projects}</SectionTitle>
                 {projects.map((project, i) => (
                   <View key={i} style={styles.item} wrap={false}>
-                    <Text style={styles.itemTitle}>{isEs ? project.title_es : project.title_en}</Text>
-                    {(isEs ? project.description_es : project.description_en) && (
-                      <Text style={styles.itemDesc}>{isEs ? project.description_es : project.description_en}</Text>
+                    <Text style={styles.itemTitle}>{project.title}</Text>
+                    {project.description && (
+                      <Text style={styles.itemDesc}>{project.description}</Text>
                     )}
+                    {project.problem && (
+                      <Text style={styles.problemText}>{project.problem}</Text>
+                    )}
+                    {project.impact.map((bullet, j) => (
+                      <Text key={j} style={styles.impactBullet}>
+                        {bullet.lead && <Text style={styles.impactLead}>{bullet.lead}</Text>}
+                        {bullet.lead && bullet.body ? '  ' : ''}
+                        {bullet.body}
+                      </Text>
+                    ))}
                     {project.tech && project.tech.length > 0 && (
                       <View style={styles.techRow}>
                         {project.tech.map((tech, j) => (

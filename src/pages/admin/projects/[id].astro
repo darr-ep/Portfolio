@@ -2,6 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
 import type { ProjectImage } from '../../../types/database';
+import { CV_IMPACT_SLOTS } from '../../../lib/cv-projection';
 
 const { id } = Astro.params;
 let saveError: string | null = null;
@@ -36,6 +37,22 @@ if (Astro.request.method === 'POST') {
     if (leadEn || bodyEn) beats_en.push({ lead: leadEn, body: bodyEn });
   }
 
+  // CV export: visibility toggle + problem sentence + fixed impact slots per locale.
+  const cv_visible = form.get('cv_visible') === 'on';
+  const cv_problem_es = (form.get('cv_problem_es') as string) || null;
+  const cv_problem_en = (form.get('cv_problem_en') as string) || null;
+
+  const cv_impact_es: { lead: string; body: string }[] = [];
+  const cv_impact_en: { lead: string; body: string }[] = [];
+  for (let i = 0; i < CV_IMPACT_SLOTS; i++) {
+    const leadEs = ((form.get(`cv_impact_${i}_lead_es`) as string) || '').trim();
+    const bodyEs = ((form.get(`cv_impact_${i}_body_es`) as string) || '').trim();
+    const leadEn = ((form.get(`cv_impact_${i}_lead_en`) as string) || '').trim();
+    const bodyEn = ((form.get(`cv_impact_${i}_body_en`) as string) || '').trim();
+    if (leadEs || bodyEs) cv_impact_es.push({ lead: leadEs, body: bodyEs });
+    if (leadEn || bodyEn) cv_impact_en.push({ lead: leadEn, body: bodyEn });
+  }
+
   // sort_order is managed by drag-to-reorder -- never touched here.
   const { error } = await supabase
     .from('projects')
@@ -61,6 +78,11 @@ if (Astro.request.method === 'POST') {
       conclusion_en:     form.get('conclusion_en')      || null,
       tech,
       main_image:        form.get('main_image')         || null,
+      cv_visible,
+      cv_problem_es,
+      cv_problem_en,
+      cv_impact_es:      cv_impact_es.length ? cv_impact_es : null,
+      cv_impact_en:      cv_impact_en.length ? cv_impact_en : null,
     })
     .eq('id', id!);
 
@@ -97,6 +119,14 @@ for (const img of rawImages ?? []) {
 // Pre-fill the beat slots from the stored arrays (may be shorter than BEAT_SLOTS).
 const beatsEs = (project.beats_es ?? []) as { lead: string; body: string }[];
 const beatsEn = (project.beats_en ?? []) as { lead: string; body: string }[];
+
+// CV export fields — tolerant of the columns not existing yet (pre-migration),
+// in which case `project.cv_*` is simply undefined and these fall back safely.
+const cvVisible = project.cv_visible ?? false;
+const cvProblemEs = project.cv_problem_es ?? '';
+const cvProblemEn = project.cv_problem_en ?? '';
+const cvImpactEs = (project.cv_impact_es ?? []) as { lead: string; body: string }[];
+const cvImpactEn = (project.cv_impact_en ?? []) as { lead: string; body: string }[];
 
 const IMAGE_SLOTS = [
   { key: 'hero',             label: 'Hero / Portada' },
@@ -242,6 +272,57 @@ const IMAGE_SLOTS = [
               rows="4">{project.description_en}</textarea>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Section: CV export (problem + impact) -->
+    <div class="admin-card">
+      <span class="admin-section-title">Currículum (CV) — problema e impacto</span>
+      <p class="beats-hint">Controla si este proyecto aparece en el CV descargable (/cv.pdf) y el bloque "problema → impacto" que se muestra ahí. No afecta la página pública del proyecto.</p>
+      <div class="admin-fields">
+        <label class="admin-checkbox-label">
+          <input type="checkbox" name="cv_visible" checked={cvVisible} />
+          Mostrar este proyecto en el CV
+        </label>
+
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="cv_problem_es">Problema (ES)</label>
+            <textarea class="admin-textarea" id="cv_problem_es" name="cv_problem_es"
+              rows="3">{cvProblemEs}</textarea>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="cv_problem_en">Problema (EN)</label>
+            <textarea class="admin-textarea" id="cv_problem_en" name="cv_problem_en"
+              rows="3">{cvProblemEn}</textarea>
+          </div>
+        </div>
+
+        {Array.from({ length: CV_IMPACT_SLOTS }).map((_, i) => (
+          <div class="beat-slot">
+            <span class="beat-slot__label">Impacto {i + 1}</span>
+            <div class="admin-row">
+              <div class="admin-field">
+                <label class="admin-label">Frase (ES)</label>
+                <input class="admin-input" type="text" name={`cv_impact_${i}_lead_es`} value={cvImpactEs[i]?.lead ?? ''} />
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Frase (EN)</label>
+                <input class="admin-input" type="text" name={`cv_impact_${i}_lead_en`} value={cvImpactEn[i]?.lead ?? ''} />
+              </div>
+            </div>
+            <div class="admin-row">
+              <div class="admin-field">
+                <label class="admin-label">Detalle (ES)</label>
+                <textarea class="admin-textarea" name={`cv_impact_${i}_body_es`} rows="2">{cvImpactEs[i]?.body ?? ''}</textarea>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Detalle (EN)</label>
+                <textarea class="admin-textarea" name={`cv_impact_${i}_body_en`} rows="2">{cvImpactEn[i]?.body ?? ''}</textarea>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
 
@@ -458,6 +539,22 @@ const IMAGE_SLOTS = [
     padding: 10px 14px;
     margin-bottom: 20px;
     max-width: 940px;
+  }
+
+  /* CV checkbox toggle */
+  .admin-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--admin-text);
+    cursor: pointer;
+  }
+  .admin-checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--admin-accent);
+    cursor: pointer;
   }
 
   /* Beats editor */
