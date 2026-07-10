@@ -135,10 +135,17 @@ const styles = StyleSheet.create({
     lineHeight: 1.6,
   },
   item: { marginBottom: 10 },
+  // Projects carry a problem + impact block, so they need more breathing room
+  // between them than the compact timeline/education entries.
+  projectItem: { marginBottom: 20 },
   itemTitle: {
     fontSize: 9.5,
     fontWeight: 600,
     color: INK,
+  },
+  itemTagline: {
+    fontWeight: 400,
+    color: BODY,
   },
   itemMeta: {
     fontSize: 7,
@@ -351,18 +358,21 @@ function CvDocument({ data, lang }: { data: CvData; lang: Lang }) {
               <View style={styles.section}>
                 <SectionTitle>{t.projects}</SectionTitle>
                 {projects.map((project, i) => (
-                  <View key={i} style={styles.item} wrap={false}>
-                    <Text style={styles.itemTitle}>{project.title}</Text>
-                    {project.description && (
-                      <Text style={styles.itemDesc}>{project.description}</Text>
-                    )}
+                  <View key={i} style={styles.projectItem}>
+                    <Text style={styles.itemTitle}>
+                      {project.title}
+                      {project.tagline ? (
+                        <Text style={styles.itemTagline}> — {project.tagline}</Text>
+                      ) : ''}
+                    </Text>
                     {project.problem && (
                       <Text style={styles.problemText}>{project.problem}</Text>
                     )}
                     {project.impact.length > 0 && (
                       <View style={styles.impactList}>
                         {project.impact.map((bullet, j) => (
-                          <View key={j} style={styles.impactBullet}>
+                          <View key={j} style={styles.impactBullet} wrap={false}>
+
                             <View style={styles.impactMark} />
                             <Text style={styles.impactText}>
                               {bullet.lead && <Text style={styles.impactLead}>{bullet.lead}</Text>}

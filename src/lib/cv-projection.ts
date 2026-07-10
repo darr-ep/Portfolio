@@ -16,8 +16,8 @@ export interface CvImpactBullet {
 export interface CvProjectRow {
   title_es: string;
   title_en: string;
-  description_es: string;
-  description_en: string;
+  tagline_es: string | null;
+  tagline_en: string | null;
   tech: string[] | null;
   cv_visible: boolean | null;
   cv_problem_es: string | null;
@@ -28,7 +28,8 @@ export interface CvProjectRow {
 
 export interface CvProjectView {
   title: string;
-  description: string;
+  /** The project tagline — a crisp one-line subtitle for the CV heading. '' when absent. */
+  tagline: string;
   tech: string[];
   /** '' when absent. */
   problem: string;
@@ -72,7 +73,7 @@ export function projectCvProjects(rows: CvProjectRow[], lang: Lang): CvProjectVi
     .filter((row) => row.cv_visible === true)
     .map((row) => ({
       title: textOrEmpty(lang === 'en' ? row.title_en : row.title_es),
-      description: textOrEmpty(lang === 'en' ? row.description_en : row.description_es),
+      tagline: textOrEmpty(lang === 'en' ? row.tagline_en : row.tagline_es),
       tech: row.tech ?? [],
       problem: textOrEmpty(lang === 'en' ? row.cv_problem_en : row.cv_problem_es),
       impact: normalizeImpact(lang === 'en' ? row.cv_impact_en : row.cv_impact_es),

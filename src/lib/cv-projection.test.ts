@@ -4,8 +4,8 @@ import { projectCvProjects, CV_IMPACT_SLOTS, type CvProjectRow } from './cv-proj
 const baseRow: CvProjectRow = {
   title_es: 'O2 Flow',
   title_en: 'O2 Flow EN',
-  description_es: 'Descripción es.',
-  description_en: 'Description en.',
+  tagline_es: 'Tagline es.',
+  tagline_en: 'Tagline en.',
   tech: ['React Native', 'Supabase'],
   cv_visible: true,
   cv_problem_es: 'El equipo perdía tiempo coordinando turnos.',
@@ -52,7 +52,7 @@ describe('projectCvProjects — locale resolution', () => {
     const [view] = projectCvProjects([row({})], 'es');
 
     expect(view.title).toBe('O2 Flow');
-    expect(view.description).toBe('Descripción es.');
+    expect(view.tagline).toBe('Tagline es.');
     expect(view.problem).toBe('El equipo perdía tiempo coordinando turnos.');
   });
 
@@ -60,8 +60,14 @@ describe('projectCvProjects — locale resolution', () => {
     const [view] = projectCvProjects([row({})], 'en');
 
     expect(view.title).toBe('O2 Flow EN');
-    expect(view.description).toBe('Description en.');
+    expect(view.tagline).toBe('Tagline en.');
     expect(view.problem).toBe('The team wasted time coordinating shifts.');
+  });
+
+  it('resolves null tagline to an empty string', () => {
+    const [view] = projectCvProjects([row({ tagline_es: null })], 'es');
+
+    expect(view.tagline).toBe('');
   });
 
   it('resolves null problem to an empty string', () => {

@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ url }) => {
     supabase
       .from('projects')
       .select(
-        'title_es, title_en, description_es, description_en, tech, cv_visible, cv_problem_es, cv_problem_en, cv_impact_es, cv_impact_en',
+        'title_es, title_en, tagline_es, tagline_en, tech, cv_visible, cv_problem_es, cv_problem_en, cv_impact_es, cv_impact_en',
       )
       .order('sort_order', { ascending: true }),
     supabase.from('technologies').select('*').order('sort_order', { ascending: true }),
