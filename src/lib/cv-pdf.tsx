@@ -160,10 +160,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: MUTED,
   },
+  impactList: {
+    marginTop: 6,
+  },
   impactBullet: {
+    flexDirection: 'row',
+    marginTop: 5,
+  },
+  impactMark: {
+    width: 2.5,
+    backgroundColor: ACCENT,
+    borderRadius: 1.5,
+    marginRight: 7,
+  },
+  impactText: {
+    flex: 1,
     fontSize: 8,
-    lineHeight: 1.55,
-    marginTop: 3,
+    lineHeight: 1.5,
   },
   impactLead: {
     fontWeight: 600,
@@ -346,13 +359,20 @@ function CvDocument({ data, lang }: { data: CvData; lang: Lang }) {
                     {project.problem && (
                       <Text style={styles.problemText}>{project.problem}</Text>
                     )}
-                    {project.impact.map((bullet, j) => (
-                      <Text key={j} style={styles.impactBullet}>
-                        {bullet.lead && <Text style={styles.impactLead}>{bullet.lead}</Text>}
-                        {bullet.lead && bullet.body ? '  ' : ''}
-                        {bullet.body}
-                      </Text>
-                    ))}
+                    {project.impact.length > 0 && (
+                      <View style={styles.impactList}>
+                        {project.impact.map((bullet, j) => (
+                          <View key={j} style={styles.impactBullet}>
+                            <View style={styles.impactMark} />
+                            <Text style={styles.impactText}>
+                              {bullet.lead && <Text style={styles.impactLead}>{bullet.lead}</Text>}
+                              {bullet.lead && bullet.body ? '  ' : ''}
+                              {bullet.body}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
                     {project.tech && project.tech.length > 0 && (
                       <View style={styles.techRow}>
                         {project.tech.map((tech, j) => (
