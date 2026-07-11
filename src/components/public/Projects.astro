@@ -2,6 +2,7 @@
 import { supabase } from '../../lib/supabase';
 import type { Project } from '../../types/database';
 import { isProjectReady, resolveCardImage } from '../../lib/projects';
+import { getTechIcon } from '../../lib/tech-icons';
 
 const { data: projectsData } = await supabase
   .from('projects')
@@ -105,7 +106,15 @@ const featuredMobile = projects.slice(0, 2);
                 </div>
                 {p.description && <p class="project-desc">{p.description}</p>}
                 <div class="project-tech">
-                  {p.tech.map((t) => <span>{t}</span>)}
+                  {p.tech.map((t) => {
+                    const icon = getTechIcon(t);
+                    return (
+                      <span class="tech-chip" style={icon ? `--brand: #${icon.hex}` : undefined}>
+                        {icon && <span class="tech-chip__icon" set:html={icon.svg} />}
+                        <span>{t}</span>
+                      </span>
+                    );
+                  })}
                 </div>
                 {p.ready
                   ? <a href={p.href} class="project-link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
@@ -138,7 +147,15 @@ const featuredMobile = projects.slice(0, 2);
             <h3 class="m-project__title">{p.title.toUpperCase()}</h3>
             {p.description && <p class="m-project__desc">{p.description}</p>}
             <div class="m-project__tech">
-              {p.tech.slice(0, 4).map((t) => <span>{t}</span>)}
+              {p.tech.slice(0, 4).map((t) => {
+                const icon = getTechIcon(t);
+                return (
+                  <span class="tech-chip" style={icon ? `--brand: #${icon.hex}` : undefined}>
+                    {icon && <span class="tech-chip__icon" set:html={icon.svg} />}
+                    <span>{t}</span>
+                  </span>
+                );
+              })}
             </div>
             {p.ready
               ? <a href={p.href} class="m-project__link" data-transition-label={p.title.toUpperCase()}>{seeMoreLabel}</a>
@@ -223,10 +240,12 @@ const featuredMobile = projects.slice(0, 2);
     align-items: flex-start;
   }
 
-  /* 3D Visualizer */
+  /* 3D Visualizer — fixed aspect-ratio (not viewport height) so the card shape
+     is identical on every window size; the 3D stack uses % transforms that scale
+     with the card, so the layout is unaffected. */
   .projects-visuals {
     width: 45%;
-    height: 48vh;
+    aspect-ratio: 16 / 10;
     position: relative;
     overflow: visible;
     perspective: 1200px;
@@ -466,15 +485,34 @@ const featuredMobile = projects.slice(0, 2);
     gap: 0.6rem;
   }
 
-  .project-tech span {
+  /* Tech chips — shared style ported from the Details section (pill + brand icon). */
+  .tech-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     font-family: var(--font-mono, 'Courier New', monospace);
-    font-size: 0.6rem;
+    font-size: 0.72rem;
     letter-spacing: 0.05em;
-    border: 1px solid var(--border-color);
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
     color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
     transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .tech-chip:hover { border-color: var(--accent); }
+
+  /* Brand tint mixed toward the theme's text color so near-black logos stay visible. */
+  .tech-chip__icon {
+    color: color-mix(in srgb, var(--brand, currentColor) 72%, var(--text-primary));
+  }
+
+  /* :global() — the SVG comes from set:html (raw markup) with no scoped attribute. */
+  .tech-chip__icon :global(svg) {
+    display: block;
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
   }
 
   .project-link {
@@ -629,16 +667,6 @@ const featuredMobile = projects.slice(0, 2);
     margin-top: 0.1rem;
   }
 
-  .m-project__tech span {
-    font-family: var(--font-mono, 'Courier New', monospace);
-    font-size: 0.6rem;
-    letter-spacing: 0.05em;
-    border: 1px solid var(--border-color);
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
-    color: var(--text-secondary);
-  }
-
   .m-project__link {
     margin-top: 0.5rem;
     font-family: var(--font-mono, 'Courier New', monospace);
@@ -655,10 +683,15 @@ const featuredMobile = projects.slice(0, 2);
       gap: 2.5rem;
     }
 
+    /* Fixed aspect-ratio instead of viewport-height sizing: the card shape stays
+       consistent across tablet widths (no more square-on-narrow / wide-on-wide),
+       and capping the width keeps it from dominating the top of the column. */
     .projects-visuals {
       width: 100%;
-      height: 34vh;
-      max-height: 300px;
+      max-width: 460px;
+      margin: 0 auto;
+      height: auto;
+      aspect-ratio: 16 / 10;
     }
 
     /* On touch screens the 3D side-stack only sticks out and hides the project tabs.

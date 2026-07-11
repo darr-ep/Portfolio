@@ -10,13 +10,16 @@ type Entry = {
   entry_type: EntryType;
 };
 
-const TYPE_LABELS: Record<EntryType, { es: string; en: string; color: string }> = {
-  work:          { es: 'TRABAJO',        en: 'WORK',          color: 'var(--accent)' },
-  freelance:     { es: 'FREELANCE',      en: 'FREELANCE',     color: '#7dd3fc' },
-  education:     { es: 'EDUCACIÓN',      en: 'EDUCATION',     color: '#86efac' },
-  project:       { es: 'PROYECTO',       en: 'PROJECT',       color: '#c4b5fd' },
-  certification: { es: 'CERTIFICACIÓN',  en: 'CERTIFICATION', color: '#fda4af' },
-  milestone:     { es: 'HITO',           en: 'MILESTONE',     color: 'var(--text-muted)' },
+// Colors resolve to CSS variables (defined in global.css) so they adapt to the
+// active theme. The dark set uses pastels; the light theme darkens them because
+// the pale green/rose were invisible on the light background.
+const TYPE_META: Record<EntryType, { es: string; en: string; cssVar: string }> = {
+  work:          { es: 'TRABAJO',        en: 'WORK',          cssVar: '--tl-work' },
+  freelance:     { es: 'FREELANCE',      en: 'FREELANCE',     cssVar: '--tl-freelance' },
+  education:     { es: 'EDUCACIÓN',      en: 'EDUCATION',     cssVar: '--tl-education' },
+  project:       { es: 'PROYECTO',       en: 'PROJECT',       cssVar: '--tl-project' },
+  certification: { es: 'CERTIFICACIÓN',  en: 'CERTIFICATION', cssVar: '--tl-certification' },
+  milestone:     { es: 'HITO',           en: 'MILESTONE',     cssVar: '--tl-milestone' },
 };
 
 export function AceternityTimeline({
@@ -26,153 +29,143 @@ export function AceternityTimeline({
   data: Entry[];
   lang?: string;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [fillHeight, setFillHeight] = useState(0);
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [shown, setShown] = useState<boolean[]>(() => data.map(() => false));
 
+  // Reveal each entry with a fade-up as it enters the viewport (replaces the
+  // motion that the old animated rail provided).
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const update = () => {
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const scrolled = Math.max(0, vh - rect.top);
-      const progress = Math.min(scrolled / rect.height, 1);
-      setFillHeight(progress * rect.height);
-    };
-
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update, { passive: true });
-    update();
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const idx = Number((e.target as HTMLElement).dataset.idx);
+          setShown((prev) => {
+            if (prev[idx]) return prev;
+            const next = [...prev];
+            next[idx] = true;
+            return next;
+          });
+          io.unobserve(e.target);
+        });
+      },
+      { threshold: 0.2, rootMargin: "0px 0px -10% 0px" }
+    );
+    itemRefs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
   }, []);
 
   const isEs = lang !== 'en';
 
   return (
-    <div ref={containerRef} style={{ position: "relative", paddingLeft: "1.5rem" }}>
-      {/* Track */}
-      <div style={{
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: "2px",
-        background: "var(--border-color)",
-      }}>
-        <div style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: fillHeight,
-          background: "linear-gradient(to bottom, var(--accent), transparent)",
-          transition: "height 80ms linear",
-        }} />
-      </div>
-
+    <div>
       {data.map((entry, i) => {
-        const meta = TYPE_LABELS[entry.entry_type] ?? TYPE_LABELS.work;
+        const meta = TYPE_META[entry.entry_type] ?? TYPE_META.work;
         const typeLabel = isEs ? meta.es : meta.en;
-        const showBadge = entry.entry_type !== 'work';
+        const color = `var(${meta.cssVar})`;
+        const showType = entry.entry_type !== 'work';
 
         return (
           <div
             key={i}
+            ref={(el) => { itemRefs.current[i] = el; }}
+            data-idx={i}
             style={{
-              display: "flex",
-              gap: "clamp(1.5rem, 4vw, 4rem)",
-              paddingBottom: i < data.length - 1 ? "clamp(3rem, 6vw, 5rem)" : 0,
+              opacity: shown[i] ? 1 : 0,
+              transform: shown[i] ? "none" : "translateY(26px)",
+              transition: "opacity 0.7s cubic-bezier(0.25,1,0.5,1), transform 0.7s cubic-bezier(0.25,1,0.5,1)",
+              transitionDelay: `${Math.min(i, 4) * 60}ms`,
             }}
           >
-            {/* Left: dot + year (sticky) */}
-            <div style={{
-              position: "sticky",
-              top: "5rem",
-              alignSelf: "flex-start",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.6rem",
-              minWidth: "clamp(70px, 12vw, 120px)",
-              paddingTop: "0.15rem",
-            }}>
+            {/* Divider between entries — the section-header gradient motif. */}
+            {i > 0 && (
               <div style={{
-                width: "14px",
-                height: "14px",
-                borderRadius: "50%",
-                background: "var(--bg-primary)",
-                border: `2px solid ${meta.color}`,
-                boxShadow: `0 0 10px ${meta.color}55`,
-                flexShrink: 0,
-                marginLeft: "-8px",
+                height: "1px",
+                background: "linear-gradient(90deg, var(--border-color), transparent)",
+                margin: "clamp(2.25rem, 5vw, 3.75rem) 0",
               }} />
-              <span style={{
-                fontFamily: "var(--font-mono, 'Courier New', monospace)",
-                fontSize: "0.7rem",
-                color: meta.color,
-                letterSpacing: "0.1em",
-                writingMode: "vertical-rl",
-                transform: "rotate(180deg)",
-                marginTop: "0.25rem",
-              }}>
-                {entry.period}
-              </span>
-            </div>
+            )}
 
-            {/* Right: content */}
-            <div style={{ flex: 1, paddingTop: "0.1rem" }}>
-              {showBadge && (
+            <div style={{
+              display: "flex",
+              gap: "clamp(1.25rem, 4vw, 3.5rem)",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+            }}>
+              {/* Left: oversized year + colored type accent bar */}
+              <div style={{
+                minWidth: "clamp(110px, 16vw, 190px)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+              }}>
                 <span style={{
-                  display: "inline-block",
-                  fontFamily: "var(--font-mono, 'Courier New', monospace)",
-                  fontSize: "0.55rem",
-                  letterSpacing: "0.2em",
-                  color: meta.color,
-                  border: `1px solid ${meta.color}55`,
-                  borderRadius: "3px",
-                  padding: "0.15rem 0.5rem",
-                  marginBottom: "0.75rem",
-                  textTransform: "uppercase" as const,
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 900,
+                  fontSize: "clamp(1.6rem, 3.4vw, 2.7rem)",
+                  lineHeight: 1,
+                  letterSpacing: "-0.03em",
+                  color: "var(--text-primary)",
+                  whiteSpace: "nowrap",
                 }}>
-                  {typeLabel}
+                  {entry.period}
                 </span>
-              )}
+                <span style={{
+                  width: "34px",
+                  height: "3px",
+                  borderRadius: "999px",
+                  background: color,
+                }} />
+              </div>
 
-              <h3 style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 900,
-                fontSize: "clamp(1.4rem, 3vw, 2.2rem)",
-                color: "var(--text-primary)",
-                letterSpacing: "-0.02em",
-                lineHeight: 1,
-                marginBottom: "0.5rem",
-              }}>
-                {entry.company}
-              </h3>
+              {/* Right: content */}
+              <div style={{ flex: 1, minWidth: "min(100%, 260px)", paddingTop: "0.1rem" }}>
+                {showType && (
+                  <span style={{
+                    display: "block",
+                    fontFamily: "var(--font-mono, 'Courier New', monospace)",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.22em",
+                    color,
+                    textTransform: "uppercase" as const,
+                    marginBottom: "0.7rem",
+                  }}>
+                    {typeLabel}
+                  </span>
+                )}
 
-              <p style={{
-                fontFamily: "var(--font-mono, 'Courier New', monospace)",
-                fontSize: "0.65rem",
-                color: "var(--text-muted)",
-                letterSpacing: "0.2em",
-                textTransform: "uppercase" as const,
-                marginBottom: "1.25rem",
-              }}>
-                {entry.role}
-              </p>
+                <h3 style={{
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 900,
+                  fontSize: "clamp(1.35rem, 2.6vw, 2.1rem)",
+                  color: "var(--text-primary)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.05,
+                  marginBottom: "0.5rem",
+                }}>
+                  {entry.company}
+                </h3>
 
-              <p style={{
-                fontSize: "0.9rem",
-                lineHeight: 1.75,
-                color: "var(--text-secondary)",
-                maxWidth: "680px",
-              }}>
-                {entry.description}
-              </p>
+                <p style={{
+                  fontFamily: "var(--font-mono, 'Courier New', monospace)",
+                  fontSize: "0.64rem",
+                  color: "var(--text-muted)",
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase" as const,
+                  marginBottom: "1rem",
+                }}>
+                  {entry.role}
+                </p>
+
+                <p style={{
+                  fontSize: "0.9rem",
+                  lineHeight: 1.75,
+                  color: "var(--text-secondary)",
+                  maxWidth: "680px",
+                }}>
+                  {entry.description}
+                </p>
+              </div>
             </div>
           </div>
         );

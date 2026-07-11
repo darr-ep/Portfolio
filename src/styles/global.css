@@ -30,6 +30,19 @@
   --border-color: rgba(255, 255, 255, 0.07);
   --sidebar-bg: #0d0d0d;
   --accent: #e3a857;
+  /* Text-safe accent: readable when used as a text/icon color on the bg.
+     On dark this equals --accent; the light theme darkens it (see html.light). */
+  --accent-strong: #e3a857;
+
+  /* Timeline entry-type colors (see AceternityTimeline). Dark set — pastels
+     that pop on the dark bg; the light theme overrides them (html.light). */
+  --tl-work: var(--accent);
+  --tl-freelance: #7dd3fc;
+  --tl-education: #86efac;
+  --tl-project: #c4b5fd;
+  --tl-certification: #fda4af;
+  --tl-milestone: var(--text-muted);
+
   --scrollbar-track: #0d0d0d;
   --scrollbar-thumb: #262626;
   --scrollbar-thumb-hover: #404040;
@@ -58,6 +71,19 @@ html.light {
   --border-color: rgba(0, 0, 0, 0.08);
   --sidebar-bg: hsl(0, 0%, 90%);
   --accent: #e3a857;
+  /* Darker gold so accent-colored TEXT stays legible on the light bg
+     (the bright #e3a857 washes out as text on hsl(0,0%,90%)). */
+  --accent-strong: #8a5a1c;
+
+  /* Timeline colors darkened for legibility on the light background — the dark
+     pastels (pale green/rose) were invisible on hsl(0,0%,90%). */
+  --tl-work: var(--accent-strong);
+  --tl-freelance: #0e7490;
+  --tl-education: #15803d;
+  --tl-project: #6d28d9;
+  --tl-certification: #be123c;
+  --tl-milestone: var(--text-muted);
+
   --scrollbar-track: hsl(0, 0%, 90%);
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);

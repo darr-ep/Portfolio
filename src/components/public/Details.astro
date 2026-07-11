@@ -52,8 +52,8 @@ const cvLinks = [
         </h3>
         <p class="philosophy-text">
           {lang === 'en'
-            ? 'I believe a line of code is worthless without a solid conceptual foundation and an understanding of interactive design. My focus is on closing the gap between top-tier visual design and robust engineering.'
-            : 'Creo que una línea de código no vale nada sin una base conceptual sólida y un entendimiento del diseño interactivo. Mi enfoque está en cerrar la brecha entre el diseño visual de primer nivel y la ingeniería robusta.'}
+            ? 'Every detail is a design decision, not an accident. I work at the intersection of visual design and engineering, where the concept defines the experience and the code makes it inevitable.'
+            : 'Cada detalle es una decisión de diseño, no un accidente. Trabajo en el cruce entre el diseño visual y la ingeniería, donde el concepto define la experiencia y el código la vuelve inevitable.'}
         </p>
         <p class="philosophy-sub">
           {lang === 'en'
@@ -75,13 +75,15 @@ const cvLinks = [
         </div>
       </div>
 
-      <!-- Right: Skills grid -->
+      <!-- Right: Skills grouped by category as editorial rows -->
       <div class="details-right reveal-details-right">
-        <div class="skills-grid">
+        <div class="skills-list">
           {skillGroups.map((group) => (
-            <div class="skill-box">
-              <span class="skill-bar" aria-hidden="true"></span>
-              <span class="skill-category">{group.category.toUpperCase()}</span>
+            <div class="skill-group">
+              <div class="skill-group__head">
+                <span class="skill-category">{group.category.toUpperCase()}</span>
+                <span class="skill-group__line" aria-hidden="true"></span>
+              </div>
               <div class="skill-chips">
                 {group.skills.map((skill) => {
                   const icon = getTechIcon(skill);
@@ -198,53 +200,34 @@ const cvLinks = [
   .philosophy-sub {
     font-family: var(--font-mono, 'Courier New', monospace);
     font-size: 0.8rem;
-    color: var(--accent);
+    color: var(--accent-strong);
     line-height: 1.6;
-    border-left: 2px solid var(--accent);
+    border-left: 2px solid var(--accent-strong);
     padding-left: 1.2rem;
     transition: color 0.3s ease, border-color 0.3s ease;
   }
 
-  /* Skills grid */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+  /* Skills grouped as editorial rows (no boxes) */
+  .skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
   }
 
-  .skill-box {
-    border: 1px solid var(--border-color);
-    background-color: rgba(128, 128, 128, 0.02);
-    padding: 1.75rem 1.5rem;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  .skill-group__head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
   }
 
-  /* Top accent bar — expands on hover */
-  .skill-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 2px;
-    width: 0;
-    background: var(--accent);
-    transition: width 0.4s ease;
+  /* Fading divider — reuses the section-header line motif. */
+  .skill-group__line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    transition: background 0.3s ease;
   }
-
-  .skill-box:hover {
-    border-color: var(--accent);
-    background-color: rgba(128, 128, 128, 0.05);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-
-  .skill-box:hover .skill-bar { width: 100%; }
-
-  .skill-box:hover .skill-category { color: var(--accent); }
-
-  .skill-box:hover .skill-chip { color: var(--text-primary); }
 
   .skill-category {
     font-family: var(--font-mono, 'Courier New', monospace);
@@ -252,8 +235,7 @@ const cvLinks = [
     font-weight: 700;
     letter-spacing: 0.2em;
     color: var(--text-muted);
-    display: block;
-    margin-bottom: 1.1rem;
+    white-space: nowrap;
     transition: color 0.3s ease;
   }
 
@@ -337,11 +319,6 @@ const cvLinks = [
       padding: 5rem 1.5rem;
     }
 
-    .skills-grid {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    .skill-box { padding: 1.5rem 1.25rem; }
+    .skills-list { gap: 2rem; }
   }
 </style>
