@@ -21,6 +21,9 @@ if (Astro.request.method === 'POST') {
     location_en: form.get('location_en'),
     github_url: form.get('github_url'),
     linkedin_url: form.get('linkedin_url'),
+    available_for_work: form.get('available_for_work') === 'on',
+    status_es: form.get('status_es'),
+    status_en: form.get('status_en'),
   }).eq('id', profile!.id);
   return Astro.redirect('/admin/profile');
 }
@@ -50,6 +53,31 @@ if (Astro.request.method === 'POST') {
             <label class="admin-label" for="role_en">Rol (EN) *</label>
             <input class="admin-input" type="text" id="role_en" name="role_en"
               value={profile?.role_en ?? ''} required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <span class="admin-section-title">Disponibilidad</span>
+      <div class="admin-fields">
+        <div class="admin-field">
+          <label class="admin-checkbox-label">
+            <input type="checkbox" name="available_for_work"
+              checked={profile?.available_for_work ?? true} />
+            <span>Disponible para trabajar (punto verde en el hero; sin marcar, rojo)</span>
+          </label>
+        </div>
+        <div class="admin-row">
+          <div class="admin-field">
+            <label class="admin-label" for="status_es">Texto de estado (ES)</label>
+            <input class="admin-input" type="text" id="status_es" name="status_es"
+              value={profile?.status_es ?? ''} placeholder="DISPONIBLE PARA TRABAJAR" />
+          </div>
+          <div class="admin-field">
+            <label class="admin-label" for="status_en">Texto de estado (EN)</label>
+            <input class="admin-input" type="text" id="status_en" name="status_en"
+              value={profile?.status_en ?? ''} placeholder="AVAILABLE FOR WORK" />
           </div>
         </div>
       </div>

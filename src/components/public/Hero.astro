@@ -1,11 +1,20 @@
 ---
 import PixelBlast from '../islands/PixelBlast.tsx';
 import SpotifyWidget from '../islands/SpotifyWidget.tsx';
+import { supabase } from '../../lib/supabase';
 
 const lang = Astro.currentLocale ?? 'es';
 const scrollLabel = lang === 'en' ? 'SCROLL TO EXPLORE' : 'DESLIZA PARA EXPLORAR';
 const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
 const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
+
+// Availability status is CMS-driven (profile table). select('*') stays safe if the
+// migration hasn't run yet — the fields are simply absent and the fallbacks apply.
+const { data: profile } = await supabase.from('profile').select('*').single();
+const available = profile?.available_for_work ?? true;
+const statusText =
+  (lang === 'en' ? profile?.status_en : profile?.status_es) ||
+  (lang === 'en' ? 'AVAILABLE FOR WORK' : 'DISPONIBLE PARA TRABAJAR');
 ---
 
 <section class="hero">
@@ -30,8 +39,8 @@ const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
         <span class="sub-name">EDSON PEDRAZA</span>
 
         <div class="status-ticker">
-          <span class="ticker-dot" aria-hidden="true"></span>
-          <span class="ticker-text">STATUS: AVAILABLE FOR WORK</span>
+          <span class={`ticker-dot ${available ? '' : 'is-busy'}`} aria-hidden="true"></span>
+          <span class="ticker-text">STATUS: {statusText}</span>
           <span class="ticker-divider" aria-hidden="true">/</span>
           <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
           <span class="ticker-divider" aria-hidden="true">/</span>
@@ -237,6 +246,13 @@ const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
     display: inline-block;
     box-shadow: 0 0 8px var(--success, #0b9b3b);
     animation: pulse 2s infinite ease-in-out;
+  }
+
+  /* Not available: solid red, no pulse. */
+  .ticker-dot.is-busy {
+    background-color: var(--danger, #ef4444);
+    box-shadow: 0 0 8px var(--danger, #ef4444);
+    animation: none;
   }
 
   @keyframes pulse {

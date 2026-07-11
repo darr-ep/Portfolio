@@ -96,6 +96,9 @@ export interface Profile {
   location_en: string;
   github_url: string;
   linkedin_url: string;
+  available_for_work: boolean;
+  status_es: string;
+  status_en: string;
   updated_at: string;
 }
 
