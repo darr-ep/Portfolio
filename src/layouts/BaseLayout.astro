@@ -440,7 +440,9 @@ const {
       #progress-bar {
         position: fixed;
         top: 0;
-        left: 80px;
+        /* Full-bleed from the left edge — spans over the top of the sidebar too
+           (z-index 9997 sits above the sidebar's 100). */
+        left: 0;
         right: 0;
         height: 2px;
         background: var(--accent);
@@ -448,9 +450,6 @@ const {
         transform: scaleX(0);
         z-index: 9997;
         pointer-events: none;
-      }
-      @media (max-width: 768px) {
-        #progress-bar { left: 0; top: 0; }
       }
 
       #page-transition {

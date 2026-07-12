@@ -130,7 +130,9 @@ const langHref = isEs ? enHref : esHref;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: 2.5rem 0;
+    /* Match the page's vertical rhythm (hero/footer use 5rem top, 4rem bottom)
+       so the logo lines up with the name and the socials with the footer. */
+    padding: 5rem 0 4rem;
     z-index: 100;
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
@@ -291,6 +293,16 @@ const langHref = isEs ? enHref : esHref;
   .social-icon:hover {
     color: var(--text-primary);
     transform: translateY(-2px);
+  }
+
+  /* Tablet / small desktop (769–1000px): the hero goes full-bleed in this range
+     (see Hero.astro). Drop the sidebar's own background/border so the hero photo
+     bleeds under the nav — the icons float over the image instead of sitting on a
+     solid black bar. Over the sections below (all dark) the icons stay readable. */
+  @media (min-width: 769px) and (max-width: 1000px) {
+    .sidebar {
+      background-color: transparent;
+    }
   }
 
   /* Mobile: the desktop sidebar is replaced by the StaggeredMenu island */

@@ -237,15 +237,16 @@ const featuredMobile = projects.slice(0, 2);
     display: flex;
     gap: 5rem;
     width: 100%;
-    align-items: flex-start;
+    /* Center the square visualizer against the taller accordion column. */
+    align-items: center;
   }
 
   /* 3D Visualizer — fixed aspect-ratio (not viewport height) so the card shape
      is identical on every window size; the 3D stack uses % transforms that scale
-     with the card, so the layout is unaffected. */
+     with the card, so the layout is unaffected. Square on desktop. */
   .projects-visuals {
-    width: 45%;
-    aspect-ratio: 16 / 10;
+    width: 42%;
+    aspect-ratio: 1 / 1;
     position: relative;
     overflow: visible;
     perspective: 1200px;
@@ -288,9 +289,9 @@ const featuredMobile = projects.slice(0, 2);
   .visual-card-back.pos-center,
   .visual-card-front.pos-center { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); z-index: 5; }
   .visual-card-back.pos-left,
-  .visual-card-front.pos-left   { transform: translate3d(-35%, 12%, -150px) scale(0.75) rotate(-8deg); z-index: 2; }
+  .visual-card-front.pos-left   { transform: translate3d(-28%, 10%, -150px) scale(0.72) rotate(-8deg); z-index: 2; }
   .visual-card-back.pos-right,
-  .visual-card-front.pos-right  { transform: translate3d(35%, 12%, -150px) scale(0.75) rotate(8deg); z-index: 2; }
+  .visual-card-front.pos-right  { transform: translate3d(28%, 10%, -150px) scale(0.72) rotate(8deg); z-index: 2; }
 
   .visual-card-back { opacity: 0.22; }
   .visual-card-front {

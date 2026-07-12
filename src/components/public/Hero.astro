@@ -391,13 +391,13 @@ const statusText =
   .img-bg {
     z-index: 1;
     filter: brightness(0.85) contrast(1.1);
-    object-position: bottom;
+    object-position: center;
   }
 
   .img-fg {
     z-index: 3;
     pointer-events: none;
-    object-position: bottom;
+    object-position: center;
   }
 
   .pixelblast-wrap {
@@ -506,6 +506,82 @@ const statusText =
     }
 
     /* The giant "01" watermark only clutters the small screen */
+    .watermark {
+      display: none;
+    }
+  }
+
+  /* Tablet / small desktop (769–1000px): the 60/40 split makes the portrait too
+     thin (a sliver), so the hero goes full-bleed — image behind, text overlaid —
+     while the desktop sidebar stays. The image spans the full width (under the
+     sidebar too); Sidebar.astro drops its background in this same range so the
+     photo bleeds under the nav instead of the left edge reading as a black bar. */
+  @media (min-width: 769px) and (max-width: 1000px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding-left: 0;
+    }
+
+    .hero-right {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Bias the portrait toward the top so the face clears the title. */
+    .img-fg {
+      object-position: top center;
+    }
+
+    .hero-left {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      /* clear the 80px sidebar on the left; 5rem/4rem matches the sidebar rhythm */
+      padding: 5rem 3rem 4rem calc(80px + 2.5rem);
+      justify-content: space-between;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.35) 30%,
+        rgba(0, 0, 0, 0.45) 62%,
+        rgba(0, 0, 0, 0.9) 100%
+      );
+    }
+
+    /* Force light text over the photo regardless of the active theme. */
+    .sub-name,
+    .status-ticker,
+    .ticker-text,
+    .ticker-time,
+    .scroll-text {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+
+    .hero-title {
+      color: #fff;
+      font-size: clamp(3rem, 9vw, 5rem);
+      line-height: 0.9;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+    }
+
+    .text-serif {
+      font-size: clamp(3.4rem, 10vw, 5.6rem);
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .scroll-btn {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .scroll-btn:hover {
+      background-color: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
     .watermark {
       display: none;
     }

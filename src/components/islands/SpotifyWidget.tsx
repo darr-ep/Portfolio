@@ -76,6 +76,13 @@ export default function SpotifyWidget() {
           revealNextFrame();
           busyRef.current = false;
         }, 380);
+      } else if (scrolled && placementRef.current === 'floating') {
+        // Fade the floating widget out once the footer is in view so it never
+        // covers the copyright in the bottom-left corner.
+        const nearBottom =
+          window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 220;
+        setVisible(!nearBottom);
       }
     };
 

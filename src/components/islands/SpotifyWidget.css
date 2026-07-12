@@ -8,7 +8,8 @@
    z-index sits below the mobile menu wrapper (120) so the open full-screen menu covers it. */
 .spotify-widget--floating {
   position: fixed;
-  bottom: 2rem;
+  /* 4rem matches the sidebar's bottom inset so it lines up with the socials/footer. */
+  bottom: 4rem;
   left: calc(80px + 1.5rem);
   z-index: 90;
 }
