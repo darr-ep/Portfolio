@@ -4,10 +4,20 @@ import { supabase } from '../../../lib/supabase';
 
 let formError: string | null = null;
 
-// Approach is authored as up to 4 "beats" (big statement + support paragraph).
-const BEAT_SLOTS = 4;
+const BEAT_SLOTS = 3;
 const beatsEs: { lead: string; body: string }[] = [];
 const beatsEn: { lead: string; body: string }[] = [];
+
+function collectVisibleBeats(form: FormData, locale: 'es' | 'en') {
+  const beats = Array.from({ length: BEAT_SLOTS }, (_, i) => ({
+    lead: ((form.get(`beat_${i}_lead_${locale}`) as string) || '').trim(),
+    body: ((form.get(`beat_${i}_body_${locale}`) as string) || '').trim(),
+  }));
+
+  // Preserve empty middle positions; remove only empty positions after the last authored beat.
+  while (beats.length > 0 && !beats.at(-1)?.lead && !beats.at(-1)?.body) beats.pop();
+  return beats;
+}
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
@@ -17,17 +27,8 @@ if (Astro.request.method === 'POST') {
     .map((t) => t.trim())
     .filter(Boolean);
 
-  // Collect the beat slots into { lead, body }[] per language, skipping empties.
-  const beats_es: { lead: string; body: string }[] = [];
-  const beats_en: { lead: string; body: string }[] = [];
-  for (let i = 0; i < BEAT_SLOTS; i++) {
-    const leadEs = ((form.get(`beat_${i}_lead_es`) as string) || '').trim();
-    const bodyEs = ((form.get(`beat_${i}_body_es`) as string) || '').trim();
-    const leadEn = ((form.get(`beat_${i}_lead_en`) as string) || '').trim();
-    const bodyEn = ((form.get(`beat_${i}_body_en`) as string) || '').trim();
-    if (leadEs || bodyEs) beats_es.push({ lead: leadEs, body: bodyEs });
-    if (leadEn || bodyEn) beats_en.push({ lead: leadEn, body: bodyEn });
-  }
+  const beats_es = collectVisibleBeats(form, 'es');
+  const beats_en = collectVisibleBeats(form, 'en');
 
   // Required bilingual fields -- EN falls back to ES if left empty.
   const title_es   = (form.get('title_es')   as string) || '';
@@ -228,7 +229,7 @@ if (Astro.request.method === 'POST') {
       <div class="admin-fields">
         {Array.from({ length: BEAT_SLOTS }).map((_, i) => (
           <div class="beat-slot">
-            <span class="beat-slot__label">Bloque {i + 1}{i === 0 ? ' · con mockup principal' : i === 1 ? ' · con mockup secundario' : ''}</span>
+            <span class="beat-slot__label">Bloque {i + 1} · con mockup {i === 0 ? 'principal' : i === 1 ? 'secundario' : 'terciario'}</span>
             <div class="admin-row">
               <div class="admin-field">
                 <label class="admin-label">Frase grande (ES)</label>

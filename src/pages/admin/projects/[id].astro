@@ -1,14 +1,40 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { supabase } from '../../../lib/supabase';
-import type { ProjectImage } from '../../../types/database';
+import type { ProjectBeat, ProjectImage } from '../../../types/database';
 import { CV_IMPACT_SLOTS } from '../../../lib/cv-projection';
 
 const { id } = Astro.params;
 let saveError: string | null = null;
 
-// Approach is authored as up to 4 "beats" (big statement + support paragraph).
-const BEAT_SLOTS = 4;
+const BEAT_SLOTS = 3;
+
+// Fetch before handling POST so legacy beats after the three visible positions survive saves.
+const { data: project } = await supabase
+  .from('projects')
+  .select('*')
+  .eq('id', id!)
+  .single();
+
+if (!project) {
+  return Astro.redirect('/admin/projects');
+}
+
+function mergeVisibleBeats(form: FormData, locale: 'es' | 'en', existing: ProjectBeat[]): ProjectBeat[] {
+  const visible = Array.from({ length: BEAT_SLOTS }, (_, i) => ({
+    lead: ((form.get(`beat_${i}_lead_${locale}`) as string) || '').trim(),
+    body: ((form.get(`beat_${i}_body_${locale}`) as string) || '').trim(),
+  }));
+  const legacyTail = existing.slice(BEAT_SLOTS);
+
+  // Keep empty middle positions as placeholders so later beats stay paired with their image.
+  // Trailing placeholders are removable only when no invisible legacy tail depends on them.
+  if (legacyTail.length === 0) {
+    while (visible.length > 0 && !visible.at(-1)?.lead && !visible.at(-1)?.body) visible.pop();
+  }
+
+  return [...visible, ...legacyTail];
+}
 
 // Handle text-field save (separate from image upload)
 if (Astro.request.method === 'POST') {
@@ -25,17 +51,8 @@ if (Astro.request.method === 'POST') {
   const desc_es    = (form.get('description_es') as string) || '';
   const desc_en    = (form.get('description_en') as string) || desc_es;
 
-  // Collect the beat slots into { lead, body }[] per language, skipping empties.
-  const beats_es: { lead: string; body: string }[] = [];
-  const beats_en: { lead: string; body: string }[] = [];
-  for (let i = 0; i < BEAT_SLOTS; i++) {
-    const leadEs = ((form.get(`beat_${i}_lead_es`) as string) || '').trim();
-    const bodyEs = ((form.get(`beat_${i}_body_es`) as string) || '').trim();
-    const leadEn = ((form.get(`beat_${i}_lead_en`) as string) || '').trim();
-    const bodyEn = ((form.get(`beat_${i}_body_en`) as string) || '').trim();
-    if (leadEs || bodyEs) beats_es.push({ lead: leadEs, body: bodyEs });
-    if (leadEn || bodyEn) beats_en.push({ lead: leadEn, body: bodyEn });
-  }
+  const beats_es = mergeVisibleBeats(form, 'es', (project.beats_es ?? []) as ProjectBeat[]);
+  const beats_en = mergeVisibleBeats(form, 'en', (project.beats_en ?? []) as ProjectBeat[]);
 
   // Public visibility: hidden projects are unpublished across all public routes.
   const is_visible = form.get('is_visible') === 'on';
@@ -98,17 +115,6 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-// Fetch project
-const { data: project } = await supabase
-  .from('projects')
-  .select('*')
-  .eq('id', id!)
-  .single();
-
-if (!project) {
-  return Astro.redirect('/admin/projects');
-}
-
 // Fetch images for the inline image section
 const { data: rawImages } = await supabase
   .from('project_images')
@@ -134,18 +140,19 @@ const cvImpactEs = (project.cv_impact_es ?? []) as { lead: string; body: string 
 const cvImpactEn = (project.cv_impact_en ?? []) as { lead: string; body: string }[];
 
 const IMAGE_SLOTS = [
-  { key: 'hero',             label: 'Hero / Portada' },
-  { key: 'mockup_main',      label: 'Mockup principal' },
-  { key: 'mockup_secondary', label: 'Mockup secundario' },
-  { key: 'detail',           label: 'Detalle' },
+  { key: 'hero',             label: 'Hero / Portada',    beatIndex: null },
+  { key: 'mockup_main',      label: 'Mockup principal',  beatIndex: 0 },
+  { key: 'mockup_secondary', label: 'Mockup secundario', beatIndex: 1 },
+  { key: 'detail',           label: 'Mockup terciario',  beatIndex: 2 },
 ] as const;
 ---
 <AdminLayout title={`Editar: ${project.title_es} — Admin`}>
+  <div class="project-editor">
 
   <div class="admin-page-header">
     <h1>Editar proyecto</h1>
     <div class="admin-page-header-actions">
-      <a href={`/${project.slug}`} target="_blank" rel="noopener noreferrer"
+      <a href={`/proyectos/${project.slug}`} target="_blank" rel="noopener noreferrer"
         class="admin-btn admin-btn--secondary admin-btn--sm">Ver público</a>
       <a href="/admin/projects" class="admin-btn admin-btn--secondary">Volver a la lista</a>
     </div>
@@ -157,6 +164,10 @@ const IMAGE_SLOTS = [
 
   <!-- Main text-fields form -->
   <form method="POST" class="admin-form-stack" id="project-form">
+    <div class="admin-form-actions admin-form-actions--top">
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancelar</a>
+    </div>
 
     <!-- Section: Basics -->
     <div class="admin-card">
@@ -343,160 +354,140 @@ const IMAGE_SLOTS = [
       </div>
     </div>
 
-    <!-- Section: Approach (beats) -->
-    <div class="admin-card">
-      <span class="admin-section-title">Enfoque — bloques</span>
-      <p class="beats-hint">Cada bloque es una frase grande + un texto de apoyo; se alternan de lado en la página. Deja un bloque vacío para omitirlo. El cierre grande final es la Conclusión.</p>
-      <div class="admin-fields">
-        {Array.from({ length: BEAT_SLOTS }).map((_, i) => (
-          <div class="beat-slot">
-            <span class="beat-slot__label">Bloque {i + 1}{i === 0 ? ' · con mockup principal' : i === 1 ? ' · con mockup secundario' : ''}</span>
-            <div class="admin-row">
-              <div class="admin-field">
-                <label class="admin-label">Frase grande (ES)</label>
-                <input class="admin-input" type="text" name={`beat_${i}_lead_es`} value={beatsEs[i]?.lead ?? ''} />
-              </div>
-              <div class="admin-field">
-                <label class="admin-label">Frase grande (EN)</label>
-                <input class="admin-input" type="text" name={`beat_${i}_lead_en`} value={beatsEn[i]?.lead ?? ''} />
-              </div>
-            </div>
-            <div class="admin-row">
-              <div class="admin-field">
-                <label class="admin-label">Texto de apoyo (ES)</label>
-                <textarea class="admin-textarea" name={`beat_${i}_body_es`} rows="3">{beatsEs[i]?.body ?? ''}</textarea>
-              </div>
-              <div class="admin-field">
-                <label class="admin-label">Texto de apoyo (EN)</label>
-                <textarea class="admin-textarea" name={`beat_${i}_body_en`} rows="3">{beatsEn[i]?.body ?? ''}</textarea>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <!-- Section: Conclusion -->
-    <div class="admin-card">
-      <span class="admin-section-title">Conclusión</span>
-      <div class="admin-fields">
-        <div class="admin-row">
-          <div class="admin-field">
-            <label class="admin-label" for="conclusion_es">Conclusión (ES)</label>
-            <textarea class="admin-textarea" id="conclusion_es" name="conclusion_es"
-              rows="4">{project.conclusion_es}</textarea>
-          </div>
-          <div class="admin-field">
-            <label class="admin-label" for="conclusion_en">Conclusión (EN)</label>
-            <textarea class="admin-textarea" id="conclusion_en" name="conclusion_en"
-              rows="4">{project.conclusion_en}</textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Form actions -->
-    <div class="admin-form-actions">
-      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
-      <a href="/admin/projects" class="admin-btn admin-btn--secondary">Cancelar</a>
-    </div>
-
   </form>
 
-  <!-- Inline image management (separate from the text form) -->
-  <section class="images-section" aria-labelledby="images-heading">
-    <div class="section-divider admin-page-header" style="margin-top: 36px;">
-      <h2 id="images-heading" style="font-size: 18px; font-weight: 600;">Mockups / Capturas</h2>
+  <section class="content-blocks" aria-labelledby="blocks-heading">
+    <div class="section-divider admin-page-header">
+      <div>
+        <h2 id="blocks-heading">Enfoque — bloques y mockups</h2>
+        <p class="beats-hint">Los tres bloques conservan su posición aunque uno quede vacío. Cada mockup está vinculado al bloque que aparece a su lado.</p>
+      </div>
     </div>
 
-    <div class="image-grid admin-form-stack" style="max-width: 940px;">
-      {IMAGE_SLOTS.map(({ key, label }) => {
+    <div class="editor-sections">
+      {IMAGE_SLOTS.map(({ key, label, beatIndex }) => {
         const img = imagesBySlot[key];
         return (
-          <div class="admin-card image-slot">
-            <span class="admin-section-title">
-              {label}
-              {img && <span class="slot-badge">Subido</span>}
-            </span>
-
-            {img ? (
-              <div class="slot-filled">
-                <img
-                  src={img.url}
-                  alt={img.alt_es ?? label}
-                  class="slot-preview"
-                  loading="lazy"
-                />
-                <!-- Edit alt text in place — no need to delete and re-upload -->
-                <form action="/api/admin/update-image-alt" method="POST" class="slot-alts">
-                  <input type="hidden" name="image_id" value={img.id} />
+          <section class:list={['editor-section', { 'editor-section--hero': beatIndex === null }]}>
+            {beatIndex !== null && (
+              <div class="admin-card beat-editor">
+                <span class="admin-section-title">Bloque {beatIndex + 1}</span>
+                <div class="admin-fields">
                   <div class="admin-row">
                     <div class="admin-field">
-                      <label class="admin-label">Texto alternativo (ES)</label>
-                      <input class="admin-input" type="text" name="alt_es"
-                        value={img.alt_es ?? ''} placeholder="Descripción de la imagen" />
+                      <label class="admin-label">Frase grande (ES)</label>
+                      <input form="project-form" class="admin-input" type="text" name={`beat_${beatIndex}_lead_es`} value={beatsEs[beatIndex]?.lead ?? ''} />
                     </div>
                     <div class="admin-field">
-                      <label class="admin-label">Texto alternativo (EN)</label>
-                      <input class="admin-input" type="text" name="alt_en"
-                        value={img.alt_en ?? ''} placeholder="Image description" />
+                      <label class="admin-label">Frase grande (EN)</label>
+                      <input form="project-form" class="admin-input" type="text" name={`beat_${beatIndex}_lead_en`} value={beatsEn[beatIndex]?.lead ?? ''} />
                     </div>
                   </div>
-                  <div class="upload-actions">
-                    <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Guardar alt</button>
+                  <div class="admin-row">
+                    <div class="admin-field">
+                      <label class="admin-label">Texto de apoyo (ES)</label>
+                      <textarea form="project-form" class="admin-textarea" name={`beat_${beatIndex}_body_es`} rows="4">{beatsEs[beatIndex]?.body ?? ''}</textarea>
+                    </div>
+                    <div class="admin-field">
+                      <label class="admin-label">Texto de apoyo (EN)</label>
+                      <textarea form="project-form" class="admin-textarea" name={`beat_${beatIndex}_body_en`} rows="4">{beatsEn[beatIndex]?.body ?? ''}</textarea>
+                    </div>
                   </div>
-                </form>
-                <!-- Delete form: POSTs to the existing API; redirects back via Referer -->
-                <form action="/api/admin/delete-project-image" method="POST" class="delete-img-form">
-                  <input type="hidden" name="image_id" value={img.id} />
-                  <input type="hidden" name="storage_path" value={img.storage_path} />
-                  <button
-                    type="submit"
-                    class="admin-btn admin-btn--danger admin-btn--sm"
-                    onclick="return confirm('¿Eliminar esta imagen? No se puede deshacer.')"
-                  >Eliminar imagen</button>
-                </form>
+                </div>
               </div>
-            ) : (
-              <div class="slot-empty">
-                <p class="slot-empty-msg">Aún no se ha subido ninguna imagen.</p>
-                <!-- Upload form handled by JS fetch below -->
-                <form class="upload-form" data-slot={key} data-project={id}>
-                  <input type="hidden" name="slot_key" value={key} />
-                  <input type="hidden" name="project_id" value={id} />
-                  <div class="admin-fields">
-                    <div class="admin-field">
-                      <label class="admin-label">Archivo de imagen *</label>
-                      <input class="admin-input" type="file" name="file"
-                        accept="image/*" required />
-                    </div>
+            )}
+
+            <div class="admin-card image-slot">
+              <span class="admin-section-title">
+                {label}
+                {img && <span class="slot-badge">Subido</span>}
+              </span>
+
+              {img ? (
+                <div class="slot-filled">
+                  <img
+                    src={img.url}
+                    alt={img.alt_es ?? label}
+                    class="slot-preview"
+                    loading="lazy"
+                  />
+                  <form action="/api/admin/update-image-alt" method="POST" class="slot-alts">
+                    <input type="hidden" name="image_id" value={img.id} />
                     <div class="admin-row">
                       <div class="admin-field">
                         <label class="admin-label">Texto alternativo (ES)</label>
                         <input class="admin-input" type="text" name="alt_es"
-                          placeholder="Descripción de la imagen" />
+                          value={img.alt_es ?? ''} placeholder="Descripción de la imagen" />
                       </div>
                       <div class="admin-field">
                         <label class="admin-label">Texto alternativo (EN)</label>
                         <input class="admin-input" type="text" name="alt_en"
-                          placeholder="Image description" />
+                          value={img.alt_en ?? ''} placeholder="Image description" />
                       </div>
                     </div>
                     <div class="upload-actions">
-                      <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">
-                        Subir
-                      </button>
-                      <span class="upload-status" aria-live="polite"></span>
+                      <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Guardar alt</button>
                     </div>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
+                  </form>
+                  <form action="/api/admin/delete-project-image" method="POST" class="delete-img-form">
+                    <input type="hidden" name="image_id" value={img.id} />
+                    <input type="hidden" name="storage_path" value={img.storage_path} />
+                    <button
+                      type="submit"
+                      class="admin-btn admin-btn--danger admin-btn--sm"
+                      onclick="return confirm('¿Eliminar esta imagen? No se puede deshacer.')"
+                    >Eliminar imagen</button>
+                  </form>
+                </div>
+              ) : (
+                <div class="slot-empty">
+                  <p class="slot-empty-msg">Aún no se ha subido ninguna imagen.</p>
+                  <form class="upload-form" data-slot={key} data-project={id}>
+                    <input type="hidden" name="slot_key" value={key} />
+                    <input type="hidden" name="project_id" value={id} />
+                    <div class="admin-fields">
+                      <div class="admin-field">
+                        <label class="admin-label">Archivo de imagen *</label>
+                        <input class="admin-input" type="file" name="file" accept="image/*" required />
+                      </div>
+                      <div class="admin-row">
+                        <div class="admin-field">
+                          <label class="admin-label">Texto alternativo (ES)</label>
+                          <input class="admin-input" type="text" name="alt_es" placeholder="Descripción de la imagen" />
+                        </div>
+                        <div class="admin-field">
+                          <label class="admin-label">Texto alternativo (EN)</label>
+                          <input class="admin-input" type="text" name="alt_en" placeholder="Image description" />
+                        </div>
+                      </div>
+                      <div class="upload-actions">
+                        <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Subir</button>
+                        <span class="upload-status" aria-live="polite"></span>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          </section>
         );
       })}
     </div>
   </section>
+
+  <div class="admin-card conclusion-card">
+    <span class="admin-section-title">Conclusión</span>
+    <div class="admin-row">
+      <div class="admin-field">
+        <label class="admin-label" for="conclusion_es">Conclusión (ES)</label>
+        <textarea form="project-form" class="admin-textarea" id="conclusion_es" name="conclusion_es" rows="4">{project.conclusion_es}</textarea>
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="conclusion_en">Conclusión (EN)</label>
+        <textarea form="project-form" class="admin-textarea" id="conclusion_en" name="conclusion_en" rows="4">{project.conclusion_en}</textarea>
+      </div>
+    </div>
+  </div>
 
   <!-- Danger zone (delete project -- separate from all other forms) -->
   <section class="danger-section" aria-label="Zona de peligro">
@@ -512,6 +503,7 @@ const IMAGE_SLOTS = [
       </form>
     </div>
   </section>
+  </div>
 
 </AdminLayout>
 
@@ -547,6 +539,17 @@ const IMAGE_SLOTS = [
 </script>
 
 <style>
+  .project-editor {
+    width: 100%;
+  }
+  .project-editor > .admin-form-stack { max-width: none; }
+  .admin-form-actions--top {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+
   .error-notice {
     font-size: 13px;
     color: var(--danger, #ef4444);
@@ -574,40 +577,32 @@ const IMAGE_SLOTS = [
     cursor: pointer;
   }
 
-  /* Beats editor */
+  /* Paired content and image editors */
   .beats-hint {
     font-size: 12px;
     color: var(--admin-muted);
     margin: -4px 0 6px;
     max-width: 940px;
   }
-  .beat-slot {
-    border: 1px solid var(--admin-border);
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .beat-slot + .beat-slot { margin-top: 6px; }
-  .beat-slot__label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--admin-accent);
-  }
-
-  /* Images section */
-  .images-section {
-    margin-top: 8px;
-  }
-
-  .image-grid {
+  .content-blocks { margin-top: 36px; }
+  .content-blocks .admin-page-header h2 { font-size: 18px; }
+  .editor-sections {
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
+  .editor-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .editor-section--hero {
+    display: block;
+    max-width: 720px;
+  }
+  .beat-editor, .image-slot { min-width: 0; }
+  .conclusion-card { margin-top: 20px; }
 
   .image-slot { display: flex; flex-direction: column; }
 
@@ -627,8 +622,7 @@ const IMAGE_SLOTS = [
 
   .slot-preview {
     width: 100%;
-    max-height: 260px;
-    object-fit: cover;
+    height: auto;
     border-radius: 6px;
     border: 1px solid var(--admin-border);
     margin-bottom: 14px;
@@ -667,7 +661,7 @@ const IMAGE_SLOTS = [
   /* Danger zone */
   .danger-section {
     margin-top: 36px;
-    max-width: 940px;
+    max-width: 720px;
   }
 
   .danger-card {
@@ -678,5 +672,10 @@ const IMAGE_SLOTS = [
     font-size: 13px;
     color: var(--admin-muted);
     margin-bottom: 16px;
+  }
+
+  @media (max-width: 1040px) {
+    .editor-section { grid-template-columns: 1fr; }
+    .editor-section--hero { max-width: none; }
   }
 </style>

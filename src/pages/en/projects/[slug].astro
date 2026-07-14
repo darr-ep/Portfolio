@@ -36,6 +36,9 @@ const heroImg         = imgBySlot['hero'];
 const mockupMain      = imgBySlot['mockup_main'];
 const mockupSecondary = imgBySlot['mockup_secondary'];
 const detailImg       = imgBySlot['detail'];
+const beatBlocks = Array.from({ length: 3 }, (_, index) => beats[index])
+  .map((beat, index) => ({ beat, index, media: [mockupMain, mockupSecondary, detailImg][index] }))
+  .filter(({ beat, index, media }) => Boolean(beat?.lead || beat?.body || (index === 2 && media)));
 const ogImage = heroImg?.url ?? project.main_image ?? undefined;
 
 const specs = [
@@ -127,15 +130,13 @@ const schemas = [
     </div>
 
     <!-- APPROACH — alternating beats: big statement (Albert 300) + small support -->
-    {beats.length > 0 && (
+    {beatBlocks.length > 0 && (
       <div class="pd-beats">
-        {beats.map((beat, i) => {
-          const media = [mockupMain, mockupSecondary][i];
-          return (
-            <section class:list={['pd-beat', { 'pd-beat--reverse': i % 2 === 1, 'pd-beat--solo': !media }]}>
+        {beatBlocks.map(({ beat, index, media }) => (
+          <section class:list={['pd-beat', { 'pd-beat--reverse': index === 1, 'pd-beat--solo': !media }]}>
               <div class="pd-beat__text">
-                {beat.lead && <p class="pd-beat__lead">{beat.lead}</p>}
-                {beat.body && <p class="pd-beat__body">{beat.body}</p>}
+                {beat?.lead && <p class="pd-beat__lead">{beat.lead}</p>}
+                {beat?.body && <p class="pd-beat__body">{beat.body}</p>}
               </div>
               {media && (
                 <div class="pd-beat__media">
@@ -143,8 +144,7 @@ const schemas = [
                 </div>
               )}
             </section>
-          );
-        })}
+        ))}
       </div>
     )}
 
@@ -185,13 +185,6 @@ const schemas = [
             <img src={mockupSecondary.url} alt={mockupSecondary.alt_en ?? `${title} secondary mockup`} class="pd-figure" />
           </div>
         )}
-      </section>
-    )}
-
-    <!-- Full-width closing detail image -->
-    {detailImg && (
-      <section class="pd-detail-img">
-        <img src={detailImg.url} alt={detailImg.alt_en ?? `${title} detail`} class="pd-figure" />
       </section>
     )}
 
@@ -435,18 +428,23 @@ const schemas = [
     margin: 0;
   }
 
-  /* BEATS — alternating big statement + small support, sides intercalate */
+  /* BEATS — text and its indexed mockup share one edge-to-edge editorial row. */
   .pd-beat {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 3.5rem;
-    padding: 4rem var(--pad-x);
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    align-items: start;
+    gap: clamp(2rem, 4vw, 5rem);
+    padding-left: var(--pad-x);
     border-top: 1px solid var(--border-color);
+  }
+  .pd-beat--reverse {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    padding: 0 var(--pad-x) 0 0;
   }
   .pd-beat--reverse .pd-beat__text { order: 2; }
   .pd-beat--reverse .pd-beat__media { order: 1; }
-  .pd-beat--solo { grid-template-columns: 1fr; }
+  .pd-beat--solo { grid-template-columns: 1fr; padding-inline: var(--pad-x); }
+  .pd-beat__text { padding-block: 4rem; }
   .pd-beat--solo .pd-beat__text { max-width: 60ch; }
   .pd-beat--solo.pd-beat--reverse .pd-beat__text { margin-left: auto; text-align: right; }
   .pd-beat__lead {
@@ -495,8 +493,6 @@ const schemas = [
     border: 1px solid var(--border-color);
     background: var(--bg-secondary, #111);
   }
-
-  .pd-detail-img { padding: 4rem var(--pad-x); border-top: 1px solid var(--border-color); }
 
   .pd-related { padding: 3.5rem var(--pad-x) 5rem; border-top: 1px solid var(--border-color); }
   .pd-related__head { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2rem; }
@@ -601,6 +597,8 @@ const schemas = [
       grid-template-columns: 1fr;
       gap: 1.75rem;
     }
+    .pd-beat, .pd-beat--reverse { padding: 0; }
+    .pd-beat__text { padding: 3rem var(--pad-x); }
     .pd-row--reverse .pd-row__text,
     .pd-row--reverse .pd-row__media,
     .pd-beat--reverse .pd-beat__text,
