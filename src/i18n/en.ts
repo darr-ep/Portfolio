@@ -9,7 +9,7 @@ export const en = {
   hero: {
     status: 'AVAILABLE FOR WORK',
     scrollCta: 'SCROLL TO EXPLORE',
-    role: 'Frontend Developer',
+    role: 'Full Stack Developer',
   },
   services: {
     title: 'Services',

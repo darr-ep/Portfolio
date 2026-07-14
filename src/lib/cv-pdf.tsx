@@ -289,7 +289,7 @@ function CvDocument({ data, lang }: { data: CvData; lang: Lang }) {
   }
 
   const fullName = profile?.full_name ?? 'Edson Pedraza';
-  const role = (isEs ? profile?.role_es : profile?.role_en) ?? 'Frontend Developer';
+  const role = (isEs ? profile?.role_es : profile?.role_en) ?? (isEs ? 'Desarrollador Full Stack' : 'Full Stack Developer');
   const about = isEs ? profile?.about_es : profile?.about_en;
 
   return (

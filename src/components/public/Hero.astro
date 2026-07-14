@@ -6,7 +6,6 @@ import { supabase } from '../../lib/supabase';
 const lang = Astro.currentLocale ?? 'es';
 const scrollLabel = lang === 'en' ? 'SCROLL TO EXPLORE' : 'DESLIZA PARA EXPLORAR';
 const scrollAriaLabel = lang === 'en' ? 'Go to projects' : 'Ir a proyectos';
-const wipLabel = lang === 'en' ? 'SITE IN DEVELOPMENT' : 'SITIO EN DESARROLLO';
 
 // Availability status is CMS-driven (profile table). select('*') stays safe if the
 // migration hasn't run yet — the fields are simply absent and the fallbacks apply.
@@ -43,8 +42,6 @@ const statusText =
           <span class="ticker-text">STATUS: {statusText}</span>
           <span class="ticker-divider" aria-hidden="true">/</span>
           <span id="live-time" class="ticker-time">00:00:00 LOCAL</span>
-          <span class="ticker-divider" aria-hidden="true">/</span>
-          <span class="ticker-wip">{wipLabel}</span>
         </div>
       </div>
 
@@ -230,12 +227,6 @@ const statusText =
     color: var(--text-muted);
     letter-spacing: 0.05em;
     transition: color 0.3s ease;
-  }
-
-  .ticker-wip {
-    color: var(--accent);
-    font-weight: 600;
-    letter-spacing: 0.08em;
   }
 
   .ticker-dot {
