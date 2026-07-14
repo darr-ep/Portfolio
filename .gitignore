@@ -31,3 +31,6 @@ lighthouse.json
 
 # Claude Code local settings (contiene secretos)
 .claude/settings.local.json
+
+# local MCP server config (infra-specific, may reference secrets)
+.mcp.json
