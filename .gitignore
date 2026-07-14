@@ -34,3 +34,6 @@ lighthouse.json
 
 # local MCP server config (infra-specific, may reference secrets)
 .mcp.json
+
+# local reference material (not part of the site)
+Referencias/
