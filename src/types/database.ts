@@ -34,6 +34,8 @@ export interface Project {
   conclusion_en: string | null;
   beats_es: ProjectBeat[] | null;
   beats_en: ProjectBeat[] | null;
+  // Public visibility toggle (migration 0002_project_visibility.sql).
+  is_visible: boolean;
   // Optional: these columns are additive (migration 0001_cv_project_impact.sql)
   // and may not exist on the DB yet. Code reading them must not assume presence.
   cv_visible?: boolean;

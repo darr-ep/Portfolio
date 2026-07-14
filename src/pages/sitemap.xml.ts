@@ -8,7 +8,8 @@ const SITE = 'https://edsonpedraza.com';
 export const GET: APIRoute = async () => {
   const { data: projects } = await supabase
     .from('projects')
-    .select('slug');
+    .select('slug')
+    .eq('is_visible', true);
 
   const slugs = projects?.map((p: { slug: string }) => p.slug).filter(Boolean) ?? [];
 

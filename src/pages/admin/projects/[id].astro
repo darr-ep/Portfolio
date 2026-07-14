@@ -37,6 +37,9 @@ if (Astro.request.method === 'POST') {
     if (leadEn || bodyEn) beats_en.push({ lead: leadEn, body: bodyEn });
   }
 
+  // Public visibility: hidden projects are unpublished across all public routes.
+  const is_visible = form.get('is_visible') === 'on';
+
   // CV export: visibility toggle + problem sentence + fixed impact slots per locale.
   const cv_visible = form.get('cv_visible') === 'on';
   const cv_problem_es = (form.get('cv_problem_es') as string) || null;
@@ -78,6 +81,7 @@ if (Astro.request.method === 'POST') {
       conclusion_en:     form.get('conclusion_en')      || null,
       tech,
       main_image:        form.get('main_image')         || null,
+      is_visible,
       cv_visible,
       cv_problem_es,
       cv_problem_en,
@@ -122,6 +126,7 @@ const beatsEn = (project.beats_en ?? []) as { lead: string; body: string }[];
 
 // CV export fields — tolerant of the columns not existing yet (pre-migration),
 // in which case `project.cv_*` is simply undefined and these fall back safely.
+const isVisible = project.is_visible;
 const cvVisible = project.cv_visible ?? false;
 const cvProblemEs = project.cv_problem_es ?? '';
 const cvProblemEn = project.cv_problem_en ?? '';
@@ -272,6 +277,18 @@ const IMAGE_SLOTS = [
               rows="4">{project.description_en}</textarea>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Section: public visibility -->
+    <div class="admin-card">
+      <span class="admin-section-title">Visibilidad pública</span>
+      <p class="beats-hint">Si está desmarcado, el proyecto no aparece en la landing, el índice de proyectos ni el sitemap, y sus URLs directas responden 404. Úsalo para proyectos aún sin caso de estudio; márcalo cuando esté listo para publicar.</p>
+      <div class="admin-fields">
+        <label class="admin-checkbox-label">
+          <input type="checkbox" name="is_visible" checked={isVisible} />
+          Mostrar este proyecto en el sitio público
+        </label>
       </div>
     </div>
 

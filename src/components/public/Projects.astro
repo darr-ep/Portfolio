@@ -7,6 +7,7 @@ import { getTechIcon } from '../../lib/tech-icons';
 const { data: projectsData } = await supabase
   .from('projects')
   .select('*, project_images(slot_key, url)')
+  .eq('is_visible', true)
   .order('sort_order', { ascending: true });
 
 const lang = Astro.currentLocale ?? 'es';

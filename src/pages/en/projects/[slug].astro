@@ -11,8 +11,8 @@ export const prerender = false;
 const { slug } = Astro.params;
 
 const [detail, list] = await Promise.all([
-  supabase.from('projects').select('*, project_images(*)').eq('slug', slug).single(),
-  supabase.from('projects').select('*, project_images(slot_key, url)').order('sort_order', { ascending: true }),
+  supabase.from('projects').select('*, project_images(*)').eq('slug', slug).eq('is_visible', true).single(),
+  supabase.from('projects').select('*, project_images(slot_key, url)').eq('is_visible', true).order('sort_order', { ascending: true }),
 ]);
 
 if (!detail.data || detail.error) {

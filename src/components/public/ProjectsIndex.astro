@@ -13,6 +13,7 @@ const isEn = lang === 'en';
 const { data: projectsData } = await supabase
   .from('projects')
   .select('*, project_images(slot_key, url)')
+  .eq('is_visible', true)
   .order('sort_order', { ascending: true });
 
 type ProjectWithImages = Project & { project_images?: { slot_key: string; url: string }[] };
